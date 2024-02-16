@@ -1,0 +1,7 @@
+{
+  "packageManager": "yarn@4.1.0",
+  "dependencies": {
+    "@11ty/eleventy": "^2.0.1",
+    "sass": "^1.70.0"
+  }
+}
