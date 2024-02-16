@@ -1,0 +1,11 @@
+__data/*.json
+_site
+
+node_modules
+package.json
+.yarn
+.yarnrc.yml
+yarn.lock
+
+.*.swo
+.*.swp
