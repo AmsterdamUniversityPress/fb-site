@@ -8,7 +8,7 @@ pagination:
     size: 1
     alias: this_fonds
 layout: mylayout.njk
-permalink: "fonds/{{ this_fonds.uuid | slugify }}"
+permalink: "fonds/{{ this_fonds.uuid | slugify }}.html"
 ---
 <div class='page-fonds-detail'>
   <div>
