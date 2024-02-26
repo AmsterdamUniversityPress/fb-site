@@ -1,0 +1,66 @@
+---
+  env:
+    browser: true
+    commonjs: true
+    es6: true
+    jest: true
+    jasmine: true
+
+  globals:
+    __dirname: true
+    process: true
+
+  extends:
+    - eslint:recommended
+    - plugin:react/recommended
+    - plugin:import/warnings
+    - plugin:import/errors
+
+  parser: babel-eslint
+
+  parserOptions:
+    ecmaVersion: 2017
+    ecmaFeatures:
+      impliedStrict: true
+      experimentalObjectRestSpread: true
+      jsx: true
+      modules: true
+
+    sourceType: module
+
+  rules:
+    no-unused-vars: 0
+    no-unexpected-multiline: 0
+    no-empty-pattern: 0
+    no-constant-condition: 0
+    linebreak-style:
+      - warn
+      - unix
+    no-console: 0
+    no-empty: 0
+    no-extra-semi: 0
+    require-yield: 0
+    # --- it's nice to be able to import something as e.g.
+    #   import foo from 'foo'; foo.a
+    # as well as
+    #   import { a } from foo; a
+    import/no-named-as-default-member: 0
+    react/prop-types: 0
+    # --- this rule gives false positives.
+    # we do want all components to have a display name.
+    # to do this, make sure to give the symbol a name e.g.
+    #     export const Header =
+    # or use `withDisplayName`, e.g. in the case of a default export.
+    react/display-name: 0
+
+  settings:
+    react:
+      version: "16"
+    import/extensions:
+      - .mjs
+      - .js
+    import/resolver:
+      node:
+        extensions:
+          - .mjs
+          - .js

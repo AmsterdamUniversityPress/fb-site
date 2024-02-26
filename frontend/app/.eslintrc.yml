@@ -1,0 +1,27 @@
+---
+  env:
+    browser: true
+  extends:
+    - plugin:react/recommended
+    - plugin:react-hooks/recommended
+
+  globals:
+    process: true
+  parserOptions:
+    ecma-features:
+      jsx: true
+  rules:
+    no-unused-vars:
+      - warn
+      - varsIgnorePattern: pipe|compose|composeRight|logWith|tap|_.*|selectTop|selectVal|select|
+        argsIgnorePattern: _.*
+    react/prop-types: 0
+    # --- this rule gives false positives.
+    # we do want all components to have a display name.
+    # to do this, make sure to give the symbol a name e.g.
+    #     export const Header =
+    # or use `withDisplayName`, e.g. in the case of a default export.
+    react/display-name: 0
+  settings:
+    react:
+      version: "16"

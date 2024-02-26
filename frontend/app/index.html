@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <!-- From MDN docs. This might fix the case where Safari sometimes zooms in and makes an
+      unnecessary horizontal scrollbar. -->
+    <!--meta name="viewport" content="width=device-width, initial-scale=0.86, maximum-scale=3.0, minimum-scale=0.86"-->
+
+    <!-- Adding maximum-scale=1 seems to fix the case where Safari (iPhone5) zooms in a bit and
+      makes the page scrollable; it also doesn't prevent pinch zooming (which is good) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- @todo create these? -->
+    <meta name="apple-mobile-web-app-title" content="GrNe">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-167x167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png">
+
+    <link rel="icon" href="/favicon.ico" />
+    <title>Fondsenboek Online</title>
+    <meta name="description" content="Fondsenboek Online"/>
+  </head>
+  <body>
+    <noscript>If you're seeing this message, that means <strong>JavaScript has been disabled on your browser</strong>, please <strong>enable JS</strong> to make this app work.</noscript>
+    <div id="app"></div>
+  </body>
+</html>
