@@ -1,8 +1,19 @@
 __data/*.json
 _site
 
-node_modules
 yarn.lock
 
-.*.swo
-.*.swp
+node_modules
+.eslintcache
+
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/releases
+!**/.yarn/plugins
+!**/.yarn/sdks
+!**/.yarn/version
+yarn-error.log
+
+TAGS
+*.swo
+*.swp
