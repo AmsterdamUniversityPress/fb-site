@@ -31,7 +31,6 @@
     requireConfigFile: false
 
   rules:
-    no-use-before-define: 2
     no-unused-vars: 0
     no-unexpected-multiline: 0
     no-empty-pattern: 0
