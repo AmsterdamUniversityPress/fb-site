@@ -35,7 +35,7 @@ function *callForever (delayMs, f, ... args) {
 }
 
 function *s_appMounted () {
-  yield call (s_stop_server)
+  // yield call (s_stop_server)
   yield call (s_hello)
   yield delay (helloInterval)
   yield callForever (helloInterval, s_helloWrapper)
