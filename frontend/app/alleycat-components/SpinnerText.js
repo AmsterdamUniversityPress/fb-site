@@ -1,28 +1,16 @@
 import {
   pipe, compose, composeRight,
-  ifTrue, blush, ifOk, id,
-  guard, otherwise,
-  ok, eq, invoke,
-  condS,
-  concat, prop,
-  join,
-  mergeM,
-  side, side1,
-  defaultTo,
-  tap, deconstruct,
-  lets,
-  cond, T, noop,
-  rangeToBy, sprintf1,
-  appendM,
-  take, rangeTo, map, sprintfN, split,
+  prop, join, defaultTo, tap, lets,
+  rangeToBy, sprintf1, appendM,
+  take, rangeTo, sprintfN, split,
 } from 'stick-js/es'
 
-import React, { PureComponent, Component, } from 'react'
+import React, { PureComponent, } from 'react'
 
 import styled from 'styled-components'
 
 import { flatMap, } from 'alleycat-js/es/bilby'
-import { iwarn, logWith, zipWithN, mapX, } from 'alleycat-js/es/general'
+import { iwarn, zipWithN, mapX, } from 'alleycat-js/es/general'
 import { compMeth, } from 'alleycat-js/es/react-legacy'
 
 const spins = {

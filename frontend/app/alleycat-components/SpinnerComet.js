@@ -1,36 +1,41 @@
 import {
   pipe, compose, composeRight,
-  ifTrue, blush, ifOk, id,
-  guard, otherwise,
-  ok, eq, invoke,
-  condS,
-  concat, prop,
-  join, mergeToM, noop, guardV,
+  prop, ifTrue, sprintfN, lets, concat,
 } from 'stick-js/es'
 
 import React from 'react'
 import styled from 'styled-components'
 
-import { ifTrueV, } from 'alleycat-js/es/predicate'
-
 // --- margin-top: 7 when size is 11, 14 when size is 30.
 const marginForSize = x => 7 / 19 * x + 2.95
 
-// --- size is in pixels, but don't add 'px'
-// --- height is roughly 1.6x size
+/* `size` is in pixels, but don't add 'px'
+ * `height` is roughly 1.6x size
+ * `useSpace` true means take up space even when not spinning (i.e. hide using opacity or
+ * visibility)
+ */
 export const SpinnerComet = ({
   size=30,
   spinning=false,
-  color='#3f401a'
-}) => <SpinnerCometS size={size} spinning={spinning} color={color}/>
+  color='#3f401a',
+  useSpace=true,
+}) => lets (
+  () => Number (size) | marginForSize,
+  (margin) => ({
+    fontSize: String (Math.min (50, size)) + 'px',
+    marginBottom: String (margin) + 'px',
+    marginTop: String (margin) + 'px',
+  }),
+  (_, style) => <SpinnerCometS style={style} spinning={spinning} color={color} useSpace={useSpace}/>,
+)
 
 export default SpinnerComet
 
 const SpinnerCometS = styled.div`
-  font-size: ${prop ('size') >> String >> concat ('px')};
-  display: ${prop ('spinning') >> ifTrueV ('block', 'none')};
-  margin-top: ${prop ('size') >> Number >> marginForSize >> String >> concat ('px')};
-  margin-bottom: 0px;
+  ${({ useSpace, spinning, }) => spinning | ifTrue (
+    () => `display: block; opacity: 1;`,
+    () => useSpace ? `opacity: 0;` : `display: none;`,
+  )}
 
   color: ${prop ('color')};
   text-indent: -9999em;

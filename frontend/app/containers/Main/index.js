@@ -1,7 +1,6 @@
 import {
   pipe, compose, composeRight,
-  not, allAgainst, noop, die, flip,
-  ifTrue,
+  not, allAgainst, noop, ifTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -22,21 +21,17 @@ import {
 } from '../App/actions/main'
 
 import {
-  selectData,
-} from '../App/store/domain/selectors'
-
-import {
   selectLoggedIn,
   selectGetFirstName,
 } from '../App/store/app/selectors'
 
 import saga from './saga'
 
+import { spinner, } from '../../alleycat-components'
 import { Button, } from '../../components/shared'
 
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
-import ConsistentTypeSpecifierStyle from 'eslint-plugin-import/lib/rules/consistent-type-specifier-style'
 
 const configTop = configure.init (config)
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
@@ -195,6 +190,8 @@ const Contents = container (
   </ContentsS>,
 )
 
+const Spinner = spinner ('comet')
+
 export default container (
   ['Main', dispatchTable, selectorTable],
   (props) => {
@@ -209,14 +206,13 @@ export default container (
     useSaga ({ saga, key: 'Main', })
 
     return <MainS>
-      {loggedIn | flip (foldIfRequestResults) (
-        // --- pending
-        () => 'spinner',
-        ifTrue (
+      {loggedIn | requestResults ({
+        onError: noop,
+        onResults: ifTrue (
           () => <Contents/>,
           () => <Login logIn={logIn}/>,
         ),
-      )}
+      })}
     </MainS>
   },
 )

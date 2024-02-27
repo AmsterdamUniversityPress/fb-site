@@ -1,46 +1,16 @@
 import {
   pipe, compose, composeRight,
-  ifTrue, blush, ifOk, id,
-  guard, otherwise,
-  ok, eq, invoke,
-  condS,
-  concat, prop,
-  join, mergeToM, noop, guardV,
+  blush, ifOk, id, guard, otherwise,
+  eq, condS, prop, join, mergeToM, noop, guardV,
+  lets, sprintfN,
 } from 'stick-js/es'
 
-import React, { PureComponent, } from 'react'
-import styled from 'styled-components'
+import React, {} from 'react'
 
-import { ElemP, } from 'alleycat-js/es/react'
+import styled from 'styled-components'
 
 import SpinnerTextblocksC from './SpinnerText'
 import SpinnerCometC from './SpinnerComet'
-
-const InputS = styled.input`
-  border-style: inset;
-  padding: 1px;
-  width: ${ prop ('width') >> ifOk (
-    id, '100%' | blush,
-  )};
-`
-
-export const Input = ElemP (InputS)
-
-export const TextArea = ({ onChange=noop, defaultValue='', }) => <TextAreaS
-  onChange={onChange}
-  defaultValue={defaultValue}
-/>
-
-const TextAreaS = styled.textarea`
-  border: 1px inset #111;
-  padding: 2px;
-  height: ${ prop ('height') >> ifOk (
-    id, '200px' | blush,
-  )};
-  width: ${ prop ('width') >> ifOk (
-    id, '100%' | blush,
-  )};
-`
 
 const ButtonS = styled.button`
   border: 1px solid black;
@@ -95,20 +65,6 @@ export const IconFA = ({ icon, style = {}, }) => <IconFAS>
   />
 </IconFAS>
 
-/*
-const TooltipComponentS = styled (TooltipComponent)`
-`
-
-export const Tooltip = ({ placement, overlay, children, }) => <TooltipComponentS
-  placement={placement}
-  overlay={overlay}
->
-  <div style={{display: 'inline-block'}}>
-    {children}
-  </div>
-</TooltipComponentS>
-*/
-
 export const Footer = styled.div`
   font-size: 11px;
   color: black;
@@ -133,35 +89,29 @@ export const alleyCatFooter = condS ([
 ])
 
 const SpinnerWrapperS = styled.div`
+  width: 10px;
   display: inline-block;
-  opacity: ${({ keepVisible, spinning, }) =>
-    (spinning || keepVisible) ? 1 : 0
-  };
+  ${({ keepVisible, spinning, }) => lets (
+    () => spinning || keepVisible,
+    (show) => show ? 'opacity: 1;' : 'opacity: 0;',
+  )}
 `
 
-const SpinnerTextblocks = (props) => <SpinnerWrapperS {... (props | mergeToM ({ spinning: true, }))}>
-  <SpinnerTextblocksC type='textblocks' {...(props | mergeToM ({ spinning: true, }))}/>
-</SpinnerWrapperS>
+const SpinnerTextblocks = ({ spinning=true, keepVisible=false, ... restProps }) =>
+  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible}>
+    <SpinnerTextblocksC type='textblocks' spinning={spinning} {... restProps}/>
+  </SpinnerWrapperS>
 
-const SpinnerComet = (props) => <SpinnerWrapperS {... { spinning: true, ...props, }}>
-  <SpinnerCometC {... { spinning: true, ...props, }}/>
-</SpinnerWrapperS>
+const SpinnerComet = ({ spinning=true, keepVisible=false, ... restProps }) =>
+  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible}>
+    <SpinnerCometC spinning={spinning} {... restProps}/>
+  </SpinnerWrapperS>
 
 export const spinner = condS ([
   'textblocks' | eq | guardV (SpinnerTextblocks),
   'comet'      | eq | guardV (SpinnerComet),
-  otherwise         | guard  (_ => 'simple' | spinner),
+  otherwise         | guard  (_ => spinner ('textblocks')),
 ])
-
-/*
-const tabsNavIdSwiper = (props) => <NavIdSwiper {... props} />
-
-// --- String (type) -> <Tabs>
-export const tabs = condS ([
-  'nav-id-swiper' | eq | guardV (tabsNavIdSwiper),
-  otherwise       |      guard  (_ => 'nav-id-swiper' | tabs),
-])
-*/
 
 const FontAwesomeS = styled.span`
   font-family: 'FontAwesome';

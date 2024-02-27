@@ -176,18 +176,16 @@ export function *doApiCall (...args) {
 }
 
 export const requestResults = invoke (() => {
-  const SpinnerComet = spinner ('comet')
   return ({
-    Spinner=SpinnerComet,
+    Spinner=spinner ('comet'),
     onError=ifOk (
       String >> concatTo ('Error: '),
       () => 'Error',
     ),
     onResults=id,
-    spinnerProps={ color: '#033966', },
   } = {}) => cata ({
     RequestInit: () => null,
-    RequestLoading: (_) => <Spinner {... spinnerProps}/>,
+    RequestLoading: (_) => <Spinner/>,
     RequestError: (err) => err | onError,
     RequestResults: (res) => res | onResults,
   })
