@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -eu
+set -o pipefail
+
+bindir=$(realpath "$(dirname "$0")")
+
+. "$bindir"/functions.bash
+
+rootdir="$bindir"/../backend
+jssrcdir=src
+jslibdir=lib
+
+USAGE="Usage: $0 [-w | --watch]"
+
+opt_w=
+while getopts hw-: arg; do
+    case $arg in
+        h) warn "$USAGE"; exit 0 ;;
+        w) opt_w=yes ;;
+        -) OPTARG_VALUE="${OPTARG#*=}"
+            case $OPTARG in
+                help)  warn "$USAGE"; exit 0 ;;
+                watch)  opt_w=yes ;;
+                '')    break ;;
+                *)     error "Illegal option --$OPTARG" ;;
+                esac ;;
+        *) error "$USAGE" ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ ! "$#" = 0 ]; then error "$USAGE"; fi
+
+if [ "$opt_w" = yes ]; then
+    w=w
+else
+    w=''
+fi
+
+# --- working directory must be rootdir, or else the .babelrc doesn't always
+# get read.
+cwd "$rootdir" cmd npx babel --keep-file-extension -"$w"d "$jslibdir" "$jssrcdir" "$@"
