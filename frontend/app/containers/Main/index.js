@@ -153,6 +153,7 @@ const Header = () => <HeaderS>
 const MainS = styled.div`
   height: 100%;
   font-size: 20px;
+  font-family: Arial;
   > .x__contents {
     height: 100%;
     display: flex;
@@ -318,7 +319,7 @@ const FondsS = styled.div`
   }
   .x__text {
     padding: 10px;
-    .x__naam-organisatie {
+    > .x__naam-organisatie {
       text-decoration: underline;
     }
     .x__categorie {
@@ -334,7 +335,7 @@ const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
     <img src={imageGracht}/>
   </div>
   <div className='x__text'>
-    <div className='x__naam_organisatie'>
+    <div className='x__naam-organisatie'>
       {naam_organisatie}
     </div>
     <div className='x__categorie'>
