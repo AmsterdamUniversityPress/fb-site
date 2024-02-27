@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
+  map,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -33,21 +34,25 @@ import { Button, LinkLike, } from '../../components/shared'
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
+import data from '../../../../__data/fb-data-tst.json'
+
 const configTop = configure.init (config)
 const iconLogout = configTop.get ('icons.logout')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
 const iconUser = configTop.get ('icons.user')
+const imageGracht = configTop.get ('images.gracht')
 
 const UserS = styled.div`
   width: 50px;
   cursor: pointer;
   position: relative;
   > .x__contents {
+    background: #FBFBFB;
     border: 1px solid #999999;
     position: absolute;
     font-size: 18px;
-    padding: 10px;
+    padding: 15px;
     width: 200px;
     left: -150px;
     top: 50px;
@@ -144,8 +149,9 @@ const Header = () => <HeaderS>
 
 const MainS = styled.div`
   height: 100%;
-  font-size: 25px;
+  font-size: 20px;
   > .x__contents {
+    height: 100%;
     display: flex;
     flex-direction: column;
     > .x__header {
@@ -279,13 +285,145 @@ const Login = component (
   },
 )
 
+const SidebarS = styled.div`
+  height: 100%;
+  width: 100%;
+  border-right: 1px solid black;
+  padding: 20px;
+`
+
+const Sidebar = () => <SidebarS>
+  sidebar (filters etc.)
+</SidebarS>
+
+const FondsS = styled.div`
+  display: inline-block;
+  height: 500px;
+  background: #ffffbb66;
+  vertical-align: top;
+  width: 200px;
+  margin: 3px;
+  margin-right: 20px;
+  border: 1px solid black;
+  margin-bottom: 20px;
+  line-height: 1.5em;
+  .x__img {
+    width: 100%;
+    img {
+      width: 100%;
+    }
+  }
+  .x__text {
+    padding: 10px;
+    .x__naam-organisatie {
+      text-decoration: underline;
+    }
+    .x__categorie {
+      margin-top: 20px;
+      font-size: 95%;
+      line-height: 1.3em;
+    }
+  }
+`
+
+const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
+  <div class='x__img'>
+    <img src={imageGracht}/>
+  </div>
+  <div className='x__text'>
+    <div className='x__naam_organisatie'>
+      {naam_organisatie}
+    </div>
+    <div className='x__categorie'>
+      {categorie}
+    </div>
+  </div>
+</FondsS>
+
+const FondsenS = styled.div`
+  // display: flex;
+  // flex-wrap: wrap;
+  // gap: 4%;
+  // max-width: 1000px;
+  // width: 1000px;
+  // max-width: 800px;
+`
+
+const Fondsen = () => <FondsenS>
+  {data | map (
+    ({ uuid, naam_organisatie, categorie, ... _rest }) => {
+      return <Fonds key={uuid} naam_organisatie={naam_organisatie} categorie={categorie}/>
+    }
+  )}
+</FondsenS>
+
+const FondsMainS = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  > .x__search {
+    flex: 0 0 120px;
+    input {
+      width: 100%;
+      height: 50px;
+      border: 2px solid black;
+      border-radius: 1000px;
+      font-size: 25px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    > .x__input {
+      display: inline-block;
+      margin-right: 10px;
+      width: 30%;
+    }
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  > .x__main {
+    // --- @todo
+    flex: 0 0 calc(100vh - 120px);
+    overflow-y: scroll;
+    margin: auto;
+  }
+`
+
+const FondsMain = () => <FondsMainS>
+  <div className='x__search'>
+    <div className='x__input'>
+      <input type='text'/>
+    </div>
+    zoeken
+  </div>
+  <div className='x__main'>
+    <Fondsen/>
+  </div>
+</FondsMainS>
+
 const ContentsS = styled.div`
+  height: 100%;
+  display: flex;
+  width: 100vw;
+  .x__sidebar {
+    flex: 0 0 300px;
+  }
+  .x__main {
+    // --- @todo
+    flex: 1 0 calc(100vw - 300px);
+  }
 `
 
 const Contents = container (
   ['Contents', {}, {}],
   ({}) => <ContentsS>
-    contents
+    <div className='x__sidebar'>
+      <Sidebar/>
+    </div>
+    <div className='x__main'>
+      <FondsMain/>
+    </div>
   </ContentsS>,
 )
 

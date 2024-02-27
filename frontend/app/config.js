@@ -13,6 +13,7 @@ import iconLogout from './images/icons/logout.svg'
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUser from './images/icons/user.svg'
+import imageGracht from './images/gracht.jpg'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -71,6 +72,7 @@ export default {
     'user': iconUser,
   },
   images: {
+    'gracht': imageGracht,
   },
   colors: {
     header: {
