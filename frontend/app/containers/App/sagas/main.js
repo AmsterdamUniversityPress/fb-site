@@ -14,12 +14,12 @@ import {
   appMounted as a_appMounted,
   dataFetch as a_dataFetch,
   dataFetchCompleted as a_dataFetchCompleted,
-  login as a_login,
-  logout as a_logout,
+  logIn as a_logIn,
+  logOut as a_logOut,
   loginLogoutCompleted as a_loginLogoutCompleted,
 } from '../actions/main'
 
-import { selectLoggedIn, } from '../store/app/selectors'
+import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 
 import { doApiCall, saga, toastError, } from '../../../common'
@@ -35,7 +35,6 @@ function *callForever (delayMs, f, ... args) {
 }
 
 function *s_appMounted () {
-  // yield call (s_stop_server)
   yield call (s_hello)
   yield delay (helloInterval)
   yield callForever (helloInterval, s_helloWrapper)
@@ -81,6 +80,7 @@ function *s_helloCompleted (res) {
 }
 
 function *s_hello () {
+  yield delay (5000)
   yield call (doApiCall, {
     url: '/api/hello',
     resultsModify: map (prop ('data')),
@@ -92,11 +92,11 @@ function *s_hello () {
 }
 
 function *s_helloWrapper () {
-  const loggedIn = yield select (selectLoggedIn)
+  const loggedIn = yield select (selectLoggedInDefaultFalse)
   if (loggedIn) yield call (s_hello)
 }
 
-function *s_login ({ email, password, }) {
+function *s_logIn ({ email, password, }) {
   yield call (doApiCall, {
     url: '/api/login',
     optsMerge: {
@@ -116,7 +116,7 @@ function *s_login ({ email, password, }) {
   })
 }
 
-function *s_logout () {
+function *s_logOut () {
   yield call (doApiCall, {
     url: '/api/logout',
     optsMerge: {
@@ -143,7 +143,7 @@ export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_dataFetch, s_dataFetch),
-    saga (takeLatest, a_login, s_login),
-    saga (takeLatest, a_logout, s_logout),
+    saga (takeLatest, a_logIn, s_logIn),
+    saga (takeLatest, a_logOut, s_logOut),
   ])
 }

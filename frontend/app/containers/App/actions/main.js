@@ -40,12 +40,12 @@ export const dataFetchCompleted = action (
   'dataFetchCompleted',
 )
 
-export const login = action (
+export const logIn = action (
   (email, password) => ({ email, password, }),
-  'login',
+  'logIn',
 )
 
-export const logout = action (
+export const logOut = action (
   () => {},
-  'logout',
+  'logOut',
 )

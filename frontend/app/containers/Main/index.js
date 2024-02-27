@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
-  not, allAgainst, noop,
+  not, allAgainst, noop, die, flip,
+  ifTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -9,15 +10,15 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { keyPressListen, } from 'alleycat-js/es/dom'
+import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
 import { logWith, } from 'alleycat-js/es/general'
 import {} from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
 import {
-  dataFetch,
-  login,
-  logout,
+  logIn,
+  logOut,
 } from '../App/actions/main'
 
 import {
@@ -26,15 +27,16 @@ import {
 
 import {
   selectLoggedIn,
-  selectFirstName,
+  selectGetFirstName,
 } from '../App/store/app/selectors'
 
 import saga from './saga'
 
 import { Button, } from '../../components/shared'
 
-import { container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
+import ConsistentTypeSpecifierStyle from 'eslint-plugin-import/lib/rules/consistent-type-specifier-style'
 
 const configTop = configure.init (config)
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
@@ -75,15 +77,11 @@ const MainS = styled.div`
 `
 
 const dispatchTable = {
-  dataFetchDispatch: dataFetch,
-  loginDispatch: login,
-  logoutDispatch: logout,
+  logInDispatch: logIn,
 }
 
 const selectorTable = {
-  data: selectData,
   loggedIn: selectLoggedIn,
-  firstName: selectFirstName,
 }
 
 const BigButton = ({ children, ... restProps }) => <Button
@@ -101,42 +99,15 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
   <img src={shown ? iconShowPasswordShown : iconShowPasswordHidden} height={height} className={className}/>
 </IconShowPasswordS>
 
-export default container (
-  ['Main', dispatchTable, selectorTable],
-  (props) => {
-    const {
-      isMobile,
-      data, loggedIn, firstName,
-      dataFetchDispatch, loginDispatch, logoutDispatch,
-    } = props
-
+{/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
+const Login = component (
+  ['Login'],
+  ({
+    logIn,
+  }) => {
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
-
-    const canLogIn = useMemo (
-      () => [email, password] | allAgainst (isNotEmptyString),
-      [email, password],
-    )
-
-    const onClickButton = useCallbackConst (() => {
-      dataFetchDispatch ()
-    })
-
-    const login = useCallback (
-      () => loginDispatch (email, password),
-      [email, password, loginDispatch],
-    )
-
-    const onClickLogin = login
-
-    const onClickLogout = useCallbackConst (
-      () => logoutDispatch ()
-    )
-
-    const onClickShowPassword = useCallbackConst (
-      () => setShowPassword (not),
-    )
 
     const onChangeEmail = useCallbackConst (
       (event) => setEmail (event.target.value),
@@ -146,52 +117,106 @@ export default container (
       (event) => setPassword (event.target.value),
     )
 
+    const onClickShowPassword = useCallbackConst (
+      () => setShowPassword (not),
+    )
+
+    const doLogIn = useCallback (
+      () => logIn (email, password),
+      [email, password, logIn],
+    )
+
+    const onClickLogIn = () => doLogIn ()
+
     const onKeyPressInput = useCallback (
       (event) => event | keyPressListen (
         () => {
           event.preventDefault ()
-          login ()
+          doLogIn ()
         },
         'Enter',
       ),
-      [login],
+      [doLogIn],
+    )
+
+    const canLogIn = useMemo (
+      () => [email, password] | allAgainst (isNotEmptyString),
+      [email, password],
+    )
+
+    return <form>
+      {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
+      <div className='x__login'>
+        <div className='x__label x__email'>
+          emailadres
+        </div>
+        <div className='x__input x__email-input'>
+          <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput}/>
+        </div>
+        <div/>
+        <div className='x__label x__password'>
+          wachtwoord
+        </div>
+        <div className='x__input x__password-input'>
+          <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput}/>
+        </div>
+        <div className='x__icon'>
+          <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+        </div>
+        <div/>
+        <div>
+          <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>log in</BigButton>
+        </div>
+      </div>
+    </form>
+  },
+)
+
+const User = container (
+  ['User', { logOutDispatch: logOut, }, { getFirstName: selectGetFirstName, }],
+  ({ getFirstName, logOutDispatch, }) => {
+    const onClickLogout = useCallbackConst (
+      () => logOutDispatch (),
+    )
+    return <div>
+      <div>welkom, {getFirstName ()}</div>
+      <BigButton onClick={onClickLogout}>log out</BigButton>
+    </div>
+  },
+)
+
+const ContentsS = styled.div`
+`
+
+const Contents = container (
+  ['Contents', {}, {}],
+  ({}) => <ContentsS>
+    <User/>
+  </ContentsS>,
+)
+
+export default container (
+  ['Main', dispatchTable, selectorTable],
+  (props) => {
+    const { isMobile, loggedIn, logInDispatch, } = props
+
+    const logIn = useCallback (
+      (email, password) => logInDispatch (email, password),
+      [logInDispatch],
     )
 
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
 
     return <MainS>
-      {loggedIn && <div>
-        <div>welkom, {firstName}</div>
-        <div>data is: {data}</div>
-        <BigButton onClick={onClickButton}>get data</BigButton>
-        <BigButton onClick={onClickLogout}>log out</BigButton>
-      </div>}
-      {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
-      {loggedIn || <form>
-        <div className='x__login'>
-          <div className='x__label x__email'>
-            emailadres
-          </div>
-          <div className='x__input x__email-input'>
-            <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput}/>
-          </div>
-          <div/>
-          <div className='x__label x__password'>
-            wachtwoord
-          </div>
-          <div className='x__input x__password-input'>
-            <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput}/>
-          </div>
-          <div className='x__icon'>
-            <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
-          </div>
-        <div/>
-        <div>
-          <BigButton disabled={not (canLogIn)} onClick={onClickLogin}>log in</BigButton>
-        </div>
-        </div>
-      </form>}
+      {loggedIn | flip (foldIfRequestResults) (
+        // --- pending
+        () => 'spinner',
+        ifTrue (
+          () => <Contents/>,
+          () => <Login logIn={logIn}/>,
+        ),
+      )}
     </MainS>
-  }
+  },
 )

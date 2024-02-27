@@ -1,12 +1,13 @@
 import {
   pipe, compose, composeRight,
-  ok, prop,
+  ok, prop, map,
 } from 'stick-js/es'
 
 import { createSelector, defaultMemoize as memoize, } from 'reselect'
 
-import { fold, toJust, } from 'alleycat-js/es/bilby'
+import { fold, foldMaybe, isJust, toJust, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
+import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
 import { logWith, ierror, reduceX, } from 'alleycat-js/es/general'
 
 import { initialState, } from './reducer'
@@ -18,16 +19,28 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-const selectUser = selectVal ('user')
+// --- returns Request which wraps (user | null)
+export const selectUser = selectVal ('user')
 
+// --- returns Request which wraps (true | false)
 export const selectLoggedIn = select (
   'selectLoggedIn',
   [selectUser],
-  ok,
+  // --- map means take the RequestResults case
+  (user) => user | map (ok),
 )
 
-export const selectFirstName = select (
-  'selectFirstName',
+export const selectLoggedInDefaultFalse = select (
+  'selectLoggedInDefaultFalse',
   [selectUser],
-  (user) => user | nullMap (prop ('firstName')),
+  (user) => user | foldIfRequestResults (
+    (yesNo) => yesNo,
+    () => false,
+  ),
+)
+
+export const selectGetFirstName = select (
+  'selectGetFirstName',
+  [selectUser],
+  (user) => () => user | toJust | prop ('firstName'),
 )
