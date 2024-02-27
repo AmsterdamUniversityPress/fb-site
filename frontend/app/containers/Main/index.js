@@ -34,6 +34,7 @@ import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet
 import config from '../../config'
 
 const configTop = configure.init (config)
+const iconLogout = configTop.get ('icons.logout')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
 const iconUser = configTop.get ('icons.user')
@@ -50,18 +51,32 @@ const UserS = styled.div`
     width: 200px;
     left: -150px;
     top: 50px;
+    cursor: default;
     box-shadow: 1px 1px 4px;
-    > .x__name {
+    hr {
+      margin-top: 20px;
+      width: 50%;
     }
-    > .x__email {
+    > .x__userinfo {
+      font-weight: 200;
+      > .x__name {
+      }
+      > .x__email {
+      }
+      > .x__name, > .x__email {
+        text-wrap: nowrap;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+      }
     }
-    > .x__name, > .x__email {
-      text-wrap: nowrap;
-      overflow-x: hidden;
-      text-overflow: ellipsis;
-    }
-    > .x__logout {
-      cursor: pointer;
+    > .x__menu-items {
+      margin-top: 12px;
+      > .x__logout {
+        cursor: pointer;
+        img {
+          margin-right: 13px;
+        }
+      }
     }
   }
 `
@@ -90,16 +105,21 @@ const User = container (
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       {open && <div className='x__contents'>
-        <div className='x__name'>
-          {getFirstName ()} {getLastName ()}
+        <div className='x__userinfo'>
+          <div className='x__name'>
+            {getFirstName ()} {getLastName ()}
+          </div>
+          <div className='x__email'>
+            {getEmail ()}
+          </div>
         </div>
-        <div className='x__email'>
-          {getEmail ()}
-        </div>
-        <div className='x__logout'>
-          <LinkLike onClick={onClickLogout}>
+        <hr/>
+        <div className='x__menu-items'>
+          <div className='x__logout' onClick={onClickLogout}>
+            <img src={iconLogout} width='14px'/>
             afmelden
-          </LinkLike>
+            {/* <LinkLike>afmelden</LinkLike> */}
+          </div>
         </div>
       </div>}
     </UserS>
