@@ -80,7 +80,6 @@ function *s_helloCompleted (res) {
 }
 
 function *s_hello () {
-  yield delay (5000)
   yield call (doApiCall, {
     url: '/api/hello',
     resultsModify: map (prop ('data')),
