@@ -76,6 +76,9 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
+      > .x__item:hover {
+        text-decoration: underline;
+      }
       > .x__logout {
         cursor: pointer;
         img {
@@ -120,8 +123,8 @@ const User = container (
         </div>
         <hr/>
         <div className='x__menu-items'>
-          <div className='x__logout' onClick={onClickLogout}>
-            <img src={iconLogout} width='14px'/>
+          <div className='x__item x__logout' onClick={onClickLogout}>
+            <img src={iconLogout} width='18px'/>
             afmelden
             {/* <LinkLike>afmelden</LinkLike> */}
           </div>
