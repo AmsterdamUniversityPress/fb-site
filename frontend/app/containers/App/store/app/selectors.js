@@ -44,3 +44,15 @@ export const selectGetFirstName = select (
   [selectUser],
   (user) => () => user | toJust | prop ('firstName'),
 )
+
+export const selectGetLastName = select (
+  'selectGetLastName',
+  [selectUser],
+  (user) => () => user | toJust | prop ('lastName'),
+)
+
+export const selectGetEmail = select (
+  'selectGetEmail',
+  [selectUser],
+  (user) => () => user | toJust | prop ('email'),
+)

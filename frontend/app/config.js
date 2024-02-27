@@ -11,6 +11,7 @@ import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
+import iconUser from './images/icons/user.svg'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -65,6 +66,7 @@ export default {
   icons: {
     'show-password-hidden': iconShowPasswordHidden,
     'show-password-shown': iconShowPasswordShown,
+    'user': iconUser,
   },
   images: {
   },
