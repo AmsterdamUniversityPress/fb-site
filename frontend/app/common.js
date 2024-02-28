@@ -21,7 +21,7 @@ import { cata, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { doApiCall as _doApiCall, } from 'alleycat-js/es/fetch'
 import { getQueryParams, } from 'alleycat-js/es/general'
-import { all, allV, isEmptyString, } from 'alleycat-js/es/predicate'
+import { all, allV, isEmptyString, isEmptyList, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
@@ -197,6 +197,7 @@ export const foldWhenJust = recurry (2) (
 )
 
 export const isNotEmptyString = not << isEmptyString
+export const isNotEmptyList = not << isEmptyList
 
 // --- functor map for `null` which treats it like `Nothing`
 export const nullMap = recurry (2) (

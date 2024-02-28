@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
-  map,
+  map, path,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -9,8 +9,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
-import { keyPressListen, } from 'alleycat-js/es/dom'
-import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
+import { clss, keyPressListen, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
 import {} from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
@@ -30,6 +29,7 @@ import saga from './saga'
 
 import { spinner, } from '../../alleycat-components'
 import { Button, LinkLike, } from '../../components/shared'
+import { Input, } from '../../components/shared/Input'
 
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
@@ -76,12 +76,20 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
-      > .x__item:hover {
-        text-decoration: underline;
+      > .x__item {
+        &:hover > .x__text {
+          border-bottom: 2px solid #00000099;
+        }
+        .x__text {
+          padding-bottom: 5px;
+        }
       }
       > .x__logout {
         cursor: pointer;
-        img {
+        > * {
+          vertical-align: middle;
+        }
+        > img {
           margin-right: 13px;
         }
       }
@@ -125,7 +133,7 @@ const User = container (
         <div className='x__menu-items'>
           <div className='x__item x__logout' onClick={onClickLogout}>
             <img src={iconLogout} width='18px'/>
-            afmelden
+            <span className='x__text'>afmelden</span>
             {/* <LinkLike>afmelden</LinkLike> */}
           </div>
         </div>
@@ -331,7 +339,7 @@ const FondsS = styled.div`
 `
 
 const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
-  <div class='x__img'>
+  <div className='x__img'>
     <img src={imageGracht}/>
   </div>
   <div className='x__text'>
@@ -361,30 +369,51 @@ const Fondsen = () => <FondsenS>
   )}
 </FondsenS>
 
+const targetValue = path (['target', 'value'])
+const Search = component (
+  ['Search'],
+  () => {
+    const [string, setString] = useState ('')
+    const onChange = useCallbackConst (setString << targetValue)
+    const canSearch = useMemo (() => string | isNotEmptyString, [string])
+    const cls = clss ('x__text', canSearch || 'x--disabled')
+    return <>
+      <Input
+        withIcon={['search', 'left']}
+        height='100%'
+        width='30%'
+        padding='8px'
+        style={{ display: 'inline-block', }}
+        inputStyle={{
+          fontSize: '25px',
+          border: '2px solid black',
+          borderRadius: '1000px',
+        }}
+        onChange={onChange}
+        value={string}
+      />
+      <span className={cls}>zoeken</span>
+    </>
+  },
+)
+
 const FondsMainS = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
   > .x__search {
     flex: 0 0 120px;
-    input {
-      width: 100%;
-      height: 50px;
-      border: 2px solid black;
-      border-radius: 1000px;
-      font-size: 25px;
-      padding-top: 10px;
-      padding-bottom: 10px;
-      padding-left: 20px;
-      padding-right: 20px;
-    }
-    > .x__input {
-      display: inline-block;
-      margin-right: 10px;
-      width: 30%;
-    }
     text-align: center;
     margin-bottom: 50px;
+    > * {
+      vertical-align: middle;
+    }
+    > .x__text {
+      margin-left: 20px;
+      &.x--disabled {
+        opacity: 0.6;
+      }
+    }
   }
   > .x__main {
     // --- @todo
@@ -394,17 +423,16 @@ const FondsMainS = styled.div`
   }
 `
 
-const FondsMain = () => <FondsMainS>
-  <div className='x__search'>
-    <div className='x__input'>
-      <input type='text'/>
+const FondsMain = () => {
+  return <FondsMainS>
+    <div className='x__search'>
+      <Search/>
     </div>
-    zoeken
-  </div>
-  <div className='x__main'>
-    <Fondsen/>
-  </div>
-</FondsMainS>
+    <div className='x__main'>
+      <Fondsen/>
+    </div>
+  </FondsMainS>
+}
 
 const ContentsS = styled.div`
   height: 100%;

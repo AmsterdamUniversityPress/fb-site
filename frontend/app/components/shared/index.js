@@ -26,46 +26,6 @@ import config from '../../config'
 
 const configTop = config | configure.init
 
-// --- @todo styling is repeated here and SearchField.
-const InputBaseMixin = `
-  border: 1px solid #7c7c7c;
-  height: 100%;
-  width: 100%;
-  font-size: 13px;
-  :-ms-input-placeholder {
-    color: #7c7c7c !important;
-  }
-  :focus {
-    border: 2px solid #759fe6;
-  }
-`
-
-const InputS = styled.input`
-  ${_ => InputBaseMixin}
-  height: ${prop ('height')};
-  width: ${prop ('width')};
-  padding: ${prop ('padding')};
-  :focus {
-    padding: calc(${prop ('padding')} - 1px);
-  }
-`
-
-export const InputAuto = deconstructProps (({
-  theRef,
-  height='35px',
-  width='200px',
-  padding='9px',
-}) => withDisplayName ('InputAuto') (
-  props => <InputS {...props} ref={theRef} height={height} width={width} padding={padding}/>,
-))
-
-export const Input = (props) => <InputAuto {...props}
-  autoComplete='off'
-  autoCorrect='off'
-  autoCapitalize='off'
-  spellCheck='false'
-/>
-
 // --- fakeDisabled means the onClick handler is called, but the button doesn't move when clicked.
 // --- it's useful for e.g. letting the click event bubble to an outer comopnent.
 const ButtonBaseS = styled.button`
