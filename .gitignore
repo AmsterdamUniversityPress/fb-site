@@ -14,6 +14,7 @@ node_modules
 !**/.yarn/version
 yarn-error.log
 
+backend/lib
 backend/db/
 
 TAGS
