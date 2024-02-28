@@ -348,6 +348,8 @@ const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
 </FondsS>
 
 const FondsenS = styled.div`
+  text-align: center;
+  min-width: 100px;
 `
 
 const Fondsen = container (
@@ -413,7 +415,7 @@ const FondsMainS = styled.div`
   > .x__main {
     // --- @todo
     flex: 0 0 calc(100vh - 120px);
-    overflow-y: scroll;
+    overflow-y: auto;
     margin: auto;
   }
 `
