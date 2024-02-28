@@ -15,29 +15,19 @@ export const appMounted = action (
   'appMounted',
 )
 
-// export const hello = action (
-  // () => {},
-  // 'hello',
-// )
+export const fondsenFetch = action (
+  (pageNum) => pageNum,
+  'fondsenFetch',
+)
 
-// export const helloCompleted = action (
-  // (loggedIn) => ({ loggedIn, }),
-  // 'helloCompleted',
-// )
+export const fondsenFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'fondsenFetchCompleted',
+)
 
 export const loginLogoutCompleted = action (
   (user) => ({ user, }),
   'loginLogoutCompleted',
-)
-
-export const dataFetch = action (
-  () => {},
-  'dataFetch',
-)
-
-export const dataFetchCompleted = action (
-  (rcomplete) => rcomplete,
-  'dataFetchCompleted',
 )
 
 export const logIn = action (

@@ -24,6 +24,9 @@ import {
   selectLoggedIn,
   selectGetFirstName, selectGetLastName, selectGetEmail,
 } from '../App/store/app/selectors'
+import {
+  selectFondsen,
+} from '../App/store/domain/selectors'
 
 import saga from './saga'
 
@@ -34,7 +37,7 @@ import { Input, } from '../../components/shared/Input'
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
-import data from '../../../../__data/fb-data-tst.json'
+// import data from '../../../../__data/fb-data-tst.json'
 
 const configTop = configure.init (config)
 const iconLogout = configTop.get ('icons.logout')
@@ -179,14 +182,6 @@ const MainS = styled.div`
     }
   }
 `
-
-const dispatchTable = {
-  logInDispatch: logIn,
-}
-
-const selectorTable = {
-  loggedIn: selectLoggedIn,
-}
 
 const BigButton = ({ children, ... restProps }) => <Button
   style={{ padding: '10px', }}
@@ -353,21 +348,21 @@ const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
 </FondsS>
 
 const FondsenS = styled.div`
-  // display: flex;
-  // flex-wrap: wrap;
-  // gap: 4%;
-  // max-width: 1000px;
-  // width: 1000px;
-  // max-width: 800px;
 `
 
-const Fondsen = () => <FondsenS>
-  {data | map (
-    ({ uuid, naam_organisatie, categorie, ... _rest }) => {
-      return <Fonds key={uuid} naam_organisatie={naam_organisatie} categorie={categorie}/>
-    }
-  )}
-</FondsenS>
+const Fondsen = container (
+  ['Fondsen', {}, { fondsen: selectFondsen, }],
+  ({ fondsen, }) => <FondsenS>
+    {fondsen | requestResults ({
+      onError: noop,
+      onResults: map (
+        ({ uuid, naam_organisatie, categorie, ... _rest }) => {
+          return <Fonds key={uuid} naam_organisatie={naam_organisatie} categorie={categorie}/>
+        },
+      ),
+    })}
+  </FondsenS>,
+)
 
 const targetValue = path (['target', 'value'])
 const Search = component (
@@ -462,10 +457,9 @@ const Contents = container (
 const Spinner = spinner ('comet')
 
 export default container (
-  ['Main', dispatchTable, selectorTable],
+  ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
   (props) => {
     const { isMobile, loggedIn, logInDispatch, } = props
-
     const logIn = useCallback (
       (email, password) => logInDispatch (email, password),
       [logInDispatch],

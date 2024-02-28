@@ -3,15 +3,10 @@
 
 import {
   pipe, compose, composeRight,
+  map, prop,
 } from 'stick-js/es'
 
-import { createSelector, defaultMemoize as memoize, } from 'reselect'
-
-import memoize1 from 'memoize-one'
-
-import { fold, toJust, cata, } from 'alleycat-js/es/bilby'
-import { info, logWith, ierror, reduceX, min, max, roundUp, slice, } from 'alleycat-js/es/general'
-import { ifEmptyList, } from 'alleycat-js/es/predicate'
+import { defaultMemoize as memoize, } from 'reselect'
 
 import { initialState, } from './reducer'
 
@@ -24,4 +19,16 @@ const { select, selectTop, selectVal, } = initSelectors (
 
 export const selectError = selectVal ('error')
 
-export const selectData = selectVal ('data')
+/*
+ * Request ({
+ *   metadata: { totalAvailable, },
+ *   results: [...],
+ * })
+ */
+const _selectFondsen = selectVal ('fondsen')
+
+export const selectFondsen = select (
+  'selectFondsen',
+  _selectFondsen,
+  (fondsenRequest) => fondsenRequest | map (prop ('results')),
+)

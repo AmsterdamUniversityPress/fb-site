@@ -9,7 +9,7 @@ import cookieParser from 'cookie-parser'
 import express from 'express'
 import { dirname, } from 'path'
 
-import { get, listen, use, sendStatusEmpty, } from 'alleycat-js/es/express'
+import { get, listen, use, sendStatus, } from 'alleycat-js/es/express'
 import { yellow, green, red, } from 'alleycat-js/es/io';
 import { info, decorateRejection, } from 'alleycat-js/es/general';
 import { isLeft, fold, } from 'alleycat-js/es/bilby'
@@ -25,6 +25,8 @@ import {
   hashPasswordScrypt as _hashPasswordScrypt,
   secureMethod,
 } from 'alleycat-express-jwt'
+
+import data from '../../__data/fb-data-tst.json' with { type: 'json', }
 
 const configTop = config | configure.init
 
@@ -96,17 +98,17 @@ const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (COOKIE_SECRET))
   | addLoginMiddleware
-  // --- only available to logged-in users
-  | secureGet ('/data', (_req, res) => {
-    const event = new Date ()
-    const data = event.toLocaleTimeString ('nl-NL')
-    res.send ({ data, })
-  })
-  // --- always available
-  | get ('/data-public', (_req, res) => {
-    const event = new Date ()
-    const data = event.toLocaleTimeString ('nl-NL')
-    res.send ({ data, })
+  | secureGet ('/fondsen', (req, res) => {
+    const { query, } = req
+    const { beginIdx, number, } = query
+    // --- @todo check / validate
+    console.log ('query', query)
+    res | sendStatus (200, {
+      metadata: {
+        totalAvailable: data.length,
+      },
+      results: data.slice (beginIdx, beginIdx + Number (number)),
+    })
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info

@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, prop,
+  map, prop, ok,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
@@ -12,8 +12,8 @@ import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 
 import {
   appMounted as a_appMounted,
-  dataFetch as a_dataFetch,
-  dataFetchCompleted as a_dataFetchCompleted,
+  fondsenFetch as a_fondsenFetch,
+  fondsenFetchCompleted as a_fondsenFetchCompleted,
   logIn as a_logIn,
   logOut as a_logOut,
   loginLogoutCompleted as a_loginLogoutCompleted,
@@ -35,23 +35,23 @@ function *callForever (delayMs, f, ... args) {
 }
 
 function *s_appMounted () {
-  yield call (s_hello)
+  yield call (s_hello, true)
   yield delay (helloInterval)
   yield callForever (helloInterval, s_helloWrapper)
 }
 
-function *s_stop_server () {
+function *s_fondsenFetch (pageNum) {
+  // const pageLength = yield select (...)
+  const pageLength = 30
+  const beginIdx = pageNum * pageLength
+  const url = new URL (document.location)
+  url.pathname = '/api/fondsen'
+  url.searchParams.append ('beginIdx', beginIdx)
+  url.searchParams.append ('number', pageLength)
   yield call (doApiCall, {
-    url: '/api/stop-server',
-  })
-}
-
-function *s_dataFetch () {
-  yield call (doApiCall, {
-    url: '/api/data',
-    resultsModify: map ('data' | prop),
-    continuation: EffAction (a_dataFetchCompleted),
-    imsgDecorate: 'Error fetching data',
+    url,
+    continuation: EffAction (a_fondsenFetchCompleted),
+    oops: toastError,
   })
 }
 
@@ -66,24 +66,29 @@ function *s_loginCompleted (res) {
     () => (onError ('(no message)'), null),
   )
   yield put (a_loginLogoutCompleted (user))
+  yield put (a_fondsenFetch (0))
 }
 
-function *s_helloCompleted (res) {
+function *s_helloCompleted (res, first=false) {
   const onError = (msg) => error ('Error: helloCompleted:', msg)
   const user = res | requestCompleteFold (
     (user) => user,
     // --- 401, i.e. not authorized
-    (umsg) => null,
+    (_umsg) => null,
     () => (onError ('(no message)'), null),
   )
   yield put (a_loginLogoutCompleted (user))
+  if (first && ok (user)) yield put (a_fondsenFetch (0))
 }
 
-function *s_hello () {
+function *s_hello (first=false) {
+  function *s_complete (res) {
+    yield call (s_helloCompleted, res, first)
+  }
   yield call (doApiCall, {
     url: '/api/hello',
     resultsModify: map (prop ('data')),
-    continuation: EffSaga (s_helloCompleted),
+    continuation: EffSaga (s_complete),
     request: requestJSONStdOpts ({
       noParse: noParseCodes ([401]),
     }),
@@ -92,7 +97,7 @@ function *s_hello () {
 
 function *s_helloWrapper () {
   const loggedIn = yield select (selectLoggedInDefaultFalse)
-  if (loggedIn) yield call (s_hello)
+  if (loggedIn) yield call (s_hello, false)
 }
 
 function *s_logIn ({ email, password, }) {
@@ -135,13 +140,13 @@ function *s_logoutCompleted (res) {
     () => (onError ('(no message)'), false),
   )
   if (ok) yield put (a_loginLogoutCompleted (null))
-  else yield call (s_hello)
+  else yield call (s_hello, false)
 }
 
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
-    saga (takeLatest, a_dataFetch, s_dataFetch),
+    saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logIn),
     saga (takeLatest, a_logOut, s_logOut),
   ])

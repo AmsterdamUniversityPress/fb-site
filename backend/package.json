@@ -13,6 +13,7 @@
     "eslint-plugin-import": "^2.29.1"
   },
   "dependencies": {
+    "@babel/plugin-syntax-import-attributes": "^7.23.3",
     "@babel/runtime": "^7.23.9",
     "alleycat-express-jwt": "^0.1.1",
     "alleycat-js": "^0.4.17",

@@ -58,7 +58,7 @@ export default {
     },
   },
   general: {
-    helloInterval: 4000,
+    helloInterval: 60000,
   },
   font: {
     main: {
