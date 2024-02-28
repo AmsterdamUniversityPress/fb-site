@@ -1,19 +1,22 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id,
-  ifNil, die, factory, factoryProps,
+  sprintf1, tryCatch, lets, id, die,
+  whenPredicate, noop,
 } from 'stick-js/es'
 
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import express from 'express'
+import { dirname, } from 'path'
 
 import { get, listen, use, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { yellow, green, red, } from 'alleycat-js/es/io';
 import { info, decorateRejection, } from 'alleycat-js/es/general';
+import { isLeft, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
-import { errorX, } from './io.mjs';
+import { errorX, mkdirIfNeeded, } from './io.mjs';
+import { init as initDb, } from './db.mjs';
 import { config, } from './config.mjs'
 
 import {
@@ -25,16 +28,13 @@ import {
 
 const configTop = config | configure.init
 
-const { dbPath, serverPort, } = tryCatch (
+const { serverPort, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
-  () => configTop.gets ('dbPath', 'serverPort',),
+  () => configTop.gets ('serverPort')
 )
 
-const initDb = () => {
-  info ('opening db file at', dbPath | yellow)
-
-}
+initDb ()
 
 const secureGet = secureMethod ('get')
 // const securePost = secureMethod ('post')

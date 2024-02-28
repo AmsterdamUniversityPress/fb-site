@@ -1,24 +1,24 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import { pipe, compose, composeRight, sprintf1, tryCatch, lets, id, ifNil, die, factory, factoryProps } from 'stick-js/es';
+import { pipe, compose, composeRight, sprintf1, tryCatch, lets, id, die, whenPredicate, noop } from 'stick-js/es';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import { dirname } from 'path';
 import { get, listen, use, sendStatusEmpty } from 'alleycat-js/es/express';
 import { yellow, green, red } from 'alleycat-js/es/io';
 import { info, decorateRejection } from 'alleycat-js/es/general';
+import { isLeft, fold } from 'alleycat-js/es/bilby';
 import configure from 'alleycat-js/es/configure';
-import { errorX } from './io.mjs';
+import { errorX, mkdirIfNeeded } from './io.mjs';
+import { init as initDb } from './db.mjs';
 import { config } from './config.mjs';
 import { main as initExpressJwt, bufferEqualsConstantTime as bufferEquals, hashPasswordScrypt as _hashPasswordScrypt, secureMethod } from 'alleycat-express-jwt';
 var configTop = pipe(config, configure.init);
 var _tryCatch = tryCatch(id, composeRight(decorateRejection("Couldn't load config: "), errorX), function () {
-    return configTop.gets('dbPath', 'serverPort');
+    return configTop.gets('serverPort');
   }),
-  dbPath = _tryCatch.dbPath,
   serverPort = _tryCatch.serverPort;
-var initDb = function initDb() {
-  info('opening db file at', pipe(dbPath, yellow));
-};
+initDb();
 var secureGet = secureMethod('get');
 // const securePost = secureMethod ('post')
 // ...
