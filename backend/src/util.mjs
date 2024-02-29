@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, spreadTo, lets,
+  sprintf1, sprintfN, id, T, nil,
 } from 'stick-js/es'
 
 import path from 'path'
@@ -8,6 +9,8 @@ import { fileURLToPath, } from 'url'
 
 import { flatMap, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, } from 'alleycat-js/es/general'
+
+import { brightRed, error, } from './io.mjs'
 
 // --- usage: `__dirname (import.meta.url)`
 export const __dirname = fileURLToPath >> path.dirname
@@ -24,3 +27,15 @@ export const doEither = (...eithers) => lets (
   () => eithers | map (flatMap) | spreadTo (composeManyRight),
   (chain) => Right (null) | chain,
 )
+
+export const env = (key, validate=[null, T], f=id) => {
+  const val = process.env [key]
+  if (nil (val)) error (
+    brightRed (key) | sprintf1 ('Missing environment variable %s'),
+  )
+  const [must, validateF] = validate
+  if (!validateF (f (val))) error (
+    [brightRed (key), must] | sprintfN ('Environment variable %s %s'),
+  )
+  return val
+}

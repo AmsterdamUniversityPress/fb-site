@@ -1,31 +1,31 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id,
-  whenPredicate, noop, take, nil, ifOk,
+  sprintf1, sprintfN, tryCatch, lets, id, die,
+  nil, ifOk, T, F, gt, tap,
 } from 'stick-js/es'
 
+import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import express from 'express'
 
 import { listen, use, sendStatus, } from 'alleycat-js/es/express'
 import { yellow, green, red, } from 'alleycat-js/es/io';
-import { ierror, info, decorateRejection, } from 'alleycat-js/es/general';
+import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general';
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
-import { errorX, warn, } from './io.mjs';
+import { config, } from './config.mjs'
 import { init as initDb,
   // userAdd as dbUserAdd,
   userGet as dbUserGet,
   // userPasswordUpdate as dbUserPasswordUpdate,
 } from './db.mjs';
-import { config, } from './config.mjs'
+import { errorX, warn, } from './io.mjs'
+import { env, } from './util.mjs'
 
 import {
   main as initExpressJwt,
-  bufferEqualsConstantTime as bufferEquals,
-  hashPasswordScrypt as _hashPasswordScrypt,
   secureMethod,
 } from 'alleycat-express-jwt'
 
@@ -39,15 +39,25 @@ const { serverPort, } = tryCatch (
   () => configTop.gets ('serverPort')
 )
 
-const JWT_SECRET = 'W@#$*nxnvxcv9f21jn13!!**j123n,mns,dg;'
-const COOKIE_SECRET = 'j248idvnxcNNj;;;091!@#%***'
-const PASSWORD_SALT = Buffer.from ([
-  0x75, 0x12, 0x23, 0x91, 0xAA, 0xAF, 0x53, 0x88, 0x90, 0xF1, 0xD4, 0xDD,
-])
-const PASSWORD_KEYLEN = 64
-const hashPasswordScrypt = _hashPasswordScrypt (PASSWORD_SALT, PASSWORD_KEYLEN)
+const jwtSecret = lets (
+  () => [
+    'must be longer than 25 characters',
+    length >> gt (25),
+  ],
+  (validate) => env ('JWT_SECRET', validate),
+)
 
-initDb (hashPasswordScrypt)
+const cookieSecret = lets (
+  () => [
+    'must be longer than 25 characters',
+    length >> gt (25),
+  ],
+  (validate) => env ('COOKIE_SECRET', validate),
+)
+
+const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
+
+initDb (hashPassword)
 
 const secureGet = secureMethod ('get')
 // const securePost = secureMethod ('post')
@@ -79,21 +89,17 @@ const getUser = (email) => {
   )
 }
 
-// --- @todo sqlite / redis
+// --- @todo persist in sqlite
 const loggedIn = new Set ()
 
 // --- (String, Buffer) => Boolean
-const checkPassword = (testPlain, knownHashed) => {
-  return lets (
-  () => hashPasswordScrypt (testPlain),
-  (testHashed) => testHashed | bufferEquals (knownHashed),
-)}
+const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
 const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   checkPassword,
   getUser,
   isLoggedIn: (email) => loggedIn.has (email),
-  jwtSecret: JWT_SECRET,
+  jwtSecret,
   onLogin: (email, _user) => loggedIn.add (email),
   onLogout: (email, done) => {
     if (loggedIn.delete (email)) return done (null)
@@ -104,7 +110,7 @@ const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
 
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
-  | use (cookieParser (COOKIE_SECRET))
+  | use (cookieParser (cookieSecret))
   | addLoginMiddleware
   | secureGet ('/fondsen', (req, res) => {
     const { query, } = req

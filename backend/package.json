@@ -2,6 +2,7 @@
   "name": "backend",
   "version": "0.0.1",
   "packageManager": "yarn@4.1.0",
+  "main": "lib/index.mjs",
   "devDependencies": {
     "@babel/cli": "^7.23.9",
     "@babel/core": "^7.23.9",
@@ -17,6 +18,7 @@
     "@babel/runtime": "^7.23.9",
     "alleycat-express-jwt": "^0.1.2",
     "alleycat-js": "^0.4.17",
+    "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.4.3",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",

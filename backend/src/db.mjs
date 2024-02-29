@@ -15,7 +15,7 @@ import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
 
 import { config, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs';
-import { base64decodeAsBuffer, base64encode, doEither, } from './util.mjs';
+import { doEither, } from './util.mjs';
 
 const configTop = config | configure.init
 
@@ -41,7 +41,7 @@ const daysInFuture = (n) => Number (new Date ()) + n*24*3600*1000
 const daysInPast = daysInFuture << multiply (-1)
 
 const initTestData = (encryptPassword) => lets (
-  () => encryptPassword >> base64encode,
+  () => encryptPassword,
   (encrypt) => doEither (
     () => userAdd ('sjdfjsdfjsdfj@alleycat.cc', 'x', 'x', encrypt ('xxx'), daysInPast (1)),
     () => userAdd ('expired@alleycat.cc', 'ed', 'van gisteren', encrypt ('xxx'), daysInPast (1)),
@@ -76,11 +76,8 @@ export const userAdd = (email, firstName, lastName, password, expires) => sqlite
 
 export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password, expires from user where email = ?', [email]),
-) | map (whenOk (
-  ({ password, ...rest }) => ({ password: base64decodeAsBuffer (password), ...rest }),
-))
+)
 
-// --- `password` is a Buffer
 export const userPasswordUpdate = (user_id, hashed_password) => sqliteApi.run (
-  SB (`update user set password = ? where id = ?`, [hashed_password | base64encode, user_id],
+  SB (`update user set password = ? where id = ?`, [hashed_password, user_id],
 ))
