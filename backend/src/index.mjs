@@ -1,22 +1,25 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id, die,
-  whenPredicate, noop,
+  sprintf1, tryCatch, lets, id,
+  whenPredicate, noop, take, nil, ifOk,
 } from 'stick-js/es'
 
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import express from 'express'
-import { dirname, } from 'path'
 
-import { get, listen, use, sendStatus, } from 'alleycat-js/es/express'
+import { listen, use, sendStatus, } from 'alleycat-js/es/express'
 import { yellow, green, red, } from 'alleycat-js/es/io';
-import { info, decorateRejection, } from 'alleycat-js/es/general';
-import { isLeft, fold, } from 'alleycat-js/es/bilby'
+import { ierror, info, decorateRejection, } from 'alleycat-js/es/general';
+import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
-import { errorX, mkdirIfNeeded, } from './io.mjs';
-import { init as initDb, } from './db.mjs';
+import { errorX, warn, } from './io.mjs';
+import { init as initDb,
+  // userAdd as dbUserAdd,
+  userGet as dbUserGet,
+  // userPasswordUpdate as dbUserPasswordUpdate,
+} from './db.mjs';
 import { config, } from './config.mjs'
 
 import {
@@ -36,57 +39,65 @@ const { serverPort, } = tryCatch (
   () => configTop.gets ('serverPort')
 )
 
-initDb ()
-
-const secureGet = secureMethod ('get')
-// const securePost = secureMethod ('post')
-// ...
-
 const JWT_SECRET = 'W@#$*nxnvxcv9f21jn13!!**j123n,mns,dg;'
 const COOKIE_SECRET = 'j248idvnxcNNj;;;091!@#%***'
 const PASSWORD_SALT = Buffer.from ([
   0x75, 0x12, 0x23, 0x91, 0xAA, 0xAF, 0x53, 0x88, 0x90, 0xF1, 0xD4, 0xDD,
 ])
 const PASSWORD_KEYLEN = 64
-
 const hashPasswordScrypt = _hashPasswordScrypt (PASSWORD_SALT, PASSWORD_KEYLEN)
 
-const getCredentials = () => new Map ([
-  ['allen@alleycat.cc', ['Allen', 'Haim', hashPasswordScrypt ('appel')]],
-  ['arie@alleycat.cc', ['arie', 'bombarie', hashPasswordScrypt ('peer')]],
-])
-const credentials = getCredentials ()
+initDb (hashPasswordScrypt)
+
+const secureGet = secureMethod ('get')
+// const securePost = secureMethod ('post')
+// ...
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
-// structure which will be made available to the frontend.
+// structure which will be made available to the frontend, or `null`
 const getUser = (email) => {
-  const user = credentials.get (email)
-  if (!user) return null
-  const [firstName, lastName, password] = user
-  return {
-    password,
-    userinfo: {
-      email,
-      firstName,
-      lastName,
+  const user = dbUserGet (email)
+  return user | fold (
+    (e) => {
+      warn ('Unable to get user:', e)
+      return null
     },
-  }
+    ifOk (
+      ({ email, firstName, lastName, password, expires, }) => ({
+          password,
+          userinfo: {
+            email,
+            firstName,
+            lastName,
+            expires,
+          },
+        }),
+      () => {},
+    )
+  )
 }
 
+// --- @todo sqlite / redis
 const loggedIn = new Map ()
 
 // --- (String, Buffer) => Boolean
-const checkPassword = (testPlain, knownHashed) => lets (
+const checkPassword = (testPlain, knownHashed) => {
+  return lets (
   () => hashPasswordScrypt (testPlain),
   (testHashed) => testHashed | bufferEquals (knownHashed),
-)
+)}
 
 const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   checkPassword,
   getUser,
-  getUserinfo: (email) => loggedIn.get (email),
+  getUserinfo: (email) => {
+    if (!loggedIn.get (email)) return null
+    const user = getUser (email)
+    if (nil (user)) return ierror ('user was null')
+    return user.userinfo
+  },
   jwtSecret: JWT_SECRET,
-  onLogin: (email, user) => loggedIn.set (email, user),
+  onLogin: (email, _user) => loggedIn.set (email, true),
   onLogout: (email, done) => {
     if (loggedIn.delete (email)) return done (null)
     return done ('Unexpected, ' + email + ' not found in `loggedIn`')
