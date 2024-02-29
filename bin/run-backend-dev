@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -eu
+set -o pipefail
+
+bindir=$(realpath "$(dirname "$0")")
+
+. "$bindir"/functions.bash
+
+rootdir="$bindir"/../backend
+
+USAGE="Usage: $0 [-w | --watch]"
+
+info This is the dev backend server and must not be run in production.
+xport PASSWORD_SALT "$(node -e 'console.log (Buffer.from ([ 0x75, 0x12, 0x23, 0x91, 0xAA, 0xAF, 0x53, 0x88, 0x90, 0xF1, 0xD4, 0xDD, ]).toString ("base64"))')"
+xport JWT_SECRET '82349((j1nzz;;sk__]1jjAAJSNk7ksjdfnNN<<N--++$$@'
+xport COOKIE_SECRET 'uI$&VNNmmxdv<><&FUM<MVXC__q-snnmsdf""@$$'
+
+cmd node "$rootdir" "$@"
