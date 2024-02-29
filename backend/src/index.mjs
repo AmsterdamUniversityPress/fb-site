@@ -58,6 +58,7 @@ const secureGet = secureMethod ('get')
 const getUser = (email) => {
   const user = dbUserGet (email)
   return user | fold (
+    // --- DB/IO error
     (e) => {
       warn ('Unable to get user:', e)
       return null
@@ -72,13 +73,14 @@ const getUser = (email) => {
             expires,
           },
         }),
-      () => {},
+      // --- invalid login
+      () => null,
     )
   )
 }
 
 // --- @todo sqlite / redis
-const loggedIn = new Map ()
+const loggedIn = new Set ()
 
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => {
@@ -90,14 +92,9 @@ const checkPassword = (testPlain, knownHashed) => {
 const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   checkPassword,
   getUser,
-  getUserinfo: (email) => {
-    if (!loggedIn.get (email)) return null
-    const user = getUser (email)
-    if (nil (user)) return ierror ('user was null')
-    return user.userinfo
-  },
+  isLoggedIn: (email) => loggedIn.has (email),
   jwtSecret: JWT_SECRET,
-  onLogin: (email, _user) => loggedIn.set (email, true),
+  onLogin: (email, _user) => loggedIn.add (email),
   onLogout: (email, done) => {
     if (loggedIn.delete (email)) return done (null)
     return done ('Unexpected, ' + email + ' not found in `loggedIn`')

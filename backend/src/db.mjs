@@ -5,8 +5,6 @@ import {
   map, whenOk,
 } from 'stick-js/es'
 
-
-Error.stackTraceLimit = 1000
 import { dirname, } from 'path'
 
 import { yellow, } from 'alleycat-js/es/io';
