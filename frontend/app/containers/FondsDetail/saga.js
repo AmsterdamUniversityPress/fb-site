@@ -31,4 +31,3 @@ export default function *sagaRoot () {
     saga (takeLatest, a_fondsDetailFetch, s_fondsDetailFetch),
   ])
 }
-

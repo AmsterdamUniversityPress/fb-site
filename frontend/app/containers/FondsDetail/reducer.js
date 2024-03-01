@@ -20,10 +20,10 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   fondsDetailFetch, (_) => assoc (
-    'fondsDetail', RequestLoading (Nothing),
+    'fonds', RequestLoading (Nothing),
   ),
   fondsDetailFetchCompleted, (rcomplete) => assoc (
-    'fondsDetail', rcomplete | cata ({
+    'fonds', rcomplete | cata ({
       RequestCompleteError: (e) => RequestError (e),
       RequestCompleteSuccess: (results) => RequestResults (results),
     }),

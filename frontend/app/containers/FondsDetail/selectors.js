@@ -12,10 +12,10 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-export const _selectFondsDetail = selectVal ('fondsDetail')
+export const _selectFonds = selectVal ('fonds')
 
-export const selectFondsDetail = select (
-  'selectFondsDetail',
-  _selectFondsDetail,
-  (fondsDetailRequest) => fondsDetailRequest | map (prop ('results')),
+export const selectFonds = select (
+  'selectFonds',
+  [_selectFonds],
+  (fondsRequest) => fondsRequest | map (prop ('results')),
 )

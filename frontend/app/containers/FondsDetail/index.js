@@ -1,5 +1,6 @@
 import {
   pipe, compose, composeRight,
+  noop, remapTuples,
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useRef, useState, } from 'react'
@@ -19,13 +20,24 @@ import { fondsDetailFetch, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
-  selectFondsDetail,
+  selectFonds,
 } from './selectors'
 
-import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, } from '../../common'
+import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
+const DetailS = styled.div`
+`
+
+const Detail = ({ data, }) => <DetailS>
+  {data | remapTuples ((k, v) => <div key={k} className='x__row'>
+    {k}: {v}
+  </div>)}
+</DetailS>
+
 const FondsDetailS = styled.div`
+  height: 100%;
+  overflow-y: auto;
 `
 
 const dispatchTable = {
@@ -33,25 +45,33 @@ const dispatchTable = {
 }
 
 const selectorTable = {
+  fonds: selectFonds,
 }
 
 export default container (
   ['FondsDetail', dispatchTable, selectorTable],
   (props) => {
+    const { fonds, fondsDetailFetchDispatch, } = props
+    const params = useRouteParams ('uuid')
+    const { uuid, } = params
 
     useWhy ('FondsDetail', props)
     useReduxReducer ({ createReducer, reducer, key: 'FondsDetail', })
     useSaga ({ saga, key: 'FondsDetail', })
 
-    const { fondsDetailFetchDispatch, } = props
-    const params = useRouteParams ('uuid')
-    const { uuid, } = params
     useEffect (() => {
       fondsDetailFetchDispatch (uuid)
     }, [uuid])
 
     return <FondsDetailS>
-      detail for {uuid}
+      {fonds | requestResults ({
+        onError: noop,
+        // --- @todo we're removing postadres until we fix it
+        onResults: ({ postadres, ... rest }) => <Detail data={{ ... rest}}/>,
+      })}
+      <div>detail for {uuid}</div>
+      <div>
+      </div>
     </FondsDetailS>
   }
 )
