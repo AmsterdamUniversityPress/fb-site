@@ -30,8 +30,9 @@ import {
 
 import saga from './saga'
 
-import { spinner, } from '../../alleycat-components'
-import { Button, LinkLike, } from '../../components/shared'
+import {} from '../../alleycat-components'
+import { Button, } from '../../components/shared'
+import { mkPagination, } from '../../components/shared/Pagination'
 import { Input, } from '../../components/shared/Input'
 
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
@@ -455,8 +456,6 @@ const Contents = container (
     </div>
   </ContentsS>,
 )
-
-const Spinner = spinner ('comet')
 
 export default container (
   ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
