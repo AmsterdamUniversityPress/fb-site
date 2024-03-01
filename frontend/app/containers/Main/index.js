@@ -301,6 +301,7 @@ const SidebarS = styled.div`
 
 const Sidebar = () => <SidebarS>
   sidebar (filters etc.)
+  <p>dit is de {process.env.APP_ENV} omgeving</p>
 </SidebarS>
 
 const FondsS = styled.div`
