@@ -4,6 +4,8 @@ import {
   bindTryProp, defaultTo, lets, invoke, ifOk, id, not,
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
+  againstAny,
+  contains, containsV, flip,
 } from 'stick-js/es'
 
 // --- for spinner
@@ -203,3 +205,13 @@ export const isNotEmptyList = not << isEmptyList
 export const nullMap = recurry (2) (
   (f) => ifOk (f, () => null),
 )
+
+export const compose2 = (f, g) => recurry (2) (
+  (a) => g << f (a),
+)
+
+export const againstNone = compose2 (againstAny, not)
+
+export const containedIn = flip (contains)
+export const containedInV = flip (containsV)
+export const notContainedInV = compose2 (containedInV, not)

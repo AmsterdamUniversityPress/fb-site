@@ -37,7 +37,7 @@ import { Main, } from '../../containers/Main/Loadable'
 import NotFoundPage from '../../containers/NotFoundPage'
 import Toast from '../../components/Toast'
 
-import { container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, shouldDisableMomentumScroll, useWhy, } from '../../common'
+import { againstNone, notContainedInV, container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
 import config from '../../config'
 
 const configTop = config | configure.init
@@ -144,6 +144,9 @@ export default container (
     const cls = clss (
       isMobile | whenTrueV ('x--mobile'),
     )
+
+    if (process.env.APP_ENV | notContainedInV (['tst', 'acc', 'prd']))
+      return 'Missing/invalid APP_ENV'
 
     return error | ifTrue (
       () => <div>
