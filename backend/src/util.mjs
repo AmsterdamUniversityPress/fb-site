@@ -3,6 +3,7 @@ import {
   map, spreadTo, lets,
   sprintf1, sprintfN, id, T, nil, recurry,
   ifOk, always, die,
+  ifPredicateResults, whenPredicateResults,
 } from 'stick-js/es'
 
 import path from 'path'
@@ -78,4 +79,47 @@ export const lookupOrDie = recurry (3) (
 )
 export const lookupOnOrDie = recurry (3) (
   (msg) => (o) => (k) => lookupOrDie (msg, k, o),
+)
+
+const canEnum = (o, k) => Object.prototype.propertyIsEnumerable.call (o, k)
+
+export const compose2 = (f, g) => recurry (2) (
+  (a) => (b) => g (f (a, b)),
+)
+
+// --- @experimental
+export const compose3 = (f, g) => recurry (3) (
+  (a) => (b) => (c) => g (f (a, b, c)),
+)
+
+// --- @experimental
+export const compose4 = (f, g) => recurry (4) (
+  (a) => (b) => (c) => (d) => g (f (a, b, c, d)),
+)
+
+export const mapTuplesAsMap = (f) => (o) => {
+  const ret = new Map ()
+  for (const k of Reflect.ownKeys (o)) {
+    if (!canEnum (o, k)) continue
+    const [kk, vv] = f (k, o [k])
+    ret.set (kk, vv)
+  }
+  return ret
+}
+
+// :: a -> Map a b -> b | undefined
+export const mapHas = recurry (2) (
+  (k) => (m) => m.has (k) ? m.get (k) : void 8,
+)
+
+// :: a -> (b -> c) -> Map a b -> c | undefined
+// export const whenMapHas = compose3 (mapHas, whenPredicate)
+export const whenMapHas = recurry (3) (
+  mapHas >> whenPredicateResults,
+)
+
+// :: a -> ~yes:(b -> c) -> ~no:(b -> d) -> Map a b -> c | d
+// export const ifMapHas = compose4 (mapHas, ifPredicate)
+export const ifMapHas = recurry (4) (
+  mapHas >> ifPredicateResults,
 )
