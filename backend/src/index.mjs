@@ -22,14 +22,21 @@ import { init as initDb,
   // userPasswordUpdate as dbUserPasswordUpdate,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, } from './util.mjs'
+import { env, lookupOnOrDie, } from './util.mjs'
 
 import {
   main as initExpressJwt,
   secureMethod,
 } from 'alleycat-express-jwt'
 
-import data from '../../__data/fb-data-tst.json' with { type: 'json', }
+import dataTst from '../../__data/fb-data-tst.json' with { type: 'json', }
+import dataAcc from '../../__data/fb-data-acc.json' with { type: 'json', }
+import dataPrd from '../../__data/fb-data-prd.json' with { type: 'json', }
+
+const data = process.env.APP_ENV | lookupOnOrDie (
+  'Invalid/missing APP_ENV (got ' + process.env.APP_ENV + ')',
+  { tst: dataTst, acc: dataAcc, prd: dataPrd, }
+)
 
 const configTop = config | configure.init
 

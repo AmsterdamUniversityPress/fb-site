@@ -16,4 +16,5 @@ xport PASSWORD_SALT "$(node -e 'console.log (Buffer.from ([ 0x75, 0x12, 0x23, 0x
 xport JWT_SECRET '82349((j1nzz;;sk__]1jjAAJSNk7ksjdfnNN<<N--++$$@'
 xport COOKIE_SECRET 'uI$&VNNmmxdv<><&FUM<MVXC__q-snnmsdf""@$$'
 
+xport APP_ENV tst
 cmd node "$rootdir" "$@"
