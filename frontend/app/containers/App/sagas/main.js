@@ -66,7 +66,7 @@ function *s_loginCompleted (res) {
     () => (onError ('(no message)'), null),
   )
   yield put (a_loginLogoutCompleted (user))
-  yield put (a_fondsenFetch (0))
+  if (user) yield put (a_fondsenFetch (0))
 }
 
 function *s_helloCompleted (res, first=false) {
