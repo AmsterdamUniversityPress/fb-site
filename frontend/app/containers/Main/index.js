@@ -7,6 +7,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
+import { useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -174,6 +175,15 @@ const MainS = styled.div`
     > .x__header {
       flex: 0 0 auto;
     }
+    > .x__logo {
+      font-size: 30px;
+      padding: 5px;
+      border: 2px solid green;
+      width: 150px;
+      margin: auto;
+      margin-bottom: 40px;
+      cursor: pointer;
+    }
   }
   > .x__login-wrapper {
     height: 100%;
@@ -317,6 +327,13 @@ const FondsS = styled.div`
   border: 1px solid black;
   margin-bottom: 20px;
   line-height: 1.5em;
+  a {
+    color: inherit;
+    display: block;
+  }
+  > a {
+    height: 100%;
+  }
   .x__img {
     width: 100%;
     img {
@@ -336,19 +353,32 @@ const FondsS = styled.div`
   }
 `
 
-const Fonds = ({ naam_organisatie, categorie, }) => <FondsS>
-  <div className='x__img'>
-    <img src={imageGracht}/>
-  </div>
-  <div className='x__text'>
-    <div className='x__naam-organisatie'>
-      {naam_organisatie}
-    </div>
-    <div className='x__categorie'>
-      {categorie}
-    </div>
-  </div>
-</FondsS>
+const Fonds = ({ uuid, naam_organisatie, categorie, website, }) => {
+  const navigate = useNavigate ()
+  const href = '/detail/' + uuid
+  const onClickMain = (event) => {
+    event.preventDefault ()
+    navigate ({ pathname: href, })
+  }
+  return <FondsS>
+    <a href={href} onClick={onClickMain}>
+      <div className='x__img'>
+        <img src={imageGracht}/>
+      </div>
+      <div className='x__text'>
+        {/* @todo http */}
+        <a href={'http://' + website}>
+          <div className='x__naam-organisatie'>
+            {naam_organisatie}
+          </div>
+        </a>
+        <div className='x__categorie'>
+          {categorie}
+        </div>
+      </div>
+    </a>
+  </FondsS>
+}
 
 const FondsenS = styled.div`
   text-align: center;
@@ -361,8 +391,11 @@ const Fondsen = container (
     {fondsen | requestResults ({
       onError: noop,
       onResults: map (
-        ({ uuid, naam_organisatie, categorie, ... _rest }) => {
-          return <Fonds key={uuid} naam_organisatie={naam_organisatie} categorie={categorie}/>
+        ({ uuid, naam_organisatie, categorie, website, ... _rest }) => {
+          return <Fonds
+            key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categorie={categorie}
+            website={website}
+          />
         },
       ),
     })}
@@ -469,10 +502,14 @@ export default container (
   ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
   (props) => {
     const { isMobile, loggedIn, logInDispatch, page, } = props
+    const navigate = useNavigate ()
     const logIn = useCallback (
       (email, password) => logInDispatch (email, password),
       [logInDispatch],
     )
+    const onClickLogo = useCallbackConst (() => {
+      navigate ({ pathname: '/', })
+    })
 
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
@@ -484,6 +521,9 @@ export default container (
           () => <div className='x__contents'>
             <div className='x__header'>
               <Header/>
+            </div>
+            <div className='x__logo' onClick={onClickLogo}>
+              FB Online
             </div>
             <Contents page={page}/>
           </div>,

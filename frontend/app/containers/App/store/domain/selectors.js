@@ -6,8 +6,6 @@ import {
   map, prop,
 } from 'stick-js/es'
 
-import { defaultMemoize as memoize, } from 'reselect'
-
 import { initialState, } from './reducer'
 
 import { initSelectors, } from '../../../../common'
