@@ -1,7 +1,8 @@
 import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
-  map, path,
+  map, path, condS, eq, guard, otherwise,
+  nil,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -30,6 +31,7 @@ import {
 
 import saga from './saga'
 
+import FondsDetail from '../FondsDetail'
 import { spinner, } from '../../alleycat-components'
 import { Button, LinkLike, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
@@ -447,12 +449,16 @@ const ContentsS = styled.div`
 
 const Contents = container (
   ['Contents', {}, {}],
-  ({}) => <ContentsS>
+  ({ page, }) => <ContentsS>
     <div className='x__sidebar'>
       <Sidebar/>
     </div>
     <div className='x__main'>
-      <FondsMain/>
+      {page | condS ([
+        eq ('overview') | guard (() => <FondsMain/>),
+        eq ('detail') | guard (() => <FondsDetail/>),
+        otherwise | guard (() => 'Invalid page ' + page),
+      ])}
     </div>
   </ContentsS>,
 )
@@ -462,7 +468,7 @@ const Spinner = spinner ('comet')
 export default container (
   ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
   (props) => {
-    const { isMobile, loggedIn, logInDispatch, } = props
+    const { isMobile, loggedIn, logInDispatch, page, } = props
     const logIn = useCallback (
       (email, password) => logInDispatch (email, password),
       [logInDispatch],
@@ -479,7 +485,7 @@ export default container (
             <div className='x__header'>
               <Header/>
             </div>
-            <Contents/>
+            <Contents page={page}/>
           </div>,
           () => <div className='x__login-wrapper'>
             <div className='x__wrapper'>

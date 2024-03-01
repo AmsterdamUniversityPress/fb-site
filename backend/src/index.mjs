@@ -22,7 +22,7 @@ import { init as initDb,
   // userPasswordUpdate as dbUserPasswordUpdate,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, lookupOnOrDie, } from './util.mjs'
+import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
 
 import {
   main as initExpressJwt,
@@ -63,6 +63,8 @@ const data = appEnv | lookupOnOrDie (
   'ierror appEnv',
   { tst: dataTst, acc: dataAcc, prd: dataPrd, }
 )
+
+const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
 
 const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
@@ -132,6 +134,18 @@ const init = ({ port, }) => express ()
       },
       results: data.slice (beginIdx, beginIdx + Number (number)),
     })
+  })
+  | secureGet ('/fonds', (req, res) => {
+    const { query, } = req
+    const { uuid, } = query
+    // --- @todo check / validate
+    console.log ('uuid', uuid)
+    res | sendStatus (
+      ... dataByUuid | ifMapHas (uuid) (
+        (fonds) => [200, { results: fonds, }],
+        () => [499, { umsg: 'No such uuid ' + uuid, }],
+      ),
+    )
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info

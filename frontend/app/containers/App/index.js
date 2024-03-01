@@ -2,6 +2,7 @@ import {
   pipe, compose, composeRight,
   map, dot, dot1, die, sprintf1,
   prop, whenOk, ifFalse, ifTrue,
+  eq,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
@@ -92,7 +93,8 @@ const selectorTable = {
 }
 
 const router = ({ passProps, }) => createBrowserRouter ([
-  { path: '/', element: <Main passProps={passProps}/>},
+  { path: '/', element: <Main page='overview' passProps={passProps}/>},
+  { path: '/detail/:uuid', element: <Main page='detail' passProps={passProps}/>},
   { path: '*', element: <NotFoundPage/>},
 ])
 
