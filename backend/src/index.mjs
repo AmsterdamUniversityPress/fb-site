@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, sprintfN, tryCatch, lets, id, die,
-  nil, ifOk, T, F, gt, tap,
+  sprintf1, tryCatch, lets, id,
+  ifOk, gt, tap, againstAny, eq,
 } from 'stick-js/es'
 
 import bcrypt from 'bcrypt'
@@ -33,11 +33,6 @@ import dataTst from '../../__data/fb-data-tst.json' with { type: 'json', }
 import dataAcc from '../../__data/fb-data-acc.json' with { type: 'json', }
 import dataPrd from '../../__data/fb-data-prd.json' with { type: 'json', }
 
-const data = process.env.APP_ENV | lookupOnOrDie (
-  'Invalid/missing APP_ENV (got ' + process.env.APP_ENV + ')',
-  { tst: dataTst, acc: dataAcc, prd: dataPrd, }
-)
-
 const configTop = config | configure.init
 
 const { serverPort, } = tryCatch (
@@ -47,19 +42,26 @@ const { serverPort, } = tryCatch (
 )
 
 const jwtSecret = lets (
-  () => [
-    'must be longer than 25 characters',
-    length >> gt (25),
-  ],
+  () => ['must be longer than 25 characters', length >> gt (25) ],
   (validate) => env ('JWT_SECRET', validate),
 )
 
 const cookieSecret = lets (
-  () => [
-    'must be longer than 25 characters',
-    length >> gt (25),
-  ],
+  () => ['must be longer than 25 characters', length >> gt (25) ],
   (validate) => env ('COOKIE_SECRET', validate),
+)
+
+const appEnv = lets (
+  () => [
+    'must be tst|acc|prd',
+    againstAny ([eq ('tst'), eq ('acc'), eq ('prd')]),
+  ],
+  (validate) => env ('APP_ENV', validate),
+)
+
+const data = appEnv | lookupOnOrDie (
+  'ierror appEnv',
+  { tst: dataTst, acc: dataAcc, prd: dataPrd, }
 )
 
 const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
