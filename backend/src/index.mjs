@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id,
-  ifOk, gt, tap, againstAny, eq,
+  ifOk, gt, tap, againstAny, eq, die,
 } from 'stick-js/es'
 
 import bcrypt from 'bcrypt'
@@ -117,10 +117,10 @@ const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
     return [true]
   },
   jwtSecret,
-  onLogin: (email, _user) => {
+  onLogin: async (email, _user) => {
     loggedIn.add (email)
   },
-  onLogout: (email, done) => {
+  onLogout: async (email, done) => {
     if (loggedIn.delete (email)) return done (null)
     return done ('Unexpected, ' + email + ' not found in `loggedIn`')
   },

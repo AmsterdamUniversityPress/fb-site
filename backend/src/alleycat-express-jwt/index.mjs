@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
-  ifPredicateResults, noop, nil,
-  ifOk, ifTrue,
+  ifPredicateResults, noop, nil, tap,
+  ifOk, ifTrue, whenFalse,
 } from 'stick-js/es'
 
 import jwtModule from 'jsonwebtoken'
@@ -9,18 +9,20 @@ import passport from 'passport'
 import localStrategy from 'passport-local'
 import { Strategy as JWTStrategy, } from 'passport-jwt'
 
-import { recover, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import {
   getN, post, postN, send, sendStatus,
   methodWithMiddlewares, methodNWithMiddlewares, method3WithMiddlewares,
 } from 'alleycat-js/es/express'
-import { composeManyRight, logWith, } from 'alleycat-js/es/general'
+import { composeManyRight, decorateRejection, logWith, } from 'alleycat-js/es/general'
 import { warn, } from 'alleycat-js/es/io'
 
 import {
   bufferEqualsConstantTime,
   hashPasswordScrypt,
 } from './util-crypt.mjs'
+
+export const noopP = async () => {}
 
 export { bufferEqualsConstantTime, hashPasswordScrypt, }
 
@@ -105,8 +107,8 @@ export const main = ({
   getUser,
   isLoggedIn,
   jwtSecret,
-  onLogin=noop,
-  onLogout=noop,
+  onLogin=noopP,
+  onLogout=noopP,
   routeHello='/hello',
   routeLogin='/login',
   routeLogout='/logout',
@@ -168,12 +170,19 @@ export const main = ({
         const { username, userinfo, } = user
         const jwt = jwtModule.sign ({ username, }, jwtSecret)
         res.cookie ('jwt', jwt, cookieOptions)
-        onLogin (username, user, (err) => {
-          if (err) return res | sendStatus (serverErrorJSONCode, {
-            imsg: 'onLogin: ' + err,
+        // --- not expected to return anything
+        onLogin (username, user)
+          | recover (rejectP << decorateRejection ('onLogin: '))
+          | recover ((e) => {
+            warn (e)
+            res | sendStatus (serverErrorJSONCode, {
+              imsg: e.toString (),
+            })
+            return true
           })
-        })
-        return res | send ({ data: userinfo, })
+          | then ((stop=false) => stop | whenFalse (
+            () => res | send ({ data: userinfo, }),
+          ))
       }) (req, res)
     }),
     postN (routeLogout, [
@@ -184,12 +193,19 @@ export const main = ({
         if (!username) return res | sendStatus (serverErrorJSONCode, {
           imsg: 'req.user.username was empty',
         })
-        onLogout (username, (err) => {
-          if (err) return res | sendStatus (serverErrorJSONCode, {
-            imsg: 'onLogout: ' + err,
+        // --- not expected to return anything
+        onLogout (username)
+          | recover (rejectP << decorateRejection ('onLogout: '))
+          | recover ((e) => {
+            warn (e)
+            res | sendStatus (serverErrorJSONCode, {
+              imsg: e.toString (),
+            })
+            return true
           })
-        })
-        return res | send ({})
+          | then ((stop=false) => stop | whenFalse (
+            () => res | send ({}),
+          ))
       },
     ])
   )

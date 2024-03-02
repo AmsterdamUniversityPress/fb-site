@@ -123,3 +123,5 @@ export const whenMapHas = recurry (3) (
 export const ifMapHas = recurry (4) (
   mapHas >> ifPredicateResults,
 )
+
+export const noopP = async () => {}
