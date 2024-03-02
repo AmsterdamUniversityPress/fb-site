@@ -140,7 +140,6 @@ const User = container (
           <div className='x__item x__logout' onClick={onClickLogout}>
             <img src={iconLogout} width='18px'/>
             <span className='x__text'>afmelden</span>
-            {/* <LinkLike>afmelden</LinkLike> */}
           </div>
         </div>
       </div>}
@@ -175,7 +174,11 @@ const MainS = styled.div`
     > .x__header {
       flex: 0 0 auto;
     }
-    > .x__logo {
+    > a {
+      text-decoration: none;
+      color: inherit;
+    }
+    > a > .x__logo {
       font-size: 30px;
       padding: 5px;
       border: 2px solid green;
@@ -351,10 +354,7 @@ const FondsS = styled.div`
 `
 
 const Fonds = ({ uuid, naam_organisatie, categorie, website, }) => {
-  const navigate = useNavigate ()
   const href = '/detail/' + uuid
-  // --- @todo http
-  const hrefWebsite = 'http://' + website
   return <FondsS>
     <Link to={href}>
       <div className='x__img'>
@@ -362,7 +362,7 @@ const Fonds = ({ uuid, naam_organisatie, categorie, website, }) => {
       </div>
     </Link>
       <div className='x__text'>
-        <Link to={hrefWebsite}>
+        <Link to={website}>
           <div className='x__naam-organisatie'>
             {naam_organisatie}
           </div>
@@ -490,8 +490,6 @@ const Contents = container (
   </ContentsS>,
 )
 
-const Spinner = spinner ('comet')
-
 export default container (
   ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
   (props) => {
@@ -516,9 +514,11 @@ export default container (
             <div className='x__header'>
               <Header/>
             </div>
-            <div className='x__logo' onClick={onClickLogo}>
-              FB Online
-            </div>
+            <Link to='/'>
+              <div className='x__logo' onClick={onClickLogo}>
+                FB Online
+              </div>
+            </Link>
             <Contents page={page}/>
           </div>,
           () => <div className='x__login-wrapper'>
