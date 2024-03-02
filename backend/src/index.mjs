@@ -120,9 +120,9 @@ const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   onLogin: async (email, _user) => {
     loggedIn.add (email)
   },
-  onLogout: async (email, done) => {
-    if (loggedIn.delete (email)) return done (null)
-    return done ('Unexpected, ' + email + ' not found in `loggedIn`')
+  onLogout: async (email) => {
+    if (!loggedIn.delete (email))
+      die ('Unexpected, ' + email + ' not found in `loggedIn`')
   },
   usernameField: 'email',
 })
