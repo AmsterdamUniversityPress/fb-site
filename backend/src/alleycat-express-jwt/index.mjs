@@ -40,7 +40,7 @@ const getCookieOptions = (secure=true) => ({
 })
 
 const initStrategies = ({
-  jwtSecret/* , ifLoggedInUserinfo */, getUser, getUserinfo, checkPassword,
+  jwtSecret, getUser, getUserinfo, checkPassword,
   usernameField, passwordField,
 }) => {
   passport.use (
@@ -129,18 +129,9 @@ export const main = ({
       () => [userinfo],
       () => [null, reason],
     ))
-
-    if (err) return [err, null, null]
-    if (loggedIn !== true) return [null, null, reason]
-    // if (!isLoggedIn (email, user ? user.userinfo : null)) return [null, false, ]
-    if (nil (user)) return [
-      'Unexpected, unable to get user info for logged in user', null, null,
-    ]
-    return [null, user.userinfo]
   }
-  // const ifLoggedInUserinfo = getUserinfo | ifPredicateResults
   initStrategies ({
-    jwtSecret/* , ifLoggedInUserinfo */, getUser, getUserinfo, checkPassword,
+    jwtSecret, getUser, getUserinfo, checkPassword,
     usernameField, passwordField,
   })
   const addMiddleware = composeManyRight (
