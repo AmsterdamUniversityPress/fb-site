@@ -1,13 +1,13 @@
 import {
   pipe, compose, composeRight,
-  map, prop, ok,
+  map, prop, ok, againstAny,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
 import { requestCompleteFold, requestJSONStdOpts, noParseCodes, } from 'alleycat-js/es/fetch'
-import { error, } from 'alleycat-js/es/general'
+import { between, error, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 
 import {
@@ -90,7 +90,11 @@ function *s_hello (first=false) {
     resultsModify: map (prop ('data')),
     continuation: EffSaga (s_complete),
     request: requestJSONStdOpts ({
-      noParse: noParseCodes ([401]),
+      // --- @todo make consistent
+      noParse: againstAny ([
+        between (400, 498),
+        between (500, 598),
+      ])
     }),
   })
 }
