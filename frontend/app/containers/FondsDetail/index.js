@@ -66,8 +66,7 @@ export default container (
     return <FondsDetailS>
       {fonds | requestResults ({
         onError: noop,
-        // --- @todo we're removing postadres until we fix it
-        onResults: ({ postadres, ... rest }) => <Detail data={{ ... rest}}/>,
+        onResults: (data) => <Detail data={data}/>,
       })}
       <div>detail for {uuid}</div>
       <div>
