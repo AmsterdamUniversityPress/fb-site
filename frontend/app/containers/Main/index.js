@@ -7,7 +7,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { useNavigate, } from 'react-router-dom'
+import { useNavigate, Link, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -331,9 +331,6 @@ const FondsS = styled.div`
     color: inherit;
     display: block;
   }
-  > a {
-    height: 100%;
-  }
   .x__img {
     width: 100%;
     img {
@@ -356,27 +353,24 @@ const FondsS = styled.div`
 const Fonds = ({ uuid, naam_organisatie, categorie, website, }) => {
   const navigate = useNavigate ()
   const href = '/detail/' + uuid
-  const onClickMain = (event) => {
-    event.preventDefault ()
-    navigate ({ pathname: href, })
-  }
+  // --- @todo http
+  const hrefWebsite = 'http://' + website
   return <FondsS>
-    <a href={href} onClick={onClickMain}>
+    <Link to={href}>
       <div className='x__img'>
         <img src={imageGracht}/>
       </div>
+    </Link>
       <div className='x__text'>
-        {/* @todo http */}
-        <a href={'http://' + website}>
+        <Link to={hrefWebsite}>
           <div className='x__naam-organisatie'>
             {naam_organisatie}
           </div>
-        </a>
+        </Link>
         <div className='x__categorie'>
           {categorie}
         </div>
       </div>
-    </a>
   </FondsS>
 }
 
