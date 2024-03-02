@@ -27,7 +27,8 @@ import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
 import {
   main as initExpressJwt,
   secureMethod,
-} from 'alleycat-express-jwt'
+// } from 'alleycat-express-jwt'
+} from './alleycat-express-jwt/index.mjs'
 
 import dataTst from '../../__data/fb-data-tst.json' with { type: 'json', }
 import dataAcc from '../../__data/fb-data-acc.json' with { type: 'json', }
@@ -109,9 +110,16 @@ const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain,
 const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   checkPassword,
   getUser,
-  isLoggedIn: (email) => loggedIn.has (email),
+  isLoggedIn: async (email, { expires, }) => {
+    // if db error, die (...)
+    if (!loggedIn.has (email)) return [false, null]
+    if (expires <= Number (Date.now ())) return [false, 'Account expired']
+    return [true]
+  },
   jwtSecret,
-  onLogin: (email, _user) => loggedIn.add (email),
+  onLogin: (email, _user) => {
+    loggedIn.add (email)
+  },
   onLogout: (email, done) => {
     if (loggedIn.delete (email)) return done (null)
     return done ('Unexpected, ' + email + ' not found in `loggedIn`')
