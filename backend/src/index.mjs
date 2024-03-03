@@ -86,13 +86,12 @@ const getUser = (email) => {
       return null
     },
     ifOk (
-      ({ email, firstName, lastName, password, expires, }) => ({
+      ({ email, firstName, lastName, password, }) => ({
           password,
           userinfo: {
             email,
             firstName,
             lastName,
-            expires,
           },
         }),
       // --- invalid login
@@ -110,10 +109,9 @@ const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain,
 const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   checkPassword,
   getUser,
-  isLoggedIn: async (email, { expires, }) => {
+  isLoggedIn: async (email, _) => {
     // if db error, die (...)
     if (!loggedIn.has (email)) return [false, null]
-    if (expires <= Number (Date.now ())) return [false, 'Account expired']
     return [true]
   },
   jwtSecret,

@@ -33,8 +33,7 @@ const createTables = [
     email text unique not null,
     firstName text,
     lastName text,
-    password text not null,
-    expires integer not null
+    password text not null
   )`)]
 
 const daysInFuture = (n) => Number (new Date ()) + n*24*3600*1000
@@ -68,14 +67,13 @@ export const init = (encryptPassword) => {
   )
 }
 
-export const userAdd = (email, firstName, lastName, password, expires) => sqliteApi.run (
-  SB (`insert into user (email, firstName, lastName, password,
-  expires) values (?, ?, ?, ?, ?)`, [email, firstName, lastName,
-      password, expires])
-)
+export const userAdd = (email, firstName, lastName, password) => sqliteApi.run (SB (
+  `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
+  [email, firstName, lastName, password],
+))
 
 export const userGet = (email) => sqliteApi.get (
-  SB ('select email, firstName, lastName, password, expires from user where email = ?', [email]),
+  SB ('select email, firstName, lastName, password from user where email = ?', [email]),
 )
 
 export const userPasswordUpdate = (user_id, hashed_password) => sqliteApi.run (
