@@ -27,11 +27,6 @@ const clearCookie = side2 ('clearCookie')
 
 export { bufferEqualsConstantTime, hashPasswordScrypt, }
 
-const jwtMiddleware = passport.authenticate ('jwt', { session: false, })
-export const secureMethodN = methodNWithMiddlewares ([jwtMiddleware])
-export const secureMethod = methodWithMiddlewares ([jwtMiddleware])
-export const secureMethod3 = method3WithMiddlewares ([jwtMiddleware])
-
 // --- must return String or null
 const jwtFromSignedCookie = (req) => req.signedCookies.jwt ?? null
 
@@ -48,9 +43,6 @@ const getCookieOptions = (secure=true) => ({
  *
  * but provides us more fine-grained control over especially the error modes.
  *
- * Once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
- * called or 2) the JWT could not be decoded.
- *
  * The second argument to the callback function is called `user` in the documentation, but we
  * enhance it with a reason that the login failed, if any. (This callback is called by us at the end
  * of the `use ('jwt', ...)` function.
@@ -61,11 +53,16 @@ const getCookieOptions = (secure=true) => ({
 
 const passportAuthenticateJWT = () => (req, res, next) => {
   passport.authenticate ('jwt', (err, user, _info, _status) => {
-    // --- case 1) with an internal error, or some other internal error perhapsh -> return 500
+    // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
+    // called or 2) the JWT could not be decoded.
+
+    // --- case 1) with an internal error, or some other internal error perhaps -> return 500 (sent
+    // by express)
     if (err) return next (err)
     const { reason='(reason unknown)', details, } = user
     // --- case 1) where the verify function returned false or null for user, i.e., the user
-    // is not logged in, or case 2) -> return 401
+    // is not logged in, or case 2) -> return 499
+    // --- @future 499 is currently hardcoded
     if (not (details)) return res | sendStatus (499, {
       umsg: 'unauthorized: ' + reason,
     })
@@ -75,6 +72,10 @@ const passportAuthenticateJWT = () => (req, res, next) => {
     return next (null)
   }) (req, res, next)
 }
+
+export const secureMethodN = methodNWithMiddlewares ([passportAuthenticateJWT ()])
+export const secureMethod = methodWithMiddlewares ([passportAuthenticateJWT ()])
+export const secureMethod3 = method3WithMiddlewares ([passportAuthenticateJWT ()])
 
 const initStrategies = ({
   jwtSecret, getUser, getUserinfo, checkPassword,
@@ -158,7 +159,6 @@ export const main = ({
   passwordField='password',
 }) => {
   const getUserinfo = (email) => {
-    console.log ('here')
     const user = getUser (email)
     // --- for example, removed from database while the user still has a valid JWT
     if (nil (user)) return [null, 'User was removed / no longer valid']
@@ -184,7 +184,7 @@ export const main = ({
     }),
   )
   const addMiddleware = composeManyRight (
-    // --- all routes with the passport 'jwt' middlreturns return 401 if either the JWT is missing
+    // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
       passportAuthenticateJWT (),
