@@ -12,9 +12,10 @@ import { Strategy as JWTStrategy, } from 'passport-jwt'
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import {
   getN, post, postN, send, sendStatus,
+  use,
   methodWithMiddlewares, methodNWithMiddlewares, method3WithMiddlewares,
 } from 'alleycat-js/es/express'
-import { composeManyRight, decorateRejection, logWith, } from 'alleycat-js/es/general'
+import { between, composeManyRight, decorateRejection, logWith, } from 'alleycat-js/es/general'
 import { warn, } from 'alleycat-js/es/io'
 
 import {
@@ -23,7 +24,6 @@ import {
 } from './util-crypt.mjs'
 
 export const noopP = async () => {}
-const clearCookie = side2 ('clearCookie')
 
 export { bufferEqualsConstantTime, hashPasswordScrypt, }
 
@@ -58,14 +58,14 @@ const passportAuthenticateJWT = () => (req, res, next) => {
 
     // --- case 1) with an internal error, or some other internal error perhaps -> return 500 (sent
     // by express)
-    if (err) return next (err)
+    if (err) return next ({ code: 500, message: err, })
     const { reason='(reason unknown)', details, } = user
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
     // --- @future 499 is currently hardcoded
-    if (not (details)) return res | sendStatus (499, {
-      umsg: 'unauthorized: ' + reason,
-    })
+    if (not (details)) return next ({ code: 499, message: {
+      umsg: 'Unauthorized: ' + reason,
+    }})
     // --- logged in: set `req.user` and do not do anything with sessions (the only thing we
     // store in the cookie is the JWT itself, and that is done during the `login` middleware)
     req.user = details
@@ -73,9 +73,19 @@ const passportAuthenticateJWT = () => (req, res, next) => {
   }) (req, res, next)
 }
 
-export const secureMethodN = methodNWithMiddlewares ([passportAuthenticateJWT ()])
-export const secureMethod = methodWithMiddlewares ([passportAuthenticateJWT ()])
-export const secureMethod3 = method3WithMiddlewares ([passportAuthenticateJWT ()])
+export const secureMethodNWithMiddlewares = (prepend=[], append=[]) => methodNWithMiddlewares (
+  [... prepend, passportAuthenticateJWT (), ... append],
+)
+export const secureMethodWithMiddlewares = (prepend=[], append=[]) => methodWithMiddlewares (
+  [... prepend, passportAuthenticateJWT (), ... append],
+)
+export const secureMethod3WithMiddlewares = (prepend=[], append=[]) => method3WithMiddlewares (
+  [... prepend, passportAuthenticateJWT (), ... append],
+)
+
+export const secureMethodN = secureMethodNWithMiddlewares ()
+export const secureMethod = secureMethodWithMiddlewares ()
+export const secureMethod3 = secureMethod3WithMiddlewares ()
 
 const initStrategies = ({
   jwtSecret, getUser, getUserinfo, checkPassword,
@@ -254,7 +264,20 @@ export const main = ({
             () => res | send ({}),
           ))
       },
-    ])
+    ]),
+    // --- error handler (note single callback with 4 arguments)
+    use ((err, _req, res, _next) => {
+      if (err.stack && err.message) {
+        warn (err)
+        return res | sendStatus (599, {
+          imsg: 'Internal error (see logs)',
+          umsg: 'Internal error',
+        })
+      }
+      const { code, message, } = err
+      if (code | between (500, 599)) warn (message)
+      return res | sendStatus (code, message)
+    }),
   )
   return { addMiddleware, }
 }
