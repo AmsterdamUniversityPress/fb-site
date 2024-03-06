@@ -111,7 +111,7 @@ const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   getUser,
   isLoggedIn: async (email, _) => {
     // if db error, die (...)
-    if (!loggedIn.has (email)) return [false, null]
+    if (!loggedIn.has (email)) return [false, 'not logged in']
     return [true]
   },
   jwtSecret,
@@ -132,8 +132,7 @@ const init = ({ port, }) => express ()
   | secureGet ('/fondsen', (req, res) => {
     const { query, } = req
     const { beginIdx, number, } = query
-    // --- @todo check / validate
-    console.log ('query', query)
+    // --- @todo check / validate query
     res | sendStatus (200, {
       metadata: {
         totalAvailable: data.length,
