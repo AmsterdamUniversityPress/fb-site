@@ -1,7 +1,8 @@
 import {
   pipe, compose, composeRight,
-  ifPredicateResults, noop, nil, tap,
-  ifOk, ifTrue, whenFalse, not, side2, lets,
+  tap, nil, map,
+  ifOk, ifTrue, whenFalse, not, lets, ok,
+  join, appendM,
 } from 'stick-js/es'
 
 import jwtModule from 'jsonwebtoken'
@@ -9,21 +10,18 @@ import passport from 'passport'
 import localStrategy from 'passport-local'
 import { Strategy as JWTStrategy, } from 'passport-jwt'
 
-import { recover, rejectP, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, resolveP, then, } from 'alleycat-js/es/async'
 import {
-  getN, post, postN, send, sendStatus,
+  getN, post, postN, send, sendStatus, sendStatusEmpty,
   use,
   methodWithMiddlewares, methodNWithMiddlewares, method3WithMiddlewares,
 } from 'alleycat-js/es/express'
 import { between, composeManyRight, decorateRejection, logWith, } from 'alleycat-js/es/general'
 import { warn, } from 'alleycat-js/es/io'
 
-import {
-  bufferEqualsConstantTime,
-  hashPasswordScrypt,
-} from './util-crypt.mjs'
-
-export const noopP = async () => {}
+import { foldContinuation, mkPromise, startContinuation, } from './auth-continuation.mjs'
+import { flatMap, noopP, } from './util.mjs'
+import { bufferEqualsConstantTime, hashPasswordScrypt, } from './util-crypt.mjs'
 
 export { bufferEqualsConstantTime, hashPasswordScrypt, }
 
@@ -36,6 +34,50 @@ const getCookieOptions = (secure=true) => ({
   sameSite: true,
   signed: true,
 })
+
+const composeAuthMiddlewares = (middlewares) => {
+  return (req, res, next) => {
+    const umsgs = []
+
+    const mkf = (mw) => (umsg) => {
+      // --- @future probably a fun puzzle to make this work like `sequenceA` in Haskell, but then
+      // async ... a puzzle for another day in any case
+      if (ok (umsg)) umsgs.push (umsg)
+      return mkPromise (mw) (req, res)
+    }
+    /* Ιn other words:
+     *
+     *   <promise containing a starting condition>
+     *   | then (flatMap (
+     *     // --- this means the previous middleware failed to authorize
+     *     (umsg) => ... return a new continuation ...
+     *   ))
+     *   | then (flatMap ((umsg) => ...)
+     *   | ...
+     *
+     */
+    const chain = composeManyRight (... middlewares | map (
+      then << flatMap << mkf,
+    ))
+    resolveP (startContinuation)
+    | chain
+    | then (foldContinuation (
+      // --- authorized
+      () => next (),
+      // --- not authorized
+      (lastUmsg) => lets (
+        () => lastUmsg | appendM (umsgs) | join (','),
+        (umsg) => next ({ umsg, status: 499, }),
+      ),
+      // --- internal error
+      (imsg) => next ({ imsg, status: 599, }),
+    ))
+    | recover ((e) => lets (
+      () => e | decorateRejection ('composeAuthMiddlewares (): '),
+      (imsg) => next ({ imsg, status: 599, }),
+    ))
+  }
+}
 
 /* Middleware which works the same as the convenience form
  *
@@ -58,12 +100,12 @@ const passportAuthenticateJWT = () => (req, res, next) => {
 
     // --- case 1) with an internal error, or some other internal error perhaps -> return 500 (sent
     // by express)
-    if (err) return next ({ code: 500, message: err, })
+    if (err) return next ({ status: 500, imsg: err, })
     const { reason='(reason unknown)', details, } = user
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
     // --- @future 499 is currently hardcoded
-    if (not (details)) return next ({ code: 499, message: {
+    if (not (details)) return next ({ status: 499, umsg: {
       umsg: 'Unauthorized: ' + reason,
     }})
     // --- logged in: set `req.user` and do not do anything with sessions (the only thing we
@@ -267,16 +309,16 @@ export const main = ({
     ]),
     // --- error handler (note single callback with 4 arguments)
     use ((err, _req, res, _next) => {
+      // --- we assume err is an exception if it has a stack and a message
       if (err.stack && err.message) {
         warn (err)
-        return res | sendStatus (599, {
-          imsg: 'Internal error (see logs)',
-          umsg: 'Internal error',
-        })
+        return res | sendStatusEmpty (599)
       }
-      const { code, message, } = err
-      if (code | between (500, 599)) warn (message)
-      return res | sendStatus (code, message)
+      // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
+      const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
+      const { status, umsg=defaultMessage, imsg, } = err
+      if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
+      return res | sendStatus (status, umsg)
     }),
   )
   return { addMiddleware, }
