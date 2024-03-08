@@ -66,7 +66,7 @@ const composeAuthMiddlewares = (middlewares) => {
       () => next (),
       // --- not authorized
       (lastUmsg) => lets (
-        () => lastUmsg | appendM (umsgs) | join (','),
+        () => umsgs | appendM (lastUmsg) | join (','),
         (umsg) => next ({ umsg, status: 499, }),
       ),
       // --- internal error
@@ -124,6 +124,22 @@ export const secureMethodWithMiddlewares = (prepend=[], append=[]) => methodWith
 export const secureMethod3WithMiddlewares = (prepend=[], append=[]) => method3WithMiddlewares (
   [... prepend, passportAuthenticateJWT (), ... append],
 )
+
+const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
+  if (nil (isLoggedInRequest)) return next ({ status: 499, })
+  isLoggedInRequest (req)
+  | then (([loggedIn, reason]) => loggedIn | ifTrue (
+    () => {
+      req.user = { username: 'insitutionalzz', userinfo: {}}
+      return next ()
+    },
+    () => next ({ status: 499, umsg: reason, }),
+  ))
+  | recover ((e) => lets (
+    () => e | decorateRejection ('requestAuthenticate (): isLoggedInRequest: '),
+    (imsg) => next ({ imsg, status: 599, }),
+  ))
+}
 
 export const secureMethodN = secureMethodNWithMiddlewares ()
 export const secureMethod = secureMethodWithMiddlewares ()
@@ -195,6 +211,8 @@ const initStrategies = ({
 export const main = ({
   checkPassword,
   getUser,
+  isLoggedInBeforeJWT=null,
+  isLoggedInAfterJWT=null,
   isLoggedIn,
   jwtSecret,
   onLogin=noopP,
@@ -239,7 +257,11 @@ export const main = ({
     // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
-      passportAuthenticateJWT (),
+      composeAuthMiddlewares ([
+        requestAuthenticate (isLoggedInBeforeJWT),
+        passportAuthenticateJWT (),
+        requestAuthenticate (isLoggedInAfterJWT),
+      ]),
       (req, res) => {
         const { user, } = req
         if (!user) return res | sendStatus (serverErrorJSONCode, {

@@ -10,6 +10,19 @@ import { between, decorateRejection, } from 'alleycat-js/es/general'
 
 import { toJSON, } from './util.mjs'
 
+/* Express middlewares work as follows: each middleware calls `next` when it's finished, either with
+ * an argument (indicating an error, meaning jump out of the chain to the error handler) or with no
+ * argument (indicating go to next middleware).
+ *
+ * We want a way to chain several authorization strategies, where you try them one by one and jump
+ * out of the chaiiand it doesn't seem possible to do this idiomatically.
+ *
+ * The idea behind this is to provide a type with a `flatMap` method which means, do this if the
+ * current middleware failed to authorize, but break out if it did authorize or if there is an
+ * internal error. Then at the end of the chain you fold the result and decide what to do (probably
+ * you'll call the `next` function of the current stage.
+ */
+
 const AuthContinuation = daggy.taggedSum ('Continuation', {
   AuthContinuationAuthorized: [],
   // --- `umsg` should be a string and gets sent in the response body.
