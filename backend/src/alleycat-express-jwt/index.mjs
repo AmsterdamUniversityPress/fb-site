@@ -130,6 +130,21 @@ const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
   ))
 }
 
+// --- error handler (note single callback with 4 arguments): can be added
+// at the end as app-level or route-level middleware (at the end in both cases).
+const customErrorHandler = (err, _req, res, _next) => {
+  // --- we assume err is an exception if it has a stack and a message
+  if (err.stack && err.message) {
+    warn (err)
+    return res | sendStatusEmpty (599)
+  }
+  // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
+  const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
+  const { status, umsg=defaultMessage, imsg, } = err
+  if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
+  return res | sendStatus (status, umsg)
+}
+
 const initPassportStrategies = ({
   jwtSecret, getUser, getUserinfo, checkPassword,
   usernameField, passwordField,
@@ -257,6 +272,7 @@ const init = ({
         const { userinfo, ... _ } = user
         return res | send ({ data: userinfo, })
       },
+      customErrorHandler,
     ]),
     post (routeLogin, (req, res) => {
       const cookie = doCookie (req)
@@ -294,7 +310,7 @@ const init = ({
       }) (req, res)
     }),
     postN (routeLogout, [
-      passport.authenticate ('jwt', { session: false, }),
+      passportAuthenticateJWT (),
       (req, res) => {
         doCookie (req).clear (res)
         const username = req.user.username
@@ -316,19 +332,7 @@ const init = ({
           ))
       },
     ]),
-    // --- error handler (note single callback with 4 arguments)
-    use ((err, _req, res, _next) => {
-      // --- we assume err is an exception if it has a stack and a message
-      if (err.stack && err.message) {
-        warn (err)
-        return res | sendStatusEmpty (599)
-      }
-      // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
-      const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
-      const { status, umsg=defaultMessage, imsg, } = err
-      if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
-      return res | sendStatus (status, umsg)
-    }),
+    use (customErrorHandler),
   )
   return { useAuthMiddleware, authMiddleware, }
 }
@@ -349,19 +353,19 @@ const authProto = {
   getAuthMiddleware () {
     return this._authMiddleware | okOrDie ('not available (forgot to call init?)')
   },
-  secureMethodN ({ prepend=[], append=[], }={}) {
+  secureMethodN ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
     return methodNWithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append],
+      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
     )
   },
-  secureMethod ({ prepend=[], append=[], }={}) {
+  secureMethod ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
     return methodWithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append],
+      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
     )
   },
-  secureMethod3 ({ prepend=[], append=[], }={}) {
+  secureMethod3 ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
     return method3WithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append],
+      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
     )
   },
 }

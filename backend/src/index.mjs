@@ -70,6 +70,9 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
+const allowedIPs = new Set ([
+])
+
 // --- @todo persist in sqlite
 const loggedIn = new Set ()
 
@@ -108,6 +111,13 @@ const alleycatAuth = authFactory.create ().init ({
     // if db error, die (...)
     if (!loggedIn.has (email)) return [false, 'not logged in']
     return [true]
+  },
+  isLoggedInAfterJWT: async (req) => {
+    // --- note that X-Forwarded-For is really easy to forge, so you must be
+    // sure you trust the reverse proxy server.
+    const clientIP = req.headers ['x-forwarded-for']
+    if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
+    return [allowedIPs.has (clientIP)]
   },
   jwtSecret,
   onLogin: async (email, _user) => {
