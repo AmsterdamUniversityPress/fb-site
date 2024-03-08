@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
-  tap, nil, map,
+  tap, nil, map, die, mergeM,
   ifOk, ifTrue, whenFalse, not, lets, ok,
-  join, appendM,
+  join, concat, factory, factoryProps,
 } from 'stick-js/es'
 
 import jwtModule from 'jsonwebtoken'
@@ -20,7 +20,7 @@ import { between, composeManyRight, decorateRejection, logWith, } from 'alleycat
 import { warn, } from 'alleycat-js/es/io'
 
 import { foldContinuation, mkPromise, startContinuation, } from './auth-continuation.mjs'
-import { flatMap, noopP, } from './util.mjs'
+import { flatMap, noopP, okOrDie, } from './util.mjs'
 import { bufferEqualsConstantTime, hashPasswordScrypt, } from './util-crypt.mjs'
 
 export { bufferEqualsConstantTime, hashPasswordScrypt, }
@@ -66,8 +66,9 @@ const composeAuthMiddlewares = (middlewares) => {
       () => next (),
       // --- not authorized
       (lastUmsg) => lets (
-        () => umsgs | appendM (lastUmsg) | join (','),
-        (umsg) => next ({ umsg, status: 499, }),
+        () => lastUmsg | ifOk (() => [lastUmsg], () => []),
+        (lastUmsg_) => umsgs | concat (lastUmsg_) | join (','),
+        (_, umsg) => next ({ umsg, status: 499, }),
       ),
       // --- internal error
       (imsg) => next ({ imsg, status: 599, }),
@@ -105,25 +106,13 @@ const passportAuthenticateJWT = () => (req, res, next) => {
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
     // --- @future 499 is currently hardcoded
-    if (not (details)) return next ({ status: 499, umsg: {
-      umsg: 'Unauthorized: ' + reason,
-    }})
+    if (not (details)) return next ({ status: 499, umsg: 'Unauthorized: ' + reason, })
     // --- logged in: set `req.user` and do not do anything with sessions (the only thing we
     // store in the cookie is the JWT itself, and that is done during the `login` middleware)
     req.user = details
     return next (null)
   }) (req, res, next)
 }
-
-export const secureMethodNWithMiddlewares = (prepend=[], append=[]) => methodNWithMiddlewares (
-  [... prepend, passportAuthenticateJWT (), ... append],
-)
-export const secureMethodWithMiddlewares = (prepend=[], append=[]) => methodWithMiddlewares (
-  [... prepend, passportAuthenticateJWT (), ... append],
-)
-export const secureMethod3WithMiddlewares = (prepend=[], append=[]) => method3WithMiddlewares (
-  [... prepend, passportAuthenticateJWT (), ... append],
-)
 
 const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
   if (nil (isLoggedInRequest)) return next ({ status: 499, })
@@ -141,11 +130,7 @@ const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
   ))
 }
 
-export const secureMethodN = secureMethodNWithMiddlewares ()
-export const secureMethod = secureMethodWithMiddlewares ()
-export const secureMethod3 = secureMethod3WithMiddlewares ()
-
-const initStrategies = ({
+const initPassportStrategies = ({
   jwtSecret, getUser, getUserinfo, checkPassword,
   usernameField, passwordField,
 }) => {
@@ -208,7 +193,7 @@ const initStrategies = ({
  * `checkPassword` :: (String, Buffer) -> Boolean
  */
 
-export const main = ({
+const init = ({
   checkPassword,
   getUser,
   isLoggedInBeforeJWT=null,
@@ -239,7 +224,7 @@ export const main = ({
       () => [null, reason],
     ))
   }
-  initStrategies ({
+  initPassportStrategies ({
     jwtSecret, getUser, getUserinfo, checkPassword,
     usernameField, passwordField,
   })
@@ -253,15 +238,17 @@ export const main = ({
       set: (jwt) => (res) => res.cookie ('jwt', jwt, cookieOptions),
     }),
   )
-  const addMiddleware = composeManyRight (
+  const authMiddleware = composeAuthMiddlewares ([
+    requestAuthenticate (isLoggedInBeforeJWT),
+    passportAuthenticateJWT (),
+    requestAuthenticate (isLoggedInAfterJWT),
+  ])
+
+  const useAuthMiddleware = composeManyRight (
     // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
-      composeAuthMiddlewares ([
-        requestAuthenticate (isLoggedInBeforeJWT),
-        passportAuthenticateJWT (),
-        requestAuthenticate (isLoggedInAfterJWT),
-      ]),
+      authMiddleware,
       (req, res) => {
         const { user, } = req
         if (!user) return res | sendStatus (serverErrorJSONCode, {
@@ -343,5 +330,45 @@ export const main = ({
       return res | sendStatus (status, umsg)
     }),
   )
-  return { addMiddleware, }
+  return { useAuthMiddleware, authMiddleware, }
 }
+
+const authProto = {
+  // --- this had the side effect of initialising the passport strategies inside the passport
+  // module, probably as mutable state.
+  init (... args) {
+    const { useAuthMiddleware, authMiddleware, } = init (... args)
+    return this | mergeM ({
+      _useAuthMiddleware: useAuthMiddleware,
+      _authMiddleware: authMiddleware,
+    })
+  },
+  getUseAuthMiddleware () {
+    return this._useAuthMiddleware | okOrDie ('not available (forgot to call init?)')
+  },
+  getAuthMiddleware () {
+    return this._authMiddleware | okOrDie ('not available (forgot to call init?)')
+  },
+  secureMethodN ({ prepend=[], append=[], }={}) {
+    return methodNWithMiddlewares (
+      [... prepend, this.getAuthMiddleware (), ... append],
+    )
+  },
+  secureMethod ({ prepend=[], append=[], }={}) {
+    return methodWithMiddlewares (
+      [... prepend, this.getAuthMiddleware (), ... append],
+    )
+  },
+  secureMethod3 ({ prepend=[], append=[], }={}) {
+    return method3WithMiddlewares (
+      [... prepend, this.getAuthMiddleware (), ... append],
+    )
+  },
+}
+
+const props = {
+  _authMiddleware: void 8,
+  _useAuthMiddleware: void 8,
+}
+
+export const authFactory = authProto | factory | factoryProps (props)

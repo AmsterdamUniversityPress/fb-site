@@ -25,8 +25,7 @@ import { errorX, warn, } from './io.mjs'
 import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
 
 import {
-  main as initExpressJwt,
-  secureMethod,
+  authFactory,
 // } from 'alleycat-express-jwt'
 } from './alleycat-express-jwt/index.mjs'
 
@@ -71,9 +70,11 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-const secureGet = secureMethod ('get')
-// const securePost = secureMethod ('post')
-// ...
+// --- @todo persist in sqlite
+const loggedIn = new Set ()
+
+// --- (String, Buffer) => Boolean
+const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
@@ -100,13 +101,7 @@ const getUser = (email) => {
   )
 }
 
-// --- @todo persist in sqlite
-const loggedIn = new Set ()
-
-// --- (String, Buffer) => Boolean
-const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
-
-const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
+const alleycatAuth = authFactory.create ().init ({
   checkPassword,
   getUser,
   isLoggedIn: async (email, _) => {
@@ -125,10 +120,13 @@ const { addMiddleware: addLoginMiddleware, } = initExpressJwt ({
   usernameField: 'email',
 })
 
+const secureGet = alleycatAuth.secureMethod () ('get')
+const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
+
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
-  | addLoginMiddleware
+  | useAuthMiddleware
   | secureGet ('/fondsen', (req, res) => {
     const { query, } = req
     const { beginIdx, number, } = query
