@@ -125,8 +125,10 @@ const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
     () => next ({ status: 499, umsg: reason, }),
   ))
   | recover ((e) => lets (
-    () => e | decorateRejection ('requestAuthenticate (): isLoggedInRequest: '),
-    (imsg) => next ({ imsg, status: 599, }),
+    // --- in case it's an exception
+    () => e.toString (),
+    (es) => es | decorateRejection ('requestAuthenticate (): isLoggedInRequest: '),
+    (_, imsg) => next ({ imsg, status: 599, }),
   ))
 }
 

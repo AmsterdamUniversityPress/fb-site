@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id,
+  sprintf1, tryCatch, lets, id, nil,
   ifOk, gt, tap, againstAny, eq, die,
 } from 'stick-js/es'
 
@@ -117,7 +117,7 @@ const alleycatAuth = authFactory.create ().init ({
     // sure you trust the reverse proxy server.
     const clientIP = req.headers ['x-forwarded-for']
     if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
-    return [allowedIPs.has (clientIP)]
+    return [allowedIPs.has (clientIP), null]
   },
   jwtSecret,
   onLogin: async (email, _user) => {
@@ -130,8 +130,8 @@ const alleycatAuth = authFactory.create ().init ({
   usernameField: 'email',
 })
 
-const secureGet = alleycatAuth.secureMethod () ('get')
 const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
+const secureGet = alleycatAuth.secureMethod () ('get')
 
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())

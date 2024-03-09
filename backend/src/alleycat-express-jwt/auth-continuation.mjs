@@ -71,7 +71,7 @@ const mkContinuation = (nextParam) => {
   if (status | between (400, 499)) return AuthContinuationNotAuthorized (umsg | toJSON)
   return AuthContinuationError (
     [status, umsg | toJSON, imsg | toJSON] | sprintfN (
-      'mkContinuation (): unexpected code %d, umsg=%s, imsg=%s',
+      'mkContinuation (): unexpected, code=%d, umsg=%s, imsg=%s',
     ),
   )
 }
