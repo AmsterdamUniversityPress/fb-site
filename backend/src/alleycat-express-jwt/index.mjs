@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tap, nil, map, die, mergeM,
+  tap, nil, map, die, mergeM, always,
   ifOk, ifTrue, whenFalse, not, lets, ok,
   join, concat, factory, factoryProps,
 } from 'stick-js/es'
@@ -114,12 +114,14 @@ const passportAuthenticateJWT = () => (req, res, next) => {
   }) (req, res, next)
 }
 
-const requestAuthenticate = (isAuthorizedRequest) => (req, _res, next) => {
+const requestAuthenticate = (getUserinfoRequest, isAuthorizedRequest) => (req, _res, next) => {
   if (nil (isAuthorizedRequest)) return next ({ status: 499, })
   isAuthorizedRequest (req)
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
-      req.user = { username: 'insitutionalzz', userinfo: {}}
+      const userinfo = getUserinfoRequest (req)
+      // --- @todo can we just keep username empty?
+      req.user = { userinfo, username: '<ip-based>', }
       return next ()
     },
     () => next ({ status: 499, umsg: reason, }),
@@ -148,7 +150,7 @@ const customErrorHandler = (err, _req, res, _next) => {
 }
 
 const initPassportStrategies = ({
-  jwtSecret, getUser, checkAuthorized, checkPassword,
+  jwtSecret, getUserinfoLogin, checkAuthorized, checkPassword,
   usernameField, passwordField,
 }) => {
   passport.use ('login', new localStrategy (
@@ -156,7 +158,7 @@ const initPassportStrategies = ({
     //   `done (null, null, { message: 'Missing credentials', })`
     { usernameField, passwordField, },
     (username, password, done) => {
-      const user = getUser (username)
+      const user = getUserinfoLogin (username)
       if (!user)
         return done (null, false, { message: 'User not found', })
       const { password: passwordFromDb, userinfo, } = user
@@ -199,24 +201,31 @@ const initPassportStrategies = ({
 }
 
 /*
- * `getUser` must return { password, userinfo, }, where userinfo is an
- * arbitrary structure, or `null` if the username is invalid.
+ * `getUserinfoLogin` (required) gets the info for a user who logs in with
+ * username and password. It takes the username and must return { password,
+ * userinfo, }, where userinfo is an arbitrary structure, or `null` if the
+ * username is invalid.
  *
- * This structure will be sent to the frontend in the response to the both
- * the /hello and /login routes.
+ * `getUserinfoRequest` (optional) takes the request and returns an
+ * arbitrary `userinfo` object.
  *
- * The structure { username, userinfo, } will be made available on each
- * request as `req.user` after the JWT is successfully decoded.
+ * The `userinfo` object will be sent to the frontend in the response to
+ * the /hello, /login, and other secured routes.
  *
- * Note that this is not what is stored in the JWT, which is currently
- * only the username.
+ * The structure { username, userinfo, } will be made available to the
+ * middleware/routing functions as `req.user` after the JWT is successfully
+ * decoded.
+ *
+ * Note that this is not what is stored in the JWT. Currently only the
+ * username is stored there.
  *
  * `checkPassword` :: (String, Buffer) -> Boolean
  */
 
 const init = ({
   checkPassword,
-  getUser,
+  getUserinfoLogin,
+  getUserinfoRequest=always ({}),
   isAuthorizedBeforeJWT=null,
   isAuthorizedAfterJWT=null,
   isAuthorized,
@@ -236,7 +245,7 @@ const init = ({
 }) => {
   // --- caller must catch rejection
   const checkAuthorized = (username, req) => {
-    const user = getUser (username)
+    const user = getUserinfoLogin (username)
     // --- for example, removed from database while the user still has a valid JWT
     if (nil (user)) return [null, 'User was removed / no longer valid']
     const { userinfo, } = user
@@ -247,7 +256,7 @@ const init = ({
     ))
   }
   initPassportStrategies ({
-    jwtSecret, getUser, checkAuthorized, checkPassword,
+    jwtSecret, getUserinfoLogin, checkAuthorized, checkPassword,
     usernameField, passwordField,
   })
   // --- note that the cookie must be cleared with exactly the same options as it was set with,
@@ -261,9 +270,9 @@ const init = ({
     }),
   )
   const authMiddleware = composeAuthMiddlewares ([
-    requestAuthenticate (isAuthorizedBeforeJWT),
+    requestAuthenticate (getUserinfoRequest, isAuthorizedBeforeJWT),
     passportAuthenticateJWT (),
-    requestAuthenticate (isAuthorizedAfterJWT),
+    requestAuthenticate (getUserinfoRequest, isAuthorizedAfterJWT),
   ])
 
   const useAuthMiddleware = composeManyRight (

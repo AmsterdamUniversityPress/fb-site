@@ -81,7 +81,7 @@ const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain,
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
-const getUser = (email) => {
+const getUserinfoLogin = (email) => {
   const user = dbUserGet (email)
   return user | fold (
     // --- DB/IO error
@@ -104,9 +104,14 @@ const getUser = (email) => {
   )
 }
 
+const getUserinfoRequest = (req) => {
+  return { contact: { email: 'ict@bibliotheek.nl', }}
+}
+
 const alleycatAuth = authFactory.create ().init ({
   checkPassword,
-  getUser,
+  getUserinfoLogin,
+  getUserinfoRequest,
   isAuthorized: async (email, _, req) => {
     const { path, } = req.route
     // console.log ('todo checking authorized for path', path)
