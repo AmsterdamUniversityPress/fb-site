@@ -114,9 +114,9 @@ const passportAuthenticateJWT = () => (req, res, next) => {
   }) (req, res, next)
 }
 
-const requestAuthenticate = (isLoggedInRequest) => (req, _res, next) => {
-  if (nil (isLoggedInRequest)) return next ({ status: 499, })
-  isLoggedInRequest (req)
+const requestAuthenticate = (isAuthorizedRequest) => (req, _res, next) => {
+  if (nil (isAuthorizedRequest)) return next ({ status: 499, })
+  isAuthorizedRequest (req)
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
       req.user = { username: 'insitutionalzz', userinfo: {}}
@@ -217,8 +217,8 @@ const initPassportStrategies = ({
 const init = ({
   checkPassword,
   getUser,
-  isLoggedInBeforeJWT=null,
-  isLoggedInAfterJWT=null,
+  isAuthorizedBeforeJWT=null,
+  isAuthorizedAfterJWT=null,
   isAuthorized,
   jwtSecret,
   onLogin=noopP,
@@ -261,9 +261,9 @@ const init = ({
     }),
   )
   const authMiddleware = composeAuthMiddlewares ([
-    requestAuthenticate (isLoggedInBeforeJWT),
+    requestAuthenticate (isAuthorizedBeforeJWT),
     passportAuthenticateJWT (),
-    requestAuthenticate (isLoggedInAfterJWT),
+    requestAuthenticate (isAuthorizedAfterJWT),
   ])
 
   const useAuthMiddleware = composeManyRight (

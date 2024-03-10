@@ -114,7 +114,7 @@ const alleycatAuth = authFactory.create ().init ({
     if (!loggedIn.has (email)) return [false, 'not logged in']
     return [true]
   },
-  isLoggedInAfterJWT: async (req) => {
+  isAuthorizedAfterJWT: async (req) => {
     // --- note that X-Forwarded-For is really easy to forge, so you must be
     // sure you trust the reverse proxy server.
     const clientIP = req.headers ['x-forwarded-for']
