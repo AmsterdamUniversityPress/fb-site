@@ -107,7 +107,9 @@ const getUser = (email) => {
 const alleycatAuth = authFactory.create ().init ({
   checkPassword,
   getUser,
-  isLoggedIn: async (email, _) => {
+  isAuthorized: async (email, _, req) => {
+    const { path, } = req.route
+    // console.log ('todo checking authorized for path', path)
     // if db error, die (...)
     if (!loggedIn.has (email)) return [false, 'not logged in']
     return [true]

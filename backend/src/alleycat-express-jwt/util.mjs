@@ -7,7 +7,7 @@ import {
 export const noopP = async () => {}
 export const flatMap = dot1 ('flatMap')
 
-// --- note that you can not serialize an Error as JSON (for some reason?)
+// --- note that you can not serialiaze an Error as JSON (for some reason?)
 const ifString = isString | ifPredicate
 export const toJSON = ifString (id, JSON.stringify)
 

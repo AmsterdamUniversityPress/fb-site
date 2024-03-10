@@ -148,7 +148,7 @@ const customErrorHandler = (err, _req, res, _next) => {
 }
 
 const initPassportStrategies = ({
-  jwtSecret, getUser, getUserinfo, checkPassword,
+  jwtSecret, getUser, checkAuthorized, checkPassword,
   usernameField, passwordField,
 }) => {
   passport.use ('login', new localStrategy (
@@ -169,10 +169,14 @@ const initPassportStrategies = ({
   ))
 
   passport.use ('jwt', new JWTStrategy (
-    { jwtFromRequest: jwtFromSignedCookie, secretOrKey: jwtSecret, },
+    {
+      passReqToCallback: true,
+      jwtFromRequest: jwtFromSignedCookie,
+      secretOrKey: jwtSecret,
+    },
     // --- once we're here, it means that the JWT was valid and we were able to decode it.
-    ({ username }, done) => {
-      return getUserinfo (username)
+    (req, { username }, done) => {
+      return checkAuthorized (username, req)
       | then (([userinfo, reason]) => done (
         null,
         userinfo | ifOk (
@@ -215,7 +219,7 @@ const init = ({
   getUser,
   isLoggedInBeforeJWT=null,
   isLoggedInAfterJWT=null,
-  isLoggedIn,
+  isAuthorized,
   jwtSecret,
   onLogin=noopP,
   onLogout=noopP,
@@ -230,19 +234,20 @@ const init = ({
   usernameField='username',
   passwordField='password',
 }) => {
-  const getUserinfo = (email) => {
-    const user = getUser (email)
+  // --- caller must catch rejection
+  const checkAuthorized = (username, req) => {
+    const user = getUser (username)
     // --- for example, removed from database while the user still has a valid JWT
     if (nil (user)) return [null, 'User was removed / no longer valid']
     const { userinfo, } = user
-    return isLoggedIn (email, userinfo)
+    return isAuthorized (username, userinfo, req)
     | then (([loggedIn, reason]) => loggedIn | ifTrue (
       () => [userinfo],
       () => [null, reason],
     ))
   }
   initPassportStrategies ({
-    jwtSecret, getUser, getUserinfo, checkPassword,
+    jwtSecret, getUser, checkAuthorized, checkPassword,
     usernameField, passwordField,
   })
   // --- note that the cookie must be cleared with exactly the same options as it was set with,
