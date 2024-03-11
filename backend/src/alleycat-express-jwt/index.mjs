@@ -120,8 +120,7 @@ const requestAuthenticate = (getUserinfoRequest, isAuthorizedRequest) => (req, _
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
       const userinfo = getUserinfoRequest (req)
-      // --- @todo can we just keep username empty?
-      req.user = { userinfo, username: '<ip-based>', }
+      req.user = { userinfo, username: null, }
       return next ()
     },
     () => next ({ status: 499, umsg: reason, }),
