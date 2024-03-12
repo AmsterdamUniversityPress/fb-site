@@ -1,6 +1,8 @@
 __data/*.json
 _site
 
+backend/src/config.mjs
+
 yarn.lock
 
 node_modules
