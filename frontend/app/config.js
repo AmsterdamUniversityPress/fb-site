@@ -14,7 +14,10 @@ import iconSearch from './images/icons/search.svg'
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUser from './images/icons/user.svg'
-import imageGracht from './images/gracht.jpg'
+import imageEyeWall from './images/eye-wall-painting.jpg'
+import imageLogoHelvetica from './images/fb-logo-helvetica.svg'
+import imageOilPaints from './images/oil-paints.jpg'
+import imageUitgave from './images/uitgave.svg'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -67,14 +70,17 @@ export default {
     },
   },
   icons: {
-    'logout': iconLogout,
-    'search': iconSearch,
+    logout: iconLogout,
+    search: iconSearch,
     'show-password-hidden': iconShowPasswordHidden,
     'show-password-shown': iconShowPasswordShown,
-    'user': iconUser,
+    user: iconUser,
   },
   images: {
-    'gracht': imageGracht,
+    background: imageOilPaints,
+    fonds: imageEyeWall,
+    logo: imageLogoHelvetica,
+    uitgave: imageUitgave,
   },
   colors: {
     header: {

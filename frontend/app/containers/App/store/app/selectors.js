@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  ok, prop, map,
+  ok, prop, map, path,
 } from 'stick-js/es'
 
 import { createSelector, defaultMemoize as memoize, } from 'reselect'
@@ -38,6 +38,28 @@ export const selectLoggedInDefaultFalse = select (
     () => false,
   ),
 )
+
+export const selectGetUserType = select (
+  'selectGetUserType',
+  [selectUser],
+  (user) => () => user | toJust | prop ('type'),
+)
+
+// ------ type: institution
+
+export const selectGetContactEmail = select (
+  'selectGetContactEmail',
+  [selectUser],
+  (user) => () => user | toJust | path (['contact', 'email']),
+)
+
+export const selectGetInstitutionName = select (
+  'selectGetInstitutionName',
+  [selectUser],
+  (user) => () => user | toJust | prop ('name'),
+)
+
+// ------ type: user
 
 export const selectGetFirstName = select (
   'selectGetFirstName',

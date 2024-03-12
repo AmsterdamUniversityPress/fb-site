@@ -7,7 +7,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { useNavigate, Link, } from 'react-router-dom'
+import { Link, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -25,6 +25,8 @@ import {
 import {
   selectLoggedIn,
   selectGetFirstName, selectGetLastName, selectGetEmail,
+  selectGetContactEmail, selectGetInstitutionName,
+  selectGetUserType,
 } from '../App/store/app/selectors'
 import {
   selectFondsen,
@@ -33,8 +35,8 @@ import {
 import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
-import { spinner, } from '../../alleycat-components'
-import { Button, LinkLike, } from '../../components/shared'
+import {} from '../../alleycat-components'
+import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
@@ -47,7 +49,15 @@ const iconLogout = configTop.get ('icons.logout')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
 const iconUser = configTop.get ('icons.user')
-const imageGracht = configTop.get ('images.gracht')
+const imageHoutenFrame = configTop.get ('images.fonds')
+const imageLogo = configTop.get ('images.logo')
+const imageBackground = configTop.get ('images.background')
+// const imageUitgave = configTop.get ('images.uitgave')
+
+const imageFonds = imageHoutenFrame
+
+// --- pinkish
+const colorHighlight = '#ffdbdbdd'
 
 const UserS = styled.div`
   width: 50px;
@@ -59,26 +69,14 @@ const UserS = styled.div`
     position: absolute;
     font-size: 18px;
     padding: 15px;
-    width: 200px;
-    left: -150px;
+    text-wrap: nowrap;
+    right: 0px;
     top: 50px;
     cursor: default;
     box-shadow: 1px 1px 4px;
     hr {
       margin-top: 20px;
       width: 50%;
-    }
-    > .x__userinfo {
-      font-weight: 200;
-      > .x__name {
-      }
-      > .x__email {
-      }
-      > .x__name, > .x__email {
-        text-wrap: nowrap;
-        overflow-x: hidden;
-        text-overflow: ellipsis;
-      }
     }
     > .x__menu-items {
       margin-top: 12px;
@@ -103,17 +101,69 @@ const UserS = styled.div`
   }
 `
 
+const UserinfoInstitutionS = styled.div`
+  font-weight: 200;
+  > .x__name {
+  }
+  > .x__email {
+  }
+  > .x__name, > .x__email {
+    text-wrap: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+`
+
+const UserinfoInstitution = container (
+  ['UserinfoInstitution', {}, {
+    getContactEmail: selectGetContactEmail,
+    getInstitutionName: selectGetInstitutionName,
+  }],
+  ({ getContactEmail, getInstitutionName, }) => <UserinfoInstitutionS>
+    <div className='x__institution-name'>
+      Je bent ingelogd courtesy of: {getInstitutionName ()}
+    </div>
+    <div className='x__contact-email'>
+      Contact: {getContactEmail ()}
+    </div>
+    <div className='x__contact-email'>
+      log in met gebruikersnaam en wachtwoord
+    </div>
+  </UserinfoInstitutionS>,
+)
+
+const UserinfoUserS = styled.div`
+  font-weight: 200;
+  > .x__name {
+  }
+  > .x__email {
+  }
+  > .x__name, > .x__email {
+    text-wrap: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+`
+
+const UserinfoUser = container (
+  ['UserinfoUser', {}, {
+    getEmail: selectGetEmail,
+    getFirstName: selectGetFirstName,
+    getLastName: selectGetLastName,
+  }],
+  ({ getFirstName, getLastName, getEmail, }) => <UserinfoInstitutionS>
+    <div className='x__name'>
+      {getFirstName ()} {getLastName ()}
+    </div>
+    <div className='x__email'>
+      {getEmail ()}
+    </div>
+  </UserinfoInstitutionS>,
+)
+
 const User = container (
-  [
-    'User', {
-      logOutDispatch: logOut,
-    }, {
-      getEmail: selectGetEmail,
-      getFirstName: selectGetFirstName,
-      getLastName: selectGetLastName,
-    },
-  ],
-  ({ getEmail, getFirstName, getLastName, logOutDispatch, }) => {
+  ['User', { logOutDispatch: logOut, }, { getUserType: selectGetUserType,}],
+  ({ getUserType, logOutDispatch, }) => {
     const [open, setOpen] = useState (false)
     const onBlur = useCallbackConst (
       () => setOpen (false),
@@ -127,33 +177,43 @@ const User = container (
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       {open && <div className='x__contents'>
-        <div className='x__userinfo'>
-          <div className='x__name'>
-            {getFirstName ()} {getLastName ()}
-          </div>
-          <div className='x__email'>
-            {getEmail ()}
-          </div>
-        </div>
-        <hr/>
-        <div className='x__menu-items'>
-          <div className='x__item x__logout' onClick={onClickLogout}>
-            <img src={iconLogout} width='18px'/>
-            <span className='x__text'>afmelden</span>
-          </div>
-        </div>
+        {getUserType () | condS ([
+          eq ('institution') | guard (() => <UserinfoInstitution/>),
+          eq ('user') | guard (() => <>
+            <UserinfoUser/>
+            <hr/>
+            <div className='x__menu-items'>
+              <div className='x__item x__logout' onClick={onClickLogout}>
+                <img src={iconLogout} width='18px'/>
+                <span className='x__text'>afmelden</span>
+              </div>
+            </div>
+          </>),
+          otherwise | guard (() => null),
+        ])}
       </div>}
     </UserS>
   },
 )
 
 const HeaderS = styled.div`
-  height: 50px;
+  height: 100px;
+  background: #FFFFFF66;
+  backdrop-filter: blur(5px);
+  border-bottom: 2px solid black;
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  .x__logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 350px;
+  }
   .x__menu {
     flex: 0 0 auto;
+    margin-right: 30px;
+    z-index: 20;
   }
 `
 
@@ -161,9 +221,32 @@ const Header = () => <HeaderS>
   <div className='x__menu'>
     <User/>
   </div>
+  {/*
+  <div className='x__logo'>
+    <Logo/>
+  </div>
+  */}
 </HeaderS>
 
+const LogoS = styled.div`
+  img {
+    width: 100%;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+`
+
+const Logo = () => <LogoS>
+  <Link to='/'>
+    <img src={imageLogo}/>
+  </Link>
+</LogoS>
+
 const MainS = styled.div`
+  background: url(${imageBackground});
+  background-size: 100%;
   height: 100%;
   font-size: 20px;
   font-family: Arial;
@@ -173,16 +256,11 @@ const MainS = styled.div`
     flex-direction: column;
     > .x__header {
       flex: 0 0 auto;
+      z-index: 2;
     }
-    > a {
-      text-decoration: none;
-      color: inherit;
-    }
-    > a > .x__logo {
-      font-size: 30px;
+    > .x__logo {
       padding: 5px;
-      border: 2px solid green;
-      width: 150px;
+      width: 350px;
       margin: auto;
       margin-bottom: 40px;
       cursor: pointer;
@@ -193,7 +271,11 @@ const MainS = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    > .x__login {
+    > .x__wrapper {
+      padding: 35px;
+      border: 1px solid black;
+      border-radius: 10px;
+      background: ${colorHighlight};
     }
   }
 `
@@ -218,8 +300,8 @@ const LoginS = styled.form`
   display: grid;
   grid-template-columns: 117px auto 24px;
   grid-auto-rows: 50px;
-  row-gap: 10px;
-  column-gap: 10px;
+  row-gap: 40px;
+  column-gap: 20px;
   input {
     height: 100%;
     border: 1px solid #999999;
@@ -233,6 +315,7 @@ const LoginS = styled.form`
     transform: translateY(-50%);
   }
   .x__input {
+    background: white;
   }
 `
 
@@ -242,6 +325,9 @@ const Login = component (
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
+
+    const inputEmailRef = useRef (null)
+    const inputPasswordRef = useRef (null)
 
     const onChangeEmail = useCallbackConst (
       (event) => setEmail (event.target.value),
@@ -310,8 +396,9 @@ const Login = component (
 const SidebarS = styled.div`
   height: 100%;
   width: 100%;
-  border-right: 1px solid black;
   padding: 20px;
+  background: #FFFFFF66;
+  backdrop-filter: blur(5px);
 `
 
 const Sidebar = () => <SidebarS>
@@ -322,14 +409,15 @@ const Sidebar = () => <SidebarS>
 const FondsS = styled.div`
   display: inline-block;
   height: 500px;
-  background: #ffffbb66;
+  // background: #aaaa66ff;
+  background: ${colorHighlight};
   vertical-align: top;
-  width: 200px;
+  width: 350px;
   margin: 3px;
-  margin-right: 20px;
-  border: 1px solid black;
-  margin-bottom: 20px;
-  line-height: 1.5em;
+  margin-right: 50px;
+  margin-bottom: 50px;
+  border: 10px solid #222222;
+  border-radius: 20px;
   a {
     color: inherit;
     display: block;
@@ -344,8 +432,9 @@ const FondsS = styled.div`
     padding: 10px;
     > .x__naam-organisatie {
       text-decoration: underline;
+      font-size: 30px;
     }
-    .x__categorie {
+    .x__categories {
       margin-top: 20px;
       font-size: 95%;
       line-height: 1.3em;
@@ -353,28 +442,31 @@ const FondsS = styled.div`
   }
 `
 
-const Fonds = ({ uuid, naam_organisatie, categorie, website, }) => {
+const Fonds = ({ uuid, naam_organisatie, categories, website, }) => {
   const href = '/detail/' + uuid
   return <FondsS>
     <Link to={href}>
       <div className='x__img'>
-        <img src={imageGracht}/>
+        <img src={imageFonds}/>
       </div>
     </Link>
       <div className='x__text'>
-        <Link to={website}>
-          <div className='x__naam-organisatie'>
+        <div className='x__naam-organisatie'>
+          <Link to={website}>
             {naam_organisatie}
-          </div>
-        </Link>
-        <div className='x__categorie'>
-          {categorie}
+          </Link>
+        </div>
+        <div className='x__categories'>
+          {categories | map ((category) => <div key={category} className='x__category'>
+            {category}
+          </div>)}
         </div>
       </div>
   </FondsS>
 }
 
 const FondsenS = styled.div`
+  // background: #ffffbb66;
   text-align: center;
   min-width: 100px;
 `
@@ -385,9 +477,9 @@ const Fondsen = container (
     {fondsen | requestResults ({
       onError: noop,
       onResults: map (
-        ({ uuid, naam_organisatie, categorie, website, ... _rest }) => {
+        ({ uuid, naam_organisatie, categories, website, ... _rest }) => {
           return <Fonds
-            key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categorie={categorie}
+            key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categories={categories}
             website={website}
           />
         },
@@ -397,6 +489,19 @@ const Fondsen = container (
 )
 
 const targetValue = path (['target', 'value'])
+
+const SearchS = styled.div`
+  > * {
+    vertical-align: middle;
+  }
+  > .x__text {
+    margin-left: 20px;
+    &.x--disabled {
+      opacity: 0.6;
+    }
+  }
+`
+
 const Search = component (
   ['Search'],
   () => {
@@ -404,27 +509,29 @@ const Search = component (
     const onChange = useCallbackConst (setString << targetValue)
     const canSearch = useMemo (() => string | isNotEmptyString, [string])
     const cls = clss ('x__text', canSearch || 'x--disabled')
-    return <>
+    return <SearchS>
       <Input
         withIcon={['search', 'left']}
         height='100%'
-        width='30%'
-        padding='8px'
+        width='50%'
+        padding='16px'
         style={{ display: 'inline-block', }}
         inputStyle={{
           fontSize: '25px',
           border: '2px solid black',
           borderRadius: '1000px',
+          background: 'white',
         }}
         onChange={onChange}
         value={string}
       />
       <span className={cls}>zoeken</span>
-    </>
+    </SearchS>
   },
 )
 
 const FondsMainS = styled.div`
+  margin-top: 50px;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -432,20 +539,11 @@ const FondsMainS = styled.div`
     flex: 0 0 120px;
     text-align: center;
     margin-bottom: 50px;
-    > * {
-      vertical-align: middle;
-    }
-    > .x__text {
-      margin-left: 20px;
-      &.x--disabled {
-        opacity: 0.6;
-      }
-    }
   }
   > .x__main {
     // --- @todo
     flex: 0 0 calc(100vh - 120px);
-    overflow-y: auto;
+    // overflow-y: auto;
     margin: auto;
   }
 `
@@ -463,6 +561,7 @@ const FondsMain = () => {
 
 const ContentsS = styled.div`
   height: 100%;
+  overflow-y: scroll;
   display: flex;
   width: 100vw;
   .x__sidebar {
@@ -471,6 +570,13 @@ const ContentsS = styled.div`
   .x__main {
     // --- @todo
     flex: 1 0 calc(100vw - 300px);
+    > .x__logo {
+      margin-top: 50px;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 450px;
+    }
   }
 `
 
@@ -481,6 +587,9 @@ const Contents = container (
       <Sidebar/>
     </div>
     <div className='x__main'>
+      <div className='x__logo'>
+        <Logo/>
+      </div>
       {page | condS ([
         eq ('overview') | guard (() => <FondsMain/>),
         eq ('detail') | guard (() => <FondsDetail/>),
@@ -494,14 +603,10 @@ export default container (
   ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
   (props) => {
     const { isMobile, loggedIn, logInDispatch, page, } = props
-    const navigate = useNavigate ()
     const logIn = useCallback (
       (email, password) => logInDispatch (email, password),
       [logInDispatch],
     )
-    const onClickLogo = useCallbackConst (() => {
-      navigate ({ pathname: '/', })
-    })
 
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
@@ -514,11 +619,6 @@ export default container (
             <div className='x__header'>
               <Header/>
             </div>
-            <Link to='/'>
-              <div className='x__logo' onClick={onClickLogo}>
-                FB Online
-              </div>
-            </Link>
             <Contents page={page}/>
           </div>,
           () => <div className='x__login-wrapper'>
