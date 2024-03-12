@@ -120,6 +120,7 @@ const requestAuthenticate = (getUserinfoRequest, isAuthorizedRequest) => (req, _
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
       const userinfo = getUserinfoRequest (req)
+      if (nil (userinfo)) return next ({ status: 599, imsg: 'requestAuthenticate (): no userinfo', })
       req.user = { userinfo, username: null, }
       return next ()
     },

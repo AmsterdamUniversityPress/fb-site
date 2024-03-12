@@ -86,7 +86,6 @@ const InputWrapper = invoke (() => {
   return (props) => {
     const { withIcon=[], theRef, height, width, padding, border, style={}, inputStyle={}, } = props
     const [icon, where] = withIcon
-    console.log ('icon, where', icon, where)
     const hasIcon = withIcon | isNotEmptyList
     const onClickIcon = useCallbackConst (() => {
       theRef | whenOk (({ current, }) => current.focus ())

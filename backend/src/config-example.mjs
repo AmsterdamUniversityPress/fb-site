@@ -14,12 +14,18 @@ const dbPath = pathJoin (dbDir, 'main.db')
 export const config = {
   dbPath,
   serverPort: 4444,
-  allowedIP: {
-    subnet: [
-      ['xx.xx.xx.xx', 24],
-    ],
-    range: [
-      ['xx.xx.xx.yy', 'xx.xx.xx.zz'],
-    ],
-  }
+  authorizeByIP: [
+    {
+      name: 'Openbare Bibliotheek Amsterdam',
+      contact: { email: 'ict@oba.nl', },
+      type: 'subnet',
+      details: ['xx.xx.xx.xx', 24],
+    },
+    {
+      name: 'Leiden University Press',
+      contact: { email: 'ict@leidenuniv.nl', },
+      type: 'range',
+      details: ['xx.xx.xx.yy', 'xx.xx.xx.zz'],
+    },
+  ],
 }

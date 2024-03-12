@@ -2,6 +2,7 @@ import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
   ifOk, gt, tap, againstAny, eq, die, each,
+  appendM, find, whenOk, ok,
 } from 'stick-js/es'
 
 import net from 'net'
@@ -37,17 +38,15 @@ import dataPrd from '../../__data/fb-data-prd.json' with { type: 'json', }
 
 const configTop = config | configure.init
 
-const { dbPath, serverPort, } = tryCatch (
+const { authorizeByIP, dbPath, serverPort, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
+    'authorizeByIP',
     'dbPath',
     'serverPort',
   ),
 )
-
-const allowedIPSubnets = configTop.get ('allowedIP.subnet')
-const allowedIPRanges = configTop.get ('allowedIP.range')
 
 const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25) ],
@@ -78,19 +77,60 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-const initAllowedIPs = (subnets, ranges) => {
-  // --- it's called BlockList but can be used to simply check IPs in ranges
-  const list = new net.BlockList ()
-  subnets | each (
-    ([net, mask]) => list.addSubnet (net, mask),
-  )
-  ranges | each (
-    ([start, end]) => list.addRange (start, end),
-  )
-  return list
+const authIP = {
+  init (auth) {
+    // --- it's called BlockList but can be used to simply check IPs in ranges
+    const listMain = new net.BlockList ()
+    this._lists = []
+    this._infoCache = new Map ()
+
+    auth | each (({ name, contact, type, details, }) => {
+      const f = type | lookupOnOrDie ('bad type: ' + type) ({
+        subnet: 'addSubnet',
+        range: 'addRange',
+      })
+      const listRule = new net.BlockList ()
+      listMain [f] (... details)
+      listRule [f] (... details)
+      this._lists | appendM ({ name, contact, list: listRule, })
+    })
+
+    this._listMain = listMain
+    return this
+  },
+  check (ip) { return this._listMain.check (ip) },
+  checkProxyIP (req) {
+    const clientIP = this._ipForRequest (req)
+    if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
+    return [this.check (clientIP), null]
+  },
+  getInfo (req) {
+    const clientIP = this._ipForRequest (req)
+    if (nil (clientIP)) return null
+    const cached = this._infoCache.get (clientIP)
+    if (ok (cached)) return cached
+    return this._lists
+      | find (({ list, ..._ }) => list.check (clientIP))
+      | whenOk (({ name, contact, ... _ }) => ({ name, contact, }))
+      | whenOk ((info) => {
+        this._infoCache.set (clientIP, info)
+        return info
+      })
+  },
+  _ipForRequest (req) {
+    // --- note that X-Forwarded-For is really easy to forge, so you must be
+    // sure you trust the reverse proxy server.
+    return req.headers ['x-forwarded-for']
+  },
+  _infoCache: void 8,
+  // --- one big structure which can quickly check if an IP is authorized
+  _listMain: void 8,
+  // --- a list of structures, one per rule, through which we inefficiently
+  // loop so we can map institution data to an IP address.
+  _lists: void 8,
 }
 
-const allowedIPs = initAllowedIPs (allowedIPSubnets, allowedIPRanges)
+const allowedIPs = authIP.init (authorizeByIP)
 
 // --- @todo persist in sqlite
 const loggedIn = new Set ()
@@ -124,12 +164,18 @@ const getUserinfoLogin = (email) => {
   )
 }
 
-const getUserinfoRequest = (_req) => {
-  return {
-    type: 'institution',
-    name: 'De Openbare Bibliotheek Amsterdam',
-    contact: { email: 'ict@oba.nl', },
+const getUserinfoRequest = (req) => {
+  const info = authIP.getInfo (req)
+  if (nil (info)) {
+    warn ('getUserinfoRequest (): null info')
+    return null
   }
+  const { name, contact, } = info
+  if (nil (name) || nil (contact)) {
+    warn ('getUserinfoRequest (): null name/contact')
+    return null
+  }
+  return { name, contact, type: 'institution', }
 }
 
 const alleycatAuth = authFactory.create ().init ({
@@ -146,11 +192,7 @@ const alleycatAuth = authFactory.create ().init ({
   isAuthorizedAfterJWT: async (req) => {
     if (req.query ['disable-ip-authorize'] === '1')
       return [false, 'disable-ip-authorize=1']
-    // --- note that X-Forwarded-For is really easy to forge, so you must be
-    // sure you trust the reverse proxy server.
-    const clientIP = req.headers ['x-forwarded-for']
-    if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
-    return [allowedIPs.check (clientIP), null]
+    return allowedIPs.checkProxyIP (req)
   },
   jwtSecret,
   onLogin: async (email, _user) => {
