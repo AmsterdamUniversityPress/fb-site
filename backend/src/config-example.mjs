@@ -15,6 +15,7 @@ export const config = {
   dbPath,
   serverPort: 4444,
   authorizeByIP: [
+    /*
     {
       name: 'Openbare Bibliotheek Amsterdam',
       contact: { email: 'ict@oba.nl', },
@@ -27,5 +28,6 @@ export const config = {
       type: 'range',
       details: ['xx.xx.xx.yy', 'xx.xx.xx.zz'],
     },
+    */
   ],
 }
