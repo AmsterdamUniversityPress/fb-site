@@ -14,4 +14,12 @@ const dbPath = pathJoin (dbDir, 'main.db')
 export const config = {
   dbPath,
   serverPort: 4444,
+  allowedIP: {
+    subnet: [
+      ['xx.xx.xx.xx', 24],
+    ],
+    range: [
+      ['xx.xx.xx.yy', 'xx.xx.xx.zz'],
+    ],
+  }
 }

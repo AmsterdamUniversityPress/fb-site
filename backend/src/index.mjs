@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
-  ifOk, gt, tap, againstAny, eq, die,
+  ifOk, gt, tap, againstAny, eq, die, each,
 } from 'stick-js/es'
 
 import net from 'net'
@@ -37,11 +37,17 @@ import dataPrd from '../../__data/fb-data-prd.json' with { type: 'json', }
 
 const configTop = config | configure.init
 
-const { serverPort, } = tryCatch (
+const { dbPath, serverPort, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
-  () => configTop.gets ('serverPort')
+  () => configTop.gets (
+    'dbPath',
+    'serverPort',
+  ),
 )
+
+const allowedIPSubnets = configTop.get ('allowedIP.subnet')
+const allowedIPRanges = configTop.get ('allowedIP.range')
 
 const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25) ],
@@ -72,10 +78,19 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-// --- it's called BlockList but can be used to simply check IPs in ranges
-const allowedIPs = new net.BlockList ()
-// allowedIPs.addSubnet ('xx.xx.xx.xx, 24)
-// allowedIPs.addRange ('xx.xx.xx.100', 'xx.xx.xx.xx.110')
+const initAllowedIPs = (subnets, ranges) => {
+  // --- it's called BlockList but can be used to simply check IPs in ranges
+  const list = new net.BlockList ()
+  subnets | each (
+    ([net, mask]) => list.addSubnet (net, mask),
+  )
+  ranges | each (
+    ([start, end]) => list.addRange (start, end),
+  )
+  return list
+}
+
+const allowedIPs = initAllowedIPs (allowedIPSubnets, allowedIPRanges)
 
 // --- @todo persist in sqlite
 const loggedIn = new Set ()
