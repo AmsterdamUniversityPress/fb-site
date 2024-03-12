@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, prop, ok, againstAny,
+  map, prop, ok, againstAny, lets,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
@@ -28,6 +28,22 @@ import config from '../../../config'
 const configTop = configure.init (config)
 const helloInterval = configTop.get ('general.helloInterval')
 
+// --- @temporary, for testing
+const mkURL = (base='') => lets (
+  () => document.location,
+  ({ protocol, hostname, }) => protocol + '//' + hostname + '/' + base,
+  (_, l) => new URL (l),
+)
+const getIPAuthorize = () => lets (
+  () => new URLSearchParams (document.location.search),
+  (params) => Number (params.get ('disable-ip-authorize')),
+)
+const getIPDisableAuthorizeURL = (base) => {
+  const url = mkURL (base)
+  url.searchParams.append ('disable-ip-authorize', getIPAuthorize ())
+  return url
+}
+
 function *callForever (delayMs, f, ... args) {
   yield call (f, ... args)
   yield delay (delayMs)
@@ -44,7 +60,7 @@ function *s_fondsenFetch (pageNum) {
   // const pageLength = yield select (...)
   const pageLength = 30
   const beginIdx = pageNum * pageLength
-  const url = new URL (document.location)
+  const url = mkURL ()
   url.pathname = '/api/fondsen'
   url.searchParams.append ('beginIdx', beginIdx)
   url.searchParams.append ('number', pageLength)
@@ -86,7 +102,8 @@ function *s_hello (first=false) {
     yield call (s_helloCompleted, res, first)
   }
   yield call (doApiCall, {
-    url: '/api/hello',
+    // url: '/api/hello',
+    url: getIPDisableAuthorizeURL ('/api/hello'),
     resultsModify: map (prop ('data')),
     continuation: EffSaga (s_complete),
     request: requestJSONStdOpts ({

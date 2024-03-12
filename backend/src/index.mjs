@@ -4,6 +4,8 @@ import {
   ifOk, gt, tap, againstAny, eq, die,
 } from 'stick-js/es'
 
+import net from 'net'
+
 import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
@@ -70,8 +72,10 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-const allowedIPs = new Set ([
-])
+// --- it's called BlockList but can be used to simply check IPs in ranges
+const allowedIPs = new net.BlockList ()
+// allowedIPs.addSubnet ('xx.xx.xx.xx, 24)
+// allowedIPs.addRange ('xx.xx.xx.100', 'xx.xx.xx.xx.110')
 
 // --- @todo persist in sqlite
 const loggedIn = new Set ()
@@ -93,6 +97,7 @@ const getUserinfoLogin = (email) => {
       ({ email, firstName, lastName, password, }) => ({
           password,
           userinfo: {
+            type: 'user',
             email,
             firstName,
             lastName,
@@ -104,8 +109,12 @@ const getUserinfoLogin = (email) => {
   )
 }
 
-const getUserinfoRequest = (req) => {
-  return { contact: { email: 'ict@bibliotheek.nl', }}
+const getUserinfoRequest = (_req) => {
+  return {
+    type: 'institution',
+    name: 'De Openbare Bibliotheek Amsterdam',
+    contact: { email: 'ict@oba.nl', },
+  }
 }
 
 const alleycatAuth = authFactory.create ().init ({
@@ -120,11 +129,13 @@ const alleycatAuth = authFactory.create ().init ({
     return [true]
   },
   isAuthorizedAfterJWT: async (req) => {
+    if (req.query ['disable-ip-authorize'] === '1')
+      return [false, 'disable-ip-authorize=1']
     // --- note that X-Forwarded-For is really easy to forge, so you must be
     // sure you trust the reverse proxy server.
     const clientIP = req.headers ['x-forwarded-for']
     if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
-    return [allowedIPs.has (clientIP), null]
+    return [allowedIPs.check (clientIP), null]
   },
   jwtSecret,
   onLogin: async (email, _user) => {
