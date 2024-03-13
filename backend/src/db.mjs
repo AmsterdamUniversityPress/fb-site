@@ -28,13 +28,20 @@ const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 
 const createTables = [
   S (`drop table if exists user`),
+  S (`drop table if exists loggedIn`),
   S (`create table user (
     id integer primary key autoincrement,
     email text unique not null,
     firstName text,
     lastName text,
     password text not null
-  )`)]
+  )`),
+  S (`create table loggedIn (
+    id integer primary key autoincrement,
+    email text not null,
+    unique (email)
+  )`)
+]
 
 const daysInFuture = (n) => Number (new Date ()) + n*24*3600*1000
 const daysInPast = daysInFuture << multiply (-1)
@@ -67,15 +74,28 @@ export const init = (encryptPassword) => {
   )
 }
 
-export const userAdd = (email, firstName, lastName, password) => sqliteApi.run (SB (
-  `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
+export const userAdd = (email, firstName, lastName, password) => sqliteApi.run (
+  SB (`insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
   [email, firstName, lastName, password],
 ))
 
 export const userGet = (email) => sqliteApi.get (
-  SB ('select email, firstName, lastName, password from user where email = ?', [email]),
+  SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
 
 export const userPasswordUpdate = (user_id, hashed_password) => sqliteApi.run (
   SB (`update user set password = ? where id = ?`, [hashed_password, user_id],
 ))
+
+export const loggedInAdd = (email) => sqliteApi.run (
+  SB (`insert into loggedIn (email) values (?)`, email)
+)
+
+export const loggedInRemove = (email) => sqliteApi.run (
+  SB (`delete from loggedIn where email = ?`, email)
+)
+
+export const loggedInGet = (email) => sqliteApi.get (
+  SB ('select id from loggedIn where email = ?', email)
+)
+

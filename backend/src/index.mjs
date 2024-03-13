@@ -23,6 +23,9 @@ import { init as initDb,
   // userAdd as dbUserAdd,
   userGet as dbUserGet,
   // userPasswordUpdate as dbUserPasswordUpdate,
+  loggedInAdd,
+  loggedInRemove,
+  loggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
 import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
@@ -132,9 +135,6 @@ const authIP = {
 
 const allowedIPs = authIP.init (authorizeByIP)
 
-// --- @todo persist in sqlite
-const loggedIn = new Set ()
-
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
@@ -184,9 +184,8 @@ const alleycatAuth = authFactory.create ().init ({
   getUserinfoRequest,
   isAuthorized: async (email, _, req) => {
     const { path, } = req.route
-    // console.log ('todo checking authorized for path', path)
     // if db error, die (...)
-    if (!loggedIn.has (email)) return [false, 'not logged in']
+    if (!loggedInGet (email)) return [false, 'not logged in']
     return [true]
   },
   isAuthorizedAfterJWT: async (req) => {
@@ -196,10 +195,10 @@ const alleycatAuth = authFactory.create ().init ({
   },
   jwtSecret,
   onLogin: async (email, _user) => {
-    loggedIn.add (email)
+    loggedInAdd (email)
   },
   onLogout: async (email) => {
-    if (!loggedIn.delete (email))
+    if (!loggedInRemove (email))
       die ('Unexpected, ' + email + ' not found in `loggedIn`')
   },
   usernameField: 'email',
