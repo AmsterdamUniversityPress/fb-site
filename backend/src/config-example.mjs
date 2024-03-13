@@ -19,14 +19,23 @@ export const config = {
     {
       name: 'Openbare Bibliotheek Amsterdam',
       contact: { email: 'ict@oba.nl', },
-      type: 'subnet',
-      details: ['xx.xx.xx.xx', 24],
+      type: 'address',
+      ip_type: 'v4', // or 'v6'
+      details: ['xx.xx.xx.yy'],
     },
     {
       name: 'Leiden University Press',
       contact: { email: 'ict@leidenuniv.nl', },
       type: 'range',
+      ip_type: 'v4', // or 'v6'
       details: ['xx.xx.xx.yy', 'xx.xx.xx.zz'],
+    },
+    {
+      name: 'Bij mij thuis',
+      contact: { email: 'ict@bij-mij.nl', },
+      type: 'subnet',
+      ip_type: 'v4', // or 'v6'
+      details: ['xx.xx.xx.xx', 24],
     },
     */
   ],

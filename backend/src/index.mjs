@@ -87,14 +87,19 @@ const authIP = {
     this._lists = []
     this._infoCache = new Map ()
 
-    auth | each (({ name, contact, type, details, }) => {
-      const f = type | lookupOnOrDie ('bad type: ' + type) ({
+    auth | each (({ name, contact, type, ip_type, details, }) => {
+      const blockListFunction = type | lookupOnOrDie ('bad type: ' + type) ({
+        address: 'addAddress',
         subnet: 'addSubnet',
         range: 'addRange',
       })
+      const typeParam = ip_type | lookupOnOrDie ('bad ip_type: ' + ip_type) ({
+        v4: 'ipv4',
+        v6: 'ipv6',
+      })
       const listRule = new net.BlockList ()
-      listMain [f] (... details)
-      listRule [f] (... details)
+      listMain [blockListFunction] (... details, typeParam)
+      listRule [blockListFunction] (... details, typeParam)
       this._lists | appendM ({ name, contact, list: listRule, })
     })
 
