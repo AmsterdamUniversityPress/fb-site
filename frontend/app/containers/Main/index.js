@@ -103,14 +103,28 @@ const UserS = styled.div`
 
 const UserinfoInstitutionS = styled.div`
   font-weight: 200;
-  > .x__name {
+  > .x__institution-name {
   }
-  > .x__email {
+  > .x__contact-email {
   }
-  > .x__name, > .x__email {
+  > .x__institution-name, > .x__contact-email {
     text-wrap: nowrap;
     overflow-x: hidden;
     text-overflow: ellipsis;
+  }
+  .x__log-in {
+    .x__icon {
+      margin-right: 12px;
+      padding: 3px;
+      border: 3px solid #999999;
+      border-radius: 2000px;
+    }
+    .x__text {
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 `
 
@@ -126,8 +140,13 @@ const UserinfoInstitution = container (
     <div className='x__contact-email'>
       Contact: {getContactEmail ()}
     </div>
-    <div className='x__contact-email'>
-      log in met gebruikersnaam en wachtwoord
+    <div className='x__log-in'>
+      <span className='x__icon'>
+        ⴙ
+      </span>
+      <span className='x__text' onClick={() => alert ('todo')}>
+        log in met gebruikersnaam en wachtwoord
+      </span>
     </div>
   </UserinfoInstitutionS>,
 )
