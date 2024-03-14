@@ -18,6 +18,7 @@ import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoHelvetica from './images/fb-logo-helvetica.svg'
 import imageOilPaints from './images/oil-paints.jpg'
 import imageUitgave from './images/uitgave.svg'
+import iconUpdate from './images/icons/update.png'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -75,6 +76,7 @@ export default {
     'show-password-hidden': iconShowPasswordHidden,
     'show-password-shown': iconShowPasswordShown,
     user: iconUser,
+    update: iconUpdate,
   },
   images: {
     background: imageOilPaints,

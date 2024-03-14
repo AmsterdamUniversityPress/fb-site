@@ -39,3 +39,8 @@ export const logOut = action (
   () => {},
   'logOut',
 )
+
+export const passwordUpdate = action (
+  (email, password) => ({ email, password, }),
+  'passwordUpdate',
+)

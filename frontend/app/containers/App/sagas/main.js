@@ -17,6 +17,7 @@ import {
   logIn as a_logIn,
   logOut as a_logOut,
   loginLogoutCompleted as a_loginLogoutCompleted,
+  passwordUpdate as a_passwordUpdate,
 } from '../actions/main'
 
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
@@ -125,7 +126,7 @@ function *s_logIn ({ email, password, }) {
   yield call (doApiCall, {
     url: '/api/login',
     optsMerge: {
-      method: 'POST',
+      method: 'post',
       body: JSON.stringify ({
         email,
         // --- @todo hash password before sending?
@@ -164,11 +165,26 @@ function *s_logoutCompleted (res) {
   else yield call (s_hello, false)
 }
 
+// @todo is this the right form for such an update?
+function *s_passwordUpdate ({ email, password, }) {
+  yield call (doApiCall, {
+    url: '/api/user',
+    optsMerge: {
+      method: 'PATCH',
+      body: JSON.stringify ({
+        // --- @todo hash password before sending?
+        data: { email, password, },
+      }),
+    },
+  })
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logIn),
     saga (takeLatest, a_logOut, s_logOut),
+    saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
   ])
 }

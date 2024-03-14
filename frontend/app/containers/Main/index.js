@@ -20,6 +20,7 @@ import { useSaga, } from 'alleycat-js/es/redux-hooks'
 import {
   logIn,
   logOut,
+  passwordUpdate,
 } from '../App/actions/main'
 
 import {
@@ -38,6 +39,7 @@ import FondsDetail from '../FondsDetail'
 import {} from '../../alleycat-components'
 import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
+import { mkPagination, } from '../../components/shared/Pagination'
 
 import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
@@ -46,6 +48,7 @@ import config from '../../config'
 
 const configTop = configure.init (config)
 const iconLogout = configTop.get ('icons.logout')
+const iconUpdate = configTop.get ('icons.update')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
 const iconUser = configTop.get ('icons.user')
@@ -88,7 +91,17 @@ const UserS = styled.div`
           padding-bottom: 5px;
         }
       }
+      // @todo x__logout and x__passwordUpdate are repeated
       > .x__logout {
+        cursor: pointer;
+        > * {
+          vertical-align: middle;
+        }
+        > img {
+          margin-right: 13px;
+        }
+      }
+      > .x__passwordUpdate {
         cursor: pointer;
         > * {
           vertical-align: middle;
@@ -193,6 +206,9 @@ const User = container (
     const onClickLogout = useCallbackConst (
       () => logOutDispatch (),
     )
+    const onClickPasswordUpdate = useCallbackConst (
+      () => console.log ('Update!')
+    )
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       {open && <div className='x__contents'>
@@ -205,6 +221,10 @@ const User = container (
               <div className='x__item x__logout' onClick={onClickLogout}>
                 <img src={iconLogout} width='18px'/>
                 <span className='x__text'>afmelden</span>
+              </div>
+              <div className='x__item x__passwordUpdate' onClick={onClickPasswordUpdate}>
+                <img src={iconUpdate} width='18px'/>
+                <span className='x__text'>wachtwoord veranderen</span>
               </div>
             </div>
           </>),
@@ -371,12 +391,18 @@ const Login = component (
       (event) => event | keyPressListen (
         () => {
           event.preventDefault ()
-          doLogIn ()
+          canLogIn && doLogIn ()
         },
         'Enter',
       ),
       [doLogIn],
     )
+
+    useEffect (() => {
+      console.log ('inputEmailRef.current.value', inputEmailRef.current.value)
+      console.log ('inputEmailRef.current', inputEmailRef.current)
+      setEmail (inputEmailRef.current.value)
+    }, [])
 
     const canLogIn = useMemo (
       () => [email, password] | allAgainst (isNotEmptyString),
@@ -392,14 +418,14 @@ const Login = component (
         emailadres
       </div>
       <div className='x__input x__email-input'>
-        <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput}/>
+        <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
       </div>
       <div/>
       <div className='x__label x__password'>
         wachtwoord
       </div>
       <div className='x__input x__password-input'>
-        <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput}/>
+        <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
       </div>
       <div className='x__icon'>
         <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
