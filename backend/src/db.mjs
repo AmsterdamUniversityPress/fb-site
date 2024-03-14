@@ -29,6 +29,7 @@ const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 const createTables = [
   S (`drop table if exists user`),
   S (`drop table if exists loggedIn`),
+  S (`drop table if exists userPrivilege`),
   S (`create table user (
     id integer primary key autoincrement,
     email text unique not null,
@@ -38,8 +39,14 @@ const createTables = [
   )`),
   S (`create table loggedIn (
     id integer primary key autoincrement,
-    email text not null,
-    unique (email)
+    userId int not null,
+    unique (userId)
+  )`),
+  S (`create table userPrivilege (
+    id integer primary key autoincrement,
+    userId int not null,
+    userPrivilege string not null,
+    unique (userId, userPrivilege)
   )`)
 ]
 
@@ -83,19 +90,23 @@ export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
 
+export const userIdGet = (email) => sqliteApi.get (
+  SB ('select id from user where email = ?', email),
+)
+
 export const userPasswordUpdate = (user_id, hashed_password) => sqliteApi.run (
   SB (`update user set password = ? where id = ?`, [hashed_password, user_id],
 ))
 
-export const loggedInAdd = (email) => sqliteApi.run (
-  SB (`insert into loggedIn (email) values (?)`, email)
+export const loggedInAdd = (userId) => sqliteApi.run (
+  SB (`insert into loggedIn (userId) values (?)`, userId)
 )
 
-export const loggedInRemove = (email) => sqliteApi.run (
-  SB (`delete from loggedIn where email = ?`, email)
+export const loggedInRemove = (id) => sqliteApi.run (
+  SB (`delete from loggedIn where id = ?`, id)
 )
 
-export const loggedInGet = (email) => sqliteApi.get (
-  SB ('select id from loggedIn where email = ?', email)
+export const loggedInGet = (userId) => sqliteApi.get (
+  SB ('select id from loggedIn where userId = ?', userId)
 )
 

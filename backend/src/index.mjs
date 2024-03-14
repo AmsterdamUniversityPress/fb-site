@@ -2,7 +2,8 @@ import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
   ifOk, gt, tap, againstAny, eq, die, each,
-  appendM, find, whenOk, ok,
+  appendM, find, whenOk, ok, not,
+  concatTo,
 } from 'stick-js/es'
 
 import net from 'net'
@@ -22,10 +23,11 @@ import { config, } from './config.mjs'
 import { init as initDb,
   // userAdd as dbUserAdd,
   userGet as dbUserGet,
+  userIdGet as dbUserIdGet,
   // userPasswordUpdate as dbUserPasswordUpdate,
-  loggedInAdd,
-  loggedInRemove,
-  loggedInGet,
+  loggedInAdd as dbLoggedInAdd,
+  loggedInRemove as dbLoggedInRemove,
+  loggedInGet as dbLoggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
 import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
@@ -98,8 +100,9 @@ const authIP = {
         v6: 'ipv6',
       })
       const listRule = new net.BlockList ()
-      listMain [blockListFunction] (... details, typeParam)
-      listRule [blockListFunction] (... details, typeParam)
+      ; [listMain, listRule] | each (
+        (list) => list [blockListFunction] (... details, typeParam),
+      )
       this._lists | appendM ({ name, contact, list: listRule, })
     })
 
@@ -131,7 +134,7 @@ const authIP = {
     return req.headers ['x-forwarded-for']
   },
   _infoCache: void 8,
-  // --- one big structure which can quickly check if an IP is authorized
+  // --- one big structure which can efficiently check if an IP is authorized
   _listMain: void 8,
   // --- a list of structures, one per rule, through which we inefficiently
   // loop so we can map institution data to an IP address.
@@ -143,31 +146,40 @@ const allowedIPs = authIP.init (authorizeByIP)
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
+const foldDbResults = (dbFuncName) => fold (
+  (err) => {
+    warn (err | concatTo ('Error with ' + dbFuncName + ': '))
+    return null
+  },
+  ifOk (
+    // for now, we just use id (we could consider a 'compose' function).
+    ( x ) => {
+      console.log ('Hello from fold')
+      return x
+    },
+    () => null
+  )
+)
+
+const doDbCall = (dbFunc, vals) => dbFunc (...vals) | foldDbResults (dbFunc.name)
+
+const getUserId = (email) =>  doDbCall (dbUserIdGet, [ email, ]) | (({ id }) => id)
+const getLoggedIn = (userId) => doDbCall (dbLoggedInGet, [ userId, ]) | (({ id }) => id)
+const addLoggedIn = (userId) => doDbCall (dbLoggedInAdd, [ userId, ])
+const removeLoggedIn = (id) => doDbCall (dbLoggedInRemove, [ id, ])
+
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
-const getUserinfoLogin = (email) => {
-  const user = dbUserGet (email)
-  return user | fold (
-    // --- DB/IO error
-    (e) => {
-      warn ('Unable to get user:', e)
-      return null
+const getUserinfoLogin = (email) => doDbCall (dbUserGet, [ email, ])
+  | (({ email, firstName, lastName, password, }) => ({
+    password,
+    userinfo: {
+      type: 'user',
+      email,
+      firstName,
+      lastName,
     },
-    ifOk (
-      ({ email, firstName, lastName, password, }) => ({
-          password,
-          userinfo: {
-            type: 'user',
-            email,
-            firstName,
-            lastName,
-          },
-        }),
-      // --- invalid login
-      () => null,
-    )
-  )
-}
+  }))
 
 const getUserinfoRequest = (req) => {
   const info = authIP.getInfo (req)
@@ -183,16 +195,29 @@ const getUserinfoRequest = (req) => {
   return { name, contact, type: 'institution', }
 }
 
+const xcheckPrivileges = (email, req) => lets (
+  () => getPrivilegesForRequest (req),
+  () => getPrivilegesForUser (email),
+  (need, got) => need | isSubsetOf (got),
+)
+
+const checkPrivileges = () => true
+
 const alleycatAuth = authFactory.create ().init ({
   checkPassword,
   getUserinfoLogin,
   getUserinfoRequest,
   isAuthorized: async (email, _, req) => {
     const { path, } = req.route
+    const userId = getUserId (email)
     // if db error, die (...)
-    if (!loggedInGet (email)) return [false, 'not logged in']
+    if (!getLoggedIn (userId)) return [false, 'not logged in']
+    if (not (checkPrivileges (email, req)))
+      return [false, 'missing privileges for this route']
     return [true]
   },
+  // --- note that in IP-based mode you can not access any admin routes (we
+  // do not even know who you are).
   isAuthorizedAfterJWT: async (req) => {
     if (req.query ['disable-ip-authorize'] === '1')
       return [false, 'disable-ip-authorize=1']
@@ -200,10 +225,14 @@ const alleycatAuth = authFactory.create ().init ({
   },
   jwtSecret,
   onLogin: async (email, _user) => {
-    loggedInAdd (email)
+    email | getUserId | addLoggedIn
   },
   onLogout: async (email) => {
-    if (!loggedInRemove (email))
+    // have email, want to get id of loggedIn, and remove it
+    // this seems like a lot of db calls to me?
+    // we could replace the email value by userId perhaps?
+    const loggedInId = email | getUserId | getLoggedIn
+    if (!removeLoggedIn (loggedInId))
       die ('Unexpected, ' + email + ' not found in `loggedIn`')
   },
   usernameField: 'email',
@@ -211,6 +240,7 @@ const alleycatAuth = authFactory.create ().init ({
 
 const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
 const secureGet = alleycatAuth.secureMethod () ('get')
+const securePatch = alleycatAuth.secureMethod () ('patch')
 
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
@@ -238,6 +268,14 @@ const init = ({ port, }) => express ()
         () => [499, { umsg: 'No such uuid ' + uuid, }],
       ),
     )
+  })
+  | securePatch ('/user', (req, _res) => {
+    const { body, } = req
+    const { data, } = body
+    const { email, password } = data
+    console.log ('email', email)
+    console.log ('password', password)
+    // @todo update db
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info
