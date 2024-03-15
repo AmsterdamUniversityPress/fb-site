@@ -2,12 +2,12 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
   map, path, condS, eq, guard, otherwise,
-  nil,
+  nil, lets,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, } from 'react-router-dom'
+import { Link, useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -101,7 +101,7 @@ const UserS = styled.div`
           margin-right: 13px;
         }
       }
-      > .x__passwordUpdate {
+      .x__passwordUpdate {
         cursor: pointer;
         > * {
           vertical-align: middle;
@@ -196,6 +196,8 @@ const UserinfoUser = container (
 const User = container (
   ['User', { logOutDispatch: logOut, }, { getUserType: selectGetUserType,}],
   ({ getUserType, logOutDispatch, }) => {
+    const navigate = useNavigate ()
+
     const [open, setOpen] = useState (false)
     const onBlur = useCallbackConst (
       () => setOpen (false),
@@ -206,9 +208,12 @@ const User = container (
     const onClickLogout = useCallbackConst (
       () => logOutDispatch (),
     )
-    const onClickPasswordUpdate = useCallbackConst (
-      () => console.log ('Update!')
-    )
+    const onClickPasswordUpdate = useCallback (
+      () => {
+        setOpen (false)
+        navigate ('/user')},
+     [navigate])
+
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       {open && <div className='x__contents'>
@@ -222,7 +227,7 @@ const User = container (
                 <img src={iconLogout} width='18px'/>
                 <span className='x__text'>afmelden</span>
               </div>
-              <div className='x__item x__passwordUpdate' onClick={onClickPasswordUpdate}>
+              <div onClick={onClickPasswordUpdate} className='x__item x__passwordUpdate'>
                 <img src={iconUpdate} width='18px'/>
                 <span className='x__text'>wachtwoord veranderen</span>
               </div>
@@ -305,18 +310,6 @@ const MainS = styled.div`
       cursor: pointer;
     }
   }
-  > .x__login-wrapper {
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    > .x__wrapper {
-      padding: 35px;
-      border: 1px solid black;
-      border-radius: 10px;
-      background: ${colorHighlight};
-    }
-  }
 `
 
 const BigButton = ({ children, ... restProps }) => <Button
@@ -335,6 +328,21 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
 </IconShowPasswordS>
 
 const LoginS = styled.form`
+`
+
+const FormWrapper = styled.div`
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
+const Form = styled.div`
+  padding: 35px;
+  border: 1px solid black;
+  border-radius: 10px;
+  background: ${colorHighlight};
+
   font-size: 20px;
   display: grid;
   grid-template-columns: 117px auto 24px;
@@ -413,27 +421,29 @@ const Login = component (
     // Make sure to use event.preventDefault so it doesn't submit
 
     return <LoginS>
-      {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
-      <div className='x__label x__email'>
-        emailadres
-      </div>
-      <div className='x__input x__email-input'>
-        <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
-      </div>
-      <div/>
-      <div className='x__label x__password'>
-        wachtwoord
-      </div>
-      <div className='x__input x__password-input'>
-        <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
-      </div>
-      <div className='x__icon'>
-        <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
-      </div>
-      <div/>
-      <div>
-        <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>aanmelden</BigButton>
-      </div>
+      <Form>
+        {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
+        <div className='x__label x__email'>
+          emailadres
+        </div>
+        <div className='x__input x__email-input'>
+          <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
+        </div>
+        <div/>
+        <div className='x__label x__password'>
+          wachtwoord
+        </div>
+        <div className='x__input x__password-input'>
+          <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
+        </div>
+        <div className='x__icon'>
+          <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+        </div>
+        <div/>
+        <div>
+          <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>aanmelden</BigButton>
+        </div>
+      </Form>
     </LoginS>
   },
 )
@@ -531,6 +541,99 @@ const Fondsen = container (
       ),
     })}
   </FondsenS>,
+)
+
+const UserPage = container (
+  ['UserPage',
+    { passwordUpdateDispatch: passwordUpdate, },
+    { getEmail: selectGetEmail, }
+  ],
+  ({ passwordUpdateDispatch, getEmail, }) => {
+    const email = "test@email.com"
+    const [oldPassword, setOldPassword] = useState ('')
+    const [newPassword, setNewPassword] = useState ('')
+    const [showPassword, setShowPassword] = useState (false)
+
+    const inputOldPasswordRef = useRef (null)
+    const inputNewPasswordRef = useRef (null)
+
+    const onChangeOldPassword = useCallbackConst (
+      (event) => setOldPassword (event.target.value),
+    )
+
+    const onChangeNewPassword = useCallbackConst (
+      (event) => setNewPassword (event.target.value),
+    )
+
+    const onClickShowPassword = useCallbackConst (
+      () => setShowPassword (not),
+    )
+    useEffect (() => {
+      const email = getEmail ()
+      console.log ('email', email)
+    })
+
+    const doPasswordUpdate = useCallback (
+      () => lets (
+        () => getEmail (),
+        (email) => passwordUpdateDispatch (email, oldPassword, newPassword),
+      ),
+      [getEmail, oldPassword, newPassword],
+    )
+
+    const onKeyPressInput = useCallback (
+      (event) => event | keyPressListen (
+        () => {
+          event.preventDefault ()
+          canUpdatePassword && doPasswordUpdate ()
+        },
+        'Enter',
+      ),
+      [doPasswordUpdate],
+    )
+
+    const onClickPasswordUpdate = () => doPasswordUpdate ()
+
+    const canUpdatePassword = useMemo (
+      () => [oldPassword, newPassword] | allAgainst (isNotEmptyString),
+      [oldPassword, newPassword],
+    )
+
+    return <FormWrapper>
+      <Form style={{ marginTop: '-20%', }}>
+        <div className='x__label x__password'>
+          oud wachtwoord
+        </div>
+        <div className='x__input x__password-input'>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            autoComplete='current-password'
+            onChange={onChangeOldPassword}
+            onKeyPress={onKeyPressInput}
+            ref={inputOldPasswordRef}/>
+        </div>
+        <div className='x__icon'>
+          <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+        </div>
+        <div className='x__label x__new-password'>
+          nieuw wachtwoord
+        </div>
+        <div className='x__input x__new-password-input'>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            autoComplete='new-password'
+            onChange={onChangeNewPassword}
+            onKeyPress={onKeyPressInput}
+            ref={inputNewPasswordRef}/>
+        </div>
+        <div/>
+        <div/>
+        <div>
+          <BigButton disabled={not (canUpdatePassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
+        </div>
+      </Form>
+    </FormWrapper>
+  }
 )
 
 const targetValue = path (['target', 'value'])
@@ -638,6 +741,7 @@ const Contents = container (
       {page | condS ([
         eq ('overview') | guard (() => <FondsMain/>),
         eq ('detail') | guard (() => <FondsDetail/>),
+        eq ('user') | guard (() => <UserPage/>),
         otherwise | guard (() => 'Invalid page ' + page),
       ])}
     </div>
@@ -666,11 +770,9 @@ export default container (
             </div>
             <Contents page={page}/>
           </div>,
-          () => <div className='x__login-wrapper'>
-            <div className='x__wrapper'>
-              <Login logIn={logIn}/>
-            </div>
-          </div>,
+          () => <FormWrapper>
+            <Login logIn={logIn}/>
+          </FormWrapper>,
         ),
       })}
     </MainS>
