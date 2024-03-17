@@ -31,7 +31,7 @@ import { init as initDb,
   loggedInGet as dbLoggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
+import { env, envOrConfig, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
 
 import {
   authFactory,
@@ -40,24 +40,23 @@ import {
 
 const configTop = config | configure.init
 
-const { authorizeByIP, dbPath, serverPort, } = tryCatch (
+const { authorizeByIP, serverPort, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'authorizeByIP',
-    'dbPath',
     'serverPort',
   ),
 )
 
 const jwtSecret = lets (
-  () => ['must be longer than 25 characters', length >> gt (25) ],
-  (validate) => env ('JWT_SECRET', validate),
+  () => ['must be longer than 25 characters', length >> gt (25)],
+  (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
 )
 
 const cookieSecret = lets (
-  () => ['must be longer than 25 characters', length >> gt (25) ],
-  (validate) => env ('COOKIE_SECRET', validate),
+  () => ['must be longer than 25 characters', length >> gt (25)],
+  (validate) => envOrConfig (configTop, 'cookieSecret', 'COOKIE_SECRET', validate),
 )
 
 const appEnv = lets (

@@ -9,7 +9,7 @@ import {
 import path from 'path'
 import { fileURLToPath, } from 'url'
 
-import { flatMap, Left, Right, } from 'alleycat-js/es/bilby'
+import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, } from 'alleycat-js/es/general'
 import { ifUndefined, } from 'alleycat-js/es/predicate'
 
@@ -31,17 +31,37 @@ export const doEither = (...eithers) => lets (
   (chain) => Right (null) | chain,
 )
 
-export const env = (key, validate=[null, T], f=id) => {
-  const val = process.env [key]
-  if (nil (val)) error (
-    brightRed (key) | sprintf1 ('Missing environment variable %s'),
+// --- `config` may be null, in which case `configKey` is ignored
+export const envOrConfig = (config, configKey, envKey, validate=[null, T]) => {
+  const [val, configOrEnvString] = lets (
+    () => process.env [envKey],
+    (fromEnv) => config | ifOk (
+      () => {
+        return config.get (configKey)
+        | foldMaybe (id, () => fromEnv)
+        | ifOk (
+          (val) => [val, 'Config/environment'],
+          () => error (
+            [brightRed (envKey), brightRed (configKey)] | sprintfN ('Need environment variable %s or config value %s'),
+          ),
+        )
+      },
+      () => fromEnv | ifOk (
+        (val) => [val, 'Environment'],
+        () => error (
+          [brightRed (envKey)] | sprintfN ('Missing environment variable %s'),
+        ),
+      ),
+    ),
   )
-  const [must, validateF] = validate
-  if (!validateF (f (val))) error (
-    [brightRed (key), must] | sprintfN ('Environment variable %s %s'),
+  const [mustString, validateF] = validate
+  if (!validateF (val)) error (
+    [configOrEnvString, brightRed (envKey), mustString] | sprintfN ('%s value %s %s'),
   )
   return val
 }
+
+export const env = (key, validate) => envOrConfig (null, null, key, validate)
 
 export const lookupOn = recurry (2) (
   o => k => o [k],
