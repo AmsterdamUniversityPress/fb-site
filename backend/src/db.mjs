@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   tryCatch, id, die,
   whenPredicate, noop, multiply, lets,
-  map, whenOk,
+  map, ok,
 } from 'stick-js/es'
 
 import { dirname, } from 'path'
@@ -50,6 +50,7 @@ const createTables = [
   )`)
 ]
 
+// @todo remove
 const daysInFuture = (n) => Number (new Date ()) + n*24*3600*1000
 const daysInPast = daysInFuture << multiply (-1)
 
@@ -90,23 +91,33 @@ export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
 
-export const userIdGet = (email) => sqliteApi.get (
+const userIdGet = (email) => sqliteApi.getPluck (
   SB ('select id from user where email = ?', email),
 )
 
-export const userPasswordUpdate = (user_id, hashed_password) => sqliteApi.run (
-  SB (`update user set password = ? where id = ?`, [hashed_password, user_id],
-))
-
-export const loggedInAdd = (userId) => sqliteApi.run (
-  SB (`insert into loggedIn (userId) values (?)`, userId)
+export const userPasswordUpdate = (email, hashed_password) => doEither (
+  () => userIdGet (email),
+  (userId) => sqliteApi.run (
+    SB (`update user set password = ? where id = ?`, [hashed_password, userId],)
+  ),
 )
 
-export const loggedInRemove = (id) => sqliteApi.run (
-  SB (`delete from loggedIn where id = ?`, id)
+export const loggedInAdd = (email) => doEither (
+  () => userIdGet (email),
+  (userId) => sqliteApi.run (
+    SB (`insert into loggedIn (userId) values (?)`, userId),
+  )
 )
 
-export const loggedInGet = (userId) => sqliteApi.get (
-  SB ('select id from loggedIn where userId = ?', userId)
+const loggedInGetId = (email) => sqliteApi.get (
+  SB ('select l.id from user u outer left join loggedIn l on u.id = l.userId where u.email = ?', email)
 )
 
+export const loggedInGet = loggedInGetId >> map (ok)
+
+export const loggedInRemove = (email) => doEither (
+  () => loggedInGetId (email),
+  (userId) => sqliteApi.run (
+    SB (`delete from loggedIn where id = ?`, userId),
+  ),
+)

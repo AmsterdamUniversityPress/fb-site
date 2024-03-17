@@ -3,7 +3,7 @@ import {
   sprintf1, tryCatch, lets, id, nil,
   ifOk, gt, tap, againstAny, eq, die, each,
   appendM, find, whenOk, ok, not,
-  concatTo,
+  concatTo, recurry,
 } from 'stick-js/es'
 
 import net from 'net'
@@ -24,14 +24,13 @@ import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import { init as initDb,
   // userAdd as dbUserAdd,
   userGet as dbUserGet,
-  userIdGet as dbUserIdGet,
-  // userPasswordUpdate as dbUserPasswordUpdate,
+  userPasswordUpdate as dbUserPasswordUpdate,
   loggedInAdd as dbLoggedInAdd,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, envOrConfig, ifMapHas, lookupOnOrDie, mapTuplesAsMap, } from './util.mjs'
+import { env, envOrConfig, ifMapHas, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow, } from './util.mjs'
 
 import {
   authFactory,
@@ -142,31 +141,51 @@ const allowedIPs = authIP.init (authorizeByIP)
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
-const foldDbResults = (dbFuncName) => fold (
-  (err) => {
-    warn (err | concatTo ('Error with ' + dbFuncName + ': '))
-    return null
-  },
-  ifOk (
-    // for now, we just use id (we could consider a 'compose' function).
-    ( x ) => {
-      console.log ('Hello from fold')
-      return x
-    },
-    () => null
-  )
+// @todo we want to pass the error somehow maybe ...?
+const foldDbResults = (onError, dbFuncName) => fold (
+  onError,
+  id,
 )
 
-const doDbCall = (dbFunc, vals) => dbFunc (...vals) | foldDbResults (dbFunc.name)
+  // ifOk (
+    // for now, we just use id (we could consider a 'compose' function).
+    // id,
+    // () => null
+  // )
+// )
 
-const getUserId = (email) =>  doDbCall (dbUserIdGet, [ email, ]) | (({ id }) => id)
-const getLoggedIn = (userId) => doDbCall (dbLoggedInGet, [ userId, ]) | (({ id }) => id)
-const addLoggedIn = (userId) => doDbCall (dbLoggedInAdd, [ userId, ])
-const removeLoggedIn = (id) => doDbCall (dbLoggedInRemove, [ id, ])
+const doDbCall = recurry (3) (
+  (onError) => (dbFunc) => (vals) => dbFunc (...vals) | foldDbResults (onError, dbFunc.name),
+)
+
+const decorateDbError = (err, dbFuncName) => err | concatTo ('Error with ' + dbFuncName + ': ')
+const warnNull = (err, dbFuncName) => {
+  warn (decorateDbError (err, dbFuncName))
+  return null
+}
+
+const doDbCallWarnNull = (dbFunc, vals) => doDbCall (
+  (err) => warnNull (err, dbFunc.name),
+  dbFunc,
+  vals,
+)
+const doDbCallDie = (dbFunc, vals) => doDbCall (
+  (err) => die (decorateDbError (err, dbFunc.name)),
+  dbFunc,
+  vals,
+)
+
+// --- @throws
+const getLoggedIn = (email) => doDbCallDie (dbLoggedInGet, [ email, ])
+// --- @throws
+const addLoggedIn = (email) => doDbCallDie (dbLoggedInAdd, [ email, ])
+// --- @throws
+const removeLoggedIn = (email) => doDbCallDie (dbLoggedInRemove, [ email, ])
+const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, pw])
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
-const getUserinfoLogin = (email) => doDbCall (dbUserGet, [ email, ])
+const getUserinfoLogin = (email) => doDbCallWarnNull (dbUserGet, [ email, ])
   | (({ email, firstName, lastName, password, }) => ({
     password,
     userinfo: {
@@ -176,6 +195,9 @@ const getUserinfoLogin = (email) => doDbCall (dbUserGet, [ email, ])
       lastName,
     },
   }))
+
+const getUserPassword = (email) => email | getUserinfoLogin
+  | (({ password, _userinfo }) => password)
 
 const getUserinfoRequest = (req) => {
   const info = authIP.getInfo (req)
@@ -205,9 +227,7 @@ const alleycatAuth = authFactory.create ().init ({
   getUserinfoRequest,
   isAuthorized: async (email, _, req) => {
     const { path, } = req.route
-    const userId = getUserId (email)
-    // if db error, die (...)
-    if (!getLoggedIn (userId)) return [false, 'not logged in']
+    if (!getLoggedIn (email)) return [false, 'not logged in']
     if (not (checkPrivileges (email, req)))
       return [false, 'missing privileges for this route']
     return [true]
@@ -221,15 +241,13 @@ const alleycatAuth = authFactory.create ().init ({
   },
   jwtSecret,
   onLogin: async (email, _user) => {
-    email | getUserId | addLoggedIn
+    addLoggedIn (email)
   },
   onLogout: async (email) => {
-    // have email, want to get id of loggedIn, and remove it
-    // this seems like a lot of db calls to me?
-    // we could replace the email value by userId perhaps?
-    const loggedInId = email | getUserId | getLoggedIn
-    if (!removeLoggedIn (loggedInId))
-      die ('Unexpected, ' + email + ' not found in `loggedIn`')
+    decorateAndRethrow (
+      'Unexpected, ' + email + ' not found in `loggedIn`: ',
+      () => removeLoggedIn (email),
+    )
   },
   usernameField: 'email',
 })
@@ -265,13 +283,17 @@ const init = ({ port, }) => express ()
       ),
     )
   })
-  | securePatch ('/user', (req, _res) => {
-    const { body, } = req
-    const { data, } = body
-    const { email, password } = data
-    console.log ('email', email)
-    console.log ('password', password)
-    // @todo update db
+  | securePatch ('/user', (req, res) => {
+    const { email, oldPassword, newPassword } = req.body.data
+    const knownHashed = getUserPassword (email)
+    if (!checkPassword (oldPassword, knownHashed))
+      return res | sendStatus (499, {
+        umsg: 'Invalid attempt: Wrong Password',
+      })
+    // @todo case of error is only a warning in the backend now
+    updateUserPassword (email, hashPassword (newPassword))
+    return res | sendStatus (200, {})
+
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info
