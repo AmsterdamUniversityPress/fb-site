@@ -1,12 +1,9 @@
 import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
-  ifOk, gt, tap, againstAny, eq, die, each,
-  appendM, find, whenOk, ok, not,
-  concatTo, recurry,
+  gt, againstAny, eq, die,
+  not, concatTo, recurry,
 } from 'stick-js/es'
-
-import net from 'net'
 
 import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
@@ -14,11 +11,12 @@ import cookieParser from 'cookie-parser'
 import express from 'express'
 
 import { listen, use, sendStatus, } from 'alleycat-js/es/express'
-import { yellow, green, red, } from 'alleycat-js/es/io';
-import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general';
+import { green, } from 'alleycat-js/es/io';
+import { decorateRejection, info, length, } from 'alleycat-js/es/general';
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
+import { authIP, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import { init as initDb,
@@ -77,66 +75,7 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-const authIP = {
-  init (auth) {
-    // --- it's called BlockList but can be used to simply check IPs in ranges
-    const listMain = new net.BlockList ()
-    this._lists = []
-    this._infoCache = new Map ()
-
-    auth | each (({ name, contact, type, ip_type, details, }) => {
-      const blockListFunction = type | lookupOnOrDie ('bad type: ' + type) ({
-        address: 'addAddress',
-        subnet: 'addSubnet',
-        range: 'addRange',
-      })
-      const typeParam = ip_type | lookupOnOrDie ('bad ip_type: ' + ip_type) ({
-        v4: 'ipv4',
-        v6: 'ipv6',
-      })
-      const listRule = new net.BlockList ()
-      ; [listMain, listRule] | each (
-        (list) => list [blockListFunction] (... details, typeParam),
-      )
-      this._lists | appendM ({ name, contact, list: listRule, })
-    })
-
-    this._listMain = listMain
-    return this
-  },
-  check (ip) { return this._listMain.check (ip) },
-  checkProxyIP (req) {
-    const clientIP = this._ipForRequest (req)
-    if (nil (clientIP)) return [false, 'no X-Forwarded-For header']
-    return [this.check (clientIP), null]
-  },
-  getInfo (req) {
-    const clientIP = this._ipForRequest (req)
-    if (nil (clientIP)) return null
-    const cached = this._infoCache.get (clientIP)
-    if (ok (cached)) return cached
-    return this._lists
-      | find (({ list, ..._ }) => list.check (clientIP))
-      | whenOk (({ name, contact, ... _ }) => ({ name, contact, }))
-      | whenOk ((info) => {
-        this._infoCache.set (clientIP, info)
-        return info
-      })
-  },
-  _ipForRequest (req) {
-    // --- note that X-Forwarded-For is really easy to forge, so you must be
-    // sure you trust the reverse proxy server.
-    return req.headers ['x-forwarded-for']
-  },
-  _infoCache: void 8,
-  // --- one big structure which can efficiently check if an IP is authorized
-  _listMain: void 8,
-  // --- a list of structures, one per rule, through which we inefficiently
-  // loop so we can map institution data to an IP address.
-  _lists: void 8,
-}
-
-const allowedIPs = authIP.init (authorizeByIP)
+const allowedIPs = authIP.create ().init (authorizeByIP)
 
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
