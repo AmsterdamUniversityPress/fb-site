@@ -20,6 +20,7 @@ import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
 import { config, } from './config.mjs'
+import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import { init as initDb,
   // userAdd as dbUserAdd,
   userGet as dbUserGet,
@@ -36,10 +37,6 @@ import {
   authFactory,
 // } from 'alleycat-express-jwt'
 } from './alleycat-express-jwt/index.mjs'
-
-import dataTst from '../../__data/fb-data-tst.json' with { type: 'json', }
-import dataAcc from '../../__data/fb-data-acc.json' with { type: 'json', }
-import dataPrd from '../../__data/fb-data-prd.json' with { type: 'json', }
 
 const configTop = config | configure.init
 
