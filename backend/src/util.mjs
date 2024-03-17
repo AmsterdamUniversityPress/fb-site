@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
   map, spreadTo, lets,
-  sprintf1, sprintfN, id, T, nil, recurry,
-  ifOk, always, die,
+  sprintfN, id, T, recurry,
+  ifOk, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
 } from 'stick-js/es'
 
@@ -10,7 +10,7 @@ import path from 'path'
 import { fileURLToPath, } from 'url'
 
 import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
-import { composeManyRight, } from 'alleycat-js/es/general'
+import { composeManyRight, decorateRejection, } from 'alleycat-js/es/general'
 import { ifUndefined, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
@@ -145,3 +145,11 @@ export const ifMapHas = recurry (4) (
 )
 
 export const noopP = async () => {}
+
+export const decorateAndRethrow = recurry (2) (
+  (prefix) => (f) => tryCatch (
+    id,
+    (err) => die (err | decorateRejection (prefix)),
+    f,
+  ),
+)
