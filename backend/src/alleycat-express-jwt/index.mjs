@@ -94,23 +94,33 @@ const composeAuthMiddlewares = (middlewares) => {
  * for example) so we ignore them.
  */
 
-const passportAuthenticateJWT = () => (req, res, next) => {
+// --- @todo this function authenticates and authorizes, need better name
+
+const passportAuthenticateJWT = (isAuthorized=always ([true, null]), authorizeData=null) => (req, res, next) => {
   passport.authenticate ('jwt', (err, user, _info, _status) => {
     // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
     // called or 2) the JWT could not be decoded.
 
-    // --- case 1) with an internal error, or some other internal error perhaps -> return 500 (sent
-    // by express)
-    if (err) return next ({ status: 500, imsg: err, })
+    // --- case 1) with an internal error, or some other internal error perhaps -> return 599
+    if (err) return next ({ status: 599, imsg: err, })
     const { reason='(reason unknown)', details, } = user
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
     // --- @future 499 is currently hardcoded
-    if (not (details)) return next ({ status: 499, umsg: 'Unauthorized: ' + reason, })
-    // --- logged in: set `req.user` and do not do anything with sessions (the only thing we
-    // store in the cookie is the JWT itself, and that is done during the `login` middleware)
-    req.user = details
-    return next (null)
+    if (not (details)) return next ({ status: 499, umsg: 'Unable to authenticate: ' + reason, })
+    if (not (details.username)) return next ({ status: 599, imsg: 'Missing username', })
+    isAuthorized (details.username, req, authorizeData)
+    | then (([authorized, reason]) => authorized | ifTrue (
+      () => {
+        // --- logged in and authorized: set `req.user` and do not do anything with sessions (the
+        // only thing we store in the cookie is the JWT itself, and that is done during the `login`
+        // middleware)
+        req.user = details
+        return next (null)
+      },
+      () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), }),
+    ))
+    | recover ((e) => next ({ status: 599, imsg: e, }))
   }) (req, res, next)
 }
 
@@ -140,17 +150,18 @@ const customErrorHandler = (err, _req, res, _next) => {
   // --- we assume err is an exception if it has a stack and a message
   if (err.stack && err.message) {
     warn (err)
-    return res | sendStatusEmpty (599)
+    return res | sendStatusEmpty (500)
   }
   // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
   const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
+  // --- note that `imsg` gets logged by us but we don't send it (it's internal to us)
   const { status, umsg=defaultMessage, imsg, } = err
   if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
   return res | sendStatus (status, umsg)
 }
 
 const initPassportStrategies = ({
-  jwtSecret, getUserinfoLogin, checkAuthorized, checkPassword,
+  jwtSecret, getUserinfoLogin, checkLoggedIn, checkPassword,
   usernameField, passwordField,
 }) => {
   passport.use ('login', new localStrategy (
@@ -178,7 +189,7 @@ const initPassportStrategies = ({
     },
     // --- once we're here, it means that the JWT was valid and we were able to decode it.
     (req, { username }, done) => {
-      return checkAuthorized (username, req)
+      return checkLoggedIn (username, req)
       | then (([userinfo, reason]) => done (
         null,
         userinfo | ifOk (
@@ -226,9 +237,10 @@ const init = ({
   checkPassword,
   getUserinfoLogin,
   getUserinfoRequest=always ({}),
-  isAuthorizedBeforeJWT=null,
-  isAuthorizedAfterJWT=null,
   isAuthorized,
+  isLoggedIn,
+  isLoggedInBeforeJWT=null,
+  isLoggedInAfterJWT=null,
   jwtSecret,
   onLogin=noopP,
   onLogout=noopP,
@@ -244,19 +256,19 @@ const init = ({
   passwordField='password',
 }) => {
   // --- caller must catch rejection
-  const checkAuthorized = (username, req) => {
+  const checkLoggedIn = (username, req) => {
     const user = getUserinfoLogin (username)
     // --- for example, removed from database while the user still has a valid JWT
     if (nil (user)) return [null, 'User was removed / no longer valid']
     const { userinfo, } = user
-    return isAuthorized (username, userinfo, req)
+    return isLoggedIn (username, userinfo, req)
     | then (([loggedIn, reason]) => loggedIn | ifTrue (
       () => [userinfo],
       () => [null, reason],
     ))
   }
   initPassportStrategies ({
-    jwtSecret, getUserinfoLogin, checkAuthorized, checkPassword,
+    jwtSecret, getUserinfoLogin, checkLoggedIn, checkPassword,
     usernameField, passwordField,
   })
   // --- note that the cookie must be cleared with exactly the same options as it was set with,
@@ -269,17 +281,17 @@ const init = ({
       set: (jwt) => (res) => res.cookie ('jwt', jwt, cookieOptions),
     }),
   )
-  const authMiddleware = composeAuthMiddlewares ([
-    requestAuthenticate (getUserinfoRequest, isAuthorizedBeforeJWT),
-    passportAuthenticateJWT (),
-    requestAuthenticate (getUserinfoRequest, isAuthorizedAfterJWT),
+  const authMiddleware = (authorizeData=null) => composeAuthMiddlewares ([
+    requestAuthenticate (getUserinfoRequest, isLoggedInBeforeJWT),
+    passportAuthenticateJWT (isAuthorized, authorizeData),
+    requestAuthenticate (getUserinfoRequest, isLoggedInAfterJWT),
   ])
 
   const useAuthMiddleware = composeManyRight (
     // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
-      authMiddleware,
+      authMiddleware (),
       (req, res) => {
         const { user, } = req
         if (!user) return res | sendStatus (serverErrorJSONCode, {
@@ -366,22 +378,22 @@ const authProto = {
   getUseAuthMiddleware () {
     return this._useAuthMiddleware | okOrDie ('not available (forgot to call init?)')
   },
-  getAuthMiddleware () {
-    return this._authMiddleware | okOrDie ('not available (forgot to call init?)')
+  getAuthMiddleware (authorizeData=null) {
+    return this._authMiddleware (authorizeData) | okOrDie ('not available (forgot to call init?)')
   },
-  secureMethodN ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
+  secureMethodN ({ prepend=[], append=[], errorHandler=customErrorHandler, authorizeData=null, }={}) {
     return methodNWithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
+      [... prepend, this.getAuthMiddleware (authorizeData), ... append, errorHandler],
     )
   },
-  secureMethod ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
+  secureMethod ({ prepend=[], append=[], errorHandler=customErrorHandler, authorizeData=null, }={}) {
     return methodWithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
+      [... prepend, this.getAuthMiddleware (authorizeData), ... append, errorHandler],
     )
   },
-  secureMethod3 ({ prepend=[], append=[], errorHandler=customErrorHandler, }={}) {
+  secureMethod3 ({ prepend=[], append=[], errorHandler=customErrorHandler, authorizeData=null, }={}) {
     return method3WithMiddlewares (
-      [... prepend, this.getAuthMiddleware (), ... append, errorHandler],
+      [... prepend, this.getAuthMiddleware (authorizeData), ... append, errorHandler],
     )
   },
 }
