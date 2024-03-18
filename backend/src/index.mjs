@@ -219,7 +219,7 @@ const init = ({ port, }) => express ()
       results: data.slice (beginIdx, beginIdx + Number (number)),
     })
   })
-  | secureGet (privsAdminUser) ('/fonds', (req, res) => {
+  | secureGet (privsUser) ('/fonds', (req, res) => {
     const { query, } = req
     const { uuid, } = query
     // --- @todo check / validate
