@@ -8,7 +8,7 @@ import daggy from 'daggy'
 import { cata, fold3, } from 'alleycat-js/es/bilby'
 import { between, decorateRejection, } from 'alleycat-js/es/general'
 
-import { toJSON, } from './util.mjs'
+import { errorToJSON, } from './util.mjs'
 
 /* Express middlewares work as follows: each middleware calls `next` when it's finished, either with
  * an argument (indicating an error, meaning jump out of the chain to the error handler) or with no
@@ -68,15 +68,15 @@ const mkContinuation = (nextParam) => {
   )
   // --- custom error with code
   const { status, umsg, imsg, } = nextParam
-  if (status | between (400, 499)) return AuthContinuationNotAuthorized (umsg | toJSON)
+  if (status | between (400, 499)) return AuthContinuationNotAuthorized (umsg | errorToJSON)
   return AuthContinuationError (
-    [status, umsg | toJSON, imsg | toJSON] | sprintfN (
+    [status, umsg | errorToJSON, imsg | errorToJSON] | sprintfN (
       'mkContinuation (): unexpected, code=%d, umsg=%s, imsg=%s',
     ),
   )
 }
 
-export const mkPromise = mw => (req, res) => new Promise ((resolve, reject) => {
+export const mkPromise = (mw) => (req, res) => new Promise ((resolve, reject) => {
   const next = (nextParam) => tryCatch (
     resolve,
     // --- for when mkContinuation itself fails, for example if JSON.stringify fails
