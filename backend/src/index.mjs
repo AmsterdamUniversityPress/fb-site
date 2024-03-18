@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
   gt, againstAny, eq, die,
-  not, concatTo, recurry, ifOk,
+  not, concatTo, recurry, ifOk, ifNil,
 } from 'stick-js/es'
 
 import bcrypt from 'bcrypt'
@@ -144,12 +144,16 @@ const getUserinfoRequest = (req) => {
   return { name, contact, type: 'institution', }
 }
 
-const getPrivilegesForUser = (email) => email | lookupOnOrDie (
-  'getPrivilegesForUser (): invalid user: ' + email,
-) ({
-  'allen@alleycat.cc': new Set (['user']),
-  'arie@alleycat.cc': new Set (['user', 'admin-user']),
-})
+const getPrivilegesForUser = (email) => email | ifNil (
+  // --- null user means IP-based authentication.
+  () => new Set (['user']),
+  lookupOnOrDie (
+    'getPrivilegesForUser (): invalid user: ' + email,
+  ) ({
+    'allen@alleycat.cc': new Set (['user']),
+    'arie@alleycat.cc': new Set (['user', 'admin-user']),
+  }),
+)
 
 const checkPrivileges = (email, privsNeed=null) => lets (
   () => getPrivilegesForUser (email),
@@ -175,7 +179,7 @@ const alleycatAuth = authFactory.create ().init ({
   },
   // --- note that in IP-based mode you can not access any admin routes (we
   // do not even know who you are).
-  isAuthorizedAfterJWT: async (req) => {
+  isLoggedInAfterJWT: async (req) => {
     if (req.query ['disable-ip-authorize'] === '1')
       return [false, 'disable-ip-authorize=1']
     return authIP.checkProxyIP (req)

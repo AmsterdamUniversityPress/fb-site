@@ -10,7 +10,7 @@ import passport from 'passport'
 import localStrategy from 'passport-local'
 import { Strategy as JWTStrategy, } from 'passport-jwt'
 
-import { recover, rejectP, resolveP, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, resolveP, startP, then, } from 'alleycat-js/es/async'
 import {
   getN, post, postN, send, sendStatus, sendStatusEmpty,
   use,
@@ -96,7 +96,7 @@ const composeAuthMiddlewares = (middlewares) => {
 
 // --- @todo this function authenticates and authorizes, need better name
 
-const passportAuthenticateJWT = (isAuthorized=always ([true, null]), authorizeData=null) => (req, res, next) => {
+const passportAuthenticateJWT = (isAuthorized=always ([true, null])) => (req, res, next) => {
   passport.authenticate ('jwt', (err, user, _info, _status) => {
     // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
     // called or 2) the JWT could not be decoded.
@@ -109,7 +109,7 @@ const passportAuthenticateJWT = (isAuthorized=always ([true, null]), authorizeDa
     // --- @future 499 is currently hardcoded
     if (not (details)) return next ({ status: 499, umsg: 'Unable to authenticate: ' + reason, })
     if (not (details.username)) return next ({ status: 599, imsg: 'Missing username', })
-    isAuthorized (details.username, req, authorizeData)
+    isAuthorized (details.username, req)
     | then (([authorized, reason]) => authorized | ifTrue (
       () => {
         // --- logged in and authorized: set `req.user` and do not do anything with sessions (the
@@ -124,17 +124,26 @@ const passportAuthenticateJWT = (isAuthorized=always ([true, null]), authorizeDa
   }) (req, res, next)
 }
 
-const requestAuthenticate = (getUserinfoRequest, isAuthorizedRequest) => (req, _res, next) => {
-  if (nil (isAuthorizedRequest)) return next ({ status: 499, })
-  isAuthorizedRequest (req)
+const requestAuthenticate = (getUserinfoRequest, isLoggedInRequest, isAuthorized) => (req, _res, next) => {
+  if (nil (isLoggedInRequest)) return next ({ status: 499, })
+  let userinfo
+  startP ()
+  | then (() => isLoggedInRequest (req))
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
-      const userinfo = getUserinfoRequest (req)
+      userinfo = getUserinfoRequest (req)
       if (nil (userinfo)) return next ({ status: 599, imsg: 'requestAuthenticate (): no userinfo', })
+      // returnnext ()
+    },
+    () => next ({ status: 499, umsg: 'Not authenticated: ' + (reason ?? '(no reason)'), }),
+  ))
+  | then (() => isAuthorized (null, req))
+  | then (([authorized, reason]) => authorized | ifTrue (
+    () => {
       req.user = { userinfo, username: null, }
       return next ()
     },
-    () => next ({ status: 499, umsg: reason, }),
+    () => next ({ status: 499, umsg: 'Not authorized: ' + (reason ?? '(no reason)'), }),
   ))
   | recover ((e) => lets (
     // --- in case it's an exception
@@ -281,11 +290,14 @@ const init = ({
       set: (jwt) => (res) => res.cookie ('jwt', jwt, cookieOptions),
     }),
   )
-  const authMiddleware = (authorizeData=null) => composeAuthMiddlewares ([
-    requestAuthenticate (getUserinfoRequest, isLoggedInBeforeJWT),
-    passportAuthenticateJWT (isAuthorized, authorizeData),
-    requestAuthenticate (getUserinfoRequest, isLoggedInAfterJWT),
-  ])
+  const authMiddleware = (authorizeData=null) => lets (
+    () => (email, req) => isAuthorized (email, req, authorizeData),
+    (isAuthorized_) => composeAuthMiddlewares ([
+      requestAuthenticate (getUserinfoRequest, isLoggedInBeforeJWT, isAuthorized_),
+      passportAuthenticateJWT (isAuthorized_),
+      requestAuthenticate (getUserinfoRequest, isLoggedInAfterJWT, isAuthorized_),
+    ]),
+  )
 
   const useAuthMiddleware = composeManyRight (
     // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
