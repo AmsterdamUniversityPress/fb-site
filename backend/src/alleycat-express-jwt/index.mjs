@@ -96,7 +96,7 @@ const composeAuthMiddlewares = (middlewares) => {
 
 // --- @todo this function authenticates and authorizes, need better name
 
-const passportAuthenticateJWT = (isAuthorized=always ([true, null])) => (req, res, next) => {
+const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, null]))) => (req, res, next) => {
   passport.authenticate ('jwt', (err, user, _info, _status) => {
     // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
     // called or 2) the JWT could not be decoded.
@@ -362,9 +362,7 @@ const init = ({
           | recover (rejectP << decorateRejection ('onLogout: '))
           | recover ((e) => {
             warn (e)
-            res | sendStatus (serverErrorJSONCode, {
-              imsg: e.toString (),
-            })
+            res | sendStatus (serverErrorJSONCode, { imsg: e.toString (), })
             return true
           })
           | then ((stop=false) => stop | whenFalse (
