@@ -109,7 +109,7 @@ export const loggedInAdd = (email) => doEither (
   )
 )
 
-const loggedInGetId = (email) => sqliteApi.get (
+const loggedInGetId = (email) => sqliteApi.getPluck (
   SB ('select l.id from user u outer left join loggedIn l on u.id = l.userId where u.email = ?', email)
 )
 
