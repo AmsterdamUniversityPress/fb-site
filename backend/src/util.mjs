@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets,
+  map, spreadTo, lets, flip,
   sprintfN, id, T, recurry,
   ifOk, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
@@ -153,3 +153,17 @@ export const decorateAndRethrow = recurry (2) (
     f,
   ),
 )
+
+/* Returns true iff all elements of `n` are contained in `m`. Also true if
+ * `n` is the empty set.
+ */
+export const isSubsetOf = recurry (2) (
+  (m) => (n) => {
+    for (const x of n.values ())
+      if (!m.has (x))
+        return false
+    return true
+  }
+)
+
+export const isSupersetOf = flip (isSubsetOf)
