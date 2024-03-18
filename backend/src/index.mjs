@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   sprintf1, tryCatch, lets, id, nil,
   gt, againstAny, eq, die,
-  not, concatTo, recurry,
+  not, concatTo, recurry, ifOk,
 } from 'stick-js/es'
 
 import bcrypt from 'bcrypt'
@@ -28,7 +28,7 @@ import { init as initDb,
   loggedInGet as dbLoggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, envOrConfig, ifMapHas, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow, } from './util.mjs'
+import { env, envOrConfig, ifMapHas, isSubsetOf, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow, } from './util.mjs'
 
 import {
   authFactory,
@@ -80,18 +80,10 @@ const authIP = authIPFactory.create ().init (authorizeByIP)
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
-// @todo we want to pass the error somehow maybe ...?
 const foldDbResults = (onError, dbFuncName) => fold (
   onError,
   id,
 )
-
-  // ifOk (
-    // for now, we just use id (we could consider a 'compose' function).
-    // id,
-    // () => null
-  // )
-// )
 
 const doDbCall = recurry (3) (
   (onError) => (dbFunc) => (vals) => dbFunc (...vals) | foldDbResults (onError, dbFunc.name),
@@ -152,23 +144,33 @@ const getUserinfoRequest = (req) => {
   return { name, contact, type: 'institution', }
 }
 
-const xcheckPrivileges = (email, req) => lets (
-  () => getPrivilegesForRequest (req),
-  () => getPrivilegesForUser (email),
-  (need, got) => need | isSubsetOf (got),
-)
+const getPrivilegesForUser = (email) => email | lookupOnOrDie (
+  'getPrivilegesForUser (): invalid user: ' + email,
+) ({
+  'allen@alleycat.cc': new Set (['user']),
+  'arie@alleycat.cc': new Set (['user', 'admin-user']),
+})
 
-const checkPrivileges = () => true
+const checkPrivileges = (email, privsNeed=null) => lets (
+  () => getPrivilegesForUser (email),
+  (privsGot) => privsNeed | ifOk (
+    isSubsetOf (privsGot),
+    () => true,
+  ),
+)
 
 const alleycatAuth = authFactory.create ().init ({
   checkPassword,
   getUserinfoLogin,
   getUserinfoRequest,
-  isAuthorized: async (email, _, req) => {
+  isAuthorized: async (email, req, privileges=null) => {
+    if (not (checkPrivileges (email, privileges)))
+      return [false, 'missing privileges for this route']
+    return [true]
+  },
+  isLoggedIn: async (email, _, req) => {
     const { path, } = req.route
     if (!getLoggedIn (email)) return [false, 'not logged in']
-    if (not (checkPrivileges (email, req)))
-      return [false, 'missing privileges for this route']
     return [true]
   },
   // --- note that in IP-based mode you can not access any admin routes (we
@@ -192,14 +194,17 @@ const alleycatAuth = authFactory.create ().init ({
 })
 
 const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
-const secureGet = alleycatAuth.secureMethod () ('get')
-const securePatch = alleycatAuth.secureMethod () ('patch')
+const secureGet = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('get')
+const securePatch = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('patch')
+
+const privsUser = new Set (['user'])
+const privsAdminUser = new Set (['admin-user'])
 
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
   | useAuthMiddleware
-  | secureGet ('/fondsen', (req, res) => {
+  | secureGet (privsUser) ('/fondsen', (req, res) => {
     const { query, } = req
     const { beginIdx, number, } = query
     // --- @todo check / validate query
@@ -210,7 +215,7 @@ const init = ({ port, }) => express ()
       results: data.slice (beginIdx, beginIdx + Number (number)),
     })
   })
-  | secureGet ('/fonds', (req, res) => {
+  | secureGet (privsAdminUser) ('/fonds', (req, res) => {
     const { query, } = req
     const { uuid, } = query
     // --- @todo check / validate
@@ -222,7 +227,7 @@ const init = ({ port, }) => express ()
       ),
     )
   })
-  | securePatch ('/user', (req, res) => {
+  | securePatch (privsAdminUser) ('/user', (req, res) => {
     const { email, oldPassword, newPassword } = req.body.data
     const knownHashed = getUserPassword (email)
     if (!checkPassword (oldPassword, knownHashed))
