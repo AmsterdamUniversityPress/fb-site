@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   nil, ok, factory, factoryProps,
-  each, appendM, whenOk,
+  each, appendM, whenOk, find,
 } from 'stick-js/es'
 
 import net from 'node:net'
