@@ -16,7 +16,7 @@ import { decorateRejection, info, length, } from 'alleycat-js/es/general';
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
-import { authIP, } from './auth-ip.mjs'
+import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import { init as initDb,
@@ -75,7 +75,7 @@ const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 initDb (hashPassword)
 
-const allowedIPs = authIP.create ().init (authorizeByIP)
+const authIP = authIPFactory.create ().init (authorizeByIP)
 
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
@@ -176,7 +176,7 @@ const alleycatAuth = authFactory.create ().init ({
   isAuthorizedAfterJWT: async (req) => {
     if (req.query ['disable-ip-authorize'] === '1')
       return [false, 'disable-ip-authorize=1']
-    return allowedIPs.checkProxyIP (req)
+    return authIP.checkProxyIP (req)
   },
   jwtSecret,
   onLogin: async (email, _user) => {
