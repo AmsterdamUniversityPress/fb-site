@@ -21,9 +21,10 @@ const sagaEffects = {
 
 import { cata, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
+import { keyPressListen, } from 'alleycat-js/es/dom'
 import { doApiCall as _doApiCall, } from 'alleycat-js/es/fetch'
 import { getQueryParams, } from 'alleycat-js/es/general'
-import { all, allV, isEmptyString, isEmptyList, } from 'alleycat-js/es/predicate'
+import { all, allV, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
@@ -177,20 +178,19 @@ export function *doApiCall (...args) {
   yield sagaCall (_doApiCall, sagaEffects, ...args)
 }
 
-export const requestResults = invoke (() => {
-  return ({
-    Spinner=spinner ('comet'),
-    onError=ifOk (
-      String >> concatTo ('Error: '),
-      () => 'Error',
-    ),
-    onResults=id,
-  } = {}) => cata ({
-    RequestInit: () => null,
-    RequestLoading: (_) => <Spinner/>,
-    RequestError: (err) => err | onError,
-    RequestResults: (res) => res | onResults,
-  })
+export const requestResults = ({
+  Spinner=spinner ('comet'),
+  onError=ifOk (
+    String >> concatTo ('Error: '),
+    () => 'Error',
+  ),
+  onResults=id,
+  onLoading=() => <Spinner/>,
+} = {}) => cata ({
+  RequestInit: () => null,
+  RequestLoading: (_) => onLoading (),
+  RequestError: (err) => err | onError,
+  RequestResults: (res) => res | onResults,
 })
 
 // :: (a -> b) -> Maybe a -> b | undefined
@@ -215,3 +215,10 @@ export const againstNone = compose2 (againstAny, not)
 export const containedIn = flip (contains)
 export const containedInV = flip (containsV)
 export const notContainedInV = compose2 (containedInV, not)
+
+// --- @todo alleycat-js
+/* Usage:
+ *   onKeyDown={keyDownListen (onSubmit, 'Enter')}
+ */
+
+export const keyDownListen = keyPressListen
