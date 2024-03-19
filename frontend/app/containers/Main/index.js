@@ -736,7 +736,13 @@ const ContentsS = styled.div`
   display: flex;
   width: 100vw;
   .x__sidebar {
+    position: relative;
     flex: 0 0 300px;
+    left: 0;
+    transition: left 0.3s;
+    &.x--hide {
+      left: -300px;
+    }
   }
   .x__main {
     // --- @todo
@@ -764,9 +770,9 @@ const Contents = container (
     ])
 
     return <ContentsS>
-      {showSidebar && <div className='x__sidebar'>
+      <div className={clss ('x__sidebar', showSidebar || 'x--hide')}>
         <Sidebar/>
-      </div>}
+      </div>
       <div className='x__main'>
         <div className='x__logo'>
           <Logo/>
@@ -804,6 +810,8 @@ export default container (
       if (not (isLoggedIn)) return navigate ('/login')
       if (isUserLoggedIn && page === 'login') return navigate ('/')
     }, [isLoggedIn, isUserLoggedIn, getUserType, page, navigate])
+
+    if (not (isLoggedIn) && page !== 'login') return
 
     return <MainS tabIndex={-1}>
       <div className='x__contents'>
