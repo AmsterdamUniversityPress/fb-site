@@ -85,17 +85,8 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
-      > .x__item {
-        &:hover > .x__text {
-          border-bottom: 2px solid #00000099;
-        }
-        .x__text {
-          padding-bottom: 5px;
-        }
-      }
       // @todo x__logout and x__passwordUpdate are repeated
       > .x__logout {
-        cursor: pointer;
         > * {
           vertical-align: middle;
         }
@@ -104,7 +95,6 @@ const UserS = styled.div`
         }
       }
       .x__passwordUpdate {
-        cursor: pointer;
         > * {
           vertical-align: middle;
         }
@@ -115,6 +105,16 @@ const UserS = styled.div`
         }
       }
     }
+  }
+`
+
+const MenuItem = styled.div`
+  cursor: pointer;
+  &:hover > .x__text {
+    border-bottom: 2px solid #00000099;
+  }
+  .x__text {
+    padding-bottom: 5px;
   }
 `
 
@@ -135,12 +135,6 @@ const UserinfoInstitutionS = styled.div`
       margin-right: 12px;
       > img {
         width: 22px;
-      }
-    }
-    .x__text {
-      cursor: pointer;
-      &:hover {
-        text-decoration: underline;
       }
     }
   }
@@ -167,14 +161,14 @@ const UserinfoInstitution = container (
       <div className='x__contact-email'>
         Contact: {getContactEmail ()}
       </div>
-      <div className='x__log-in'>
+      <MenuItem className='x__log-in'>
         <span className='x__icon'>
           <img src={iconLogin}/>
         </span>
         <span className='x__text' onClick={onClickLogIn}>
           log in met gebruikersnaam en wachtwoord
         </span>
-      </div>
+      </MenuItem>
     </UserinfoInstitutionS>
   },
 )
@@ -198,14 +192,14 @@ const UserinfoUser = container (
     getFirstName: selectGetFirstName,
     getLastName: selectGetLastName,
   }],
-  ({ getFirstName, getLastName, getEmail, }) => <UserinfoInstitutionS>
+  ({ getFirstName, getLastName, getEmail, }) => <UserinfoUserS>
     <div className='x__name'>
       {getFirstName ()} {getLastName ()}
     </div>
     <div className='x__email'>
       {getEmail ()}
     </div>
-  </UserinfoInstitutionS>,
+  </UserinfoUserS>,
 )
 
 const User = container (
@@ -241,14 +235,14 @@ const User = container (
             <UserinfoUser/>
             <hr/>
             <div className='x__menu-items'>
-              <div className='x__item x__logout' onClick={onClickLogout}>
+              <MenuItem className='x__logout' onClick={onClickLogout}>
                 <img src={iconLogout} width='18px'/>
                 <span className='x__text'>afmelden</span>
-              </div>
-              <div onClick={onClickPasswordUpdate} className='x__item x__passwordUpdate'>
+              </MenuItem>
+              <MenuItem className='x__passwordUpdate' onClick={onClickPasswordUpdate}>
                 <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
-              </div>
+              </MenuItem>
             </div>
           </>),
           otherwise | guard (() => null),
@@ -348,6 +342,18 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
 </IconShowPasswordS>
 
 const LoginS = styled.form`
+  .x__message {
+    margin-bottom: 40px;
+  }
+`
+
+const TextBoxS = styled.div`
+  padding: 35px;
+  border: 1px solid black;
+  border-radius: 10px;
+  background: ${colorHighlight};
+  font-size: 20px;
+  width: 80%;
 `
 
 const FormWrapper = styled.div`
@@ -357,13 +363,7 @@ const FormWrapper = styled.div`
   align-items: center;
 `
 
-const Form = styled.div`
-  padding: 35px;
-  border: 1px solid black;
-  border-radius: 10px;
-  background: ${colorHighlight};
-
-  font-size: 20px;
+const FormS = styled (TextBoxS) `
   display: grid;
   grid-template-columns: 117px auto 24px;
   grid-auto-rows: 50px;
@@ -371,6 +371,7 @@ const Form = styled.div`
   column-gap: 20px;
   input {
     height: 100%;
+    width: 100%;
     border: 1px solid #999999;
     padding: 10px;
   }
@@ -384,21 +385,27 @@ const Form = styled.div`
   .x__input {
     background: white;
   }
+  // --- @todo this should probably be .x__text
   x__text {
     width: 400px;
     padding: 20px;
   }
 `
 
-const LoginInner = component (
-  ['LoginInner'],
-  ({ logIn, }) => {
+const LoginInner = container (
+  ['LoginInner', {}, {
+    getUserType: selectGetUserType,
+    getInstitutionName: selectGetInstitutionName,
+  }],
+  ({ logIn, getInstitutionName, getUserType, }) => {
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
 
     const inputEmailRef = useRef (null)
     const inputPasswordRef = useRef (null)
+
+    const isLoggedInInstitution = getUserType () === 'institution'
 
     const onChangeEmail = useCallbackConst (
       (event) => setEmail (event.target.value),
@@ -445,7 +452,16 @@ const LoginInner = component (
     // Make sure to use event.preventDefault so it doesn't submit
 
     return <LoginS>
-      <Form>
+      {isLoggedInInstitution && <TextBoxS className='x__message'>
+        <p>
+          Je bent ingelogd courtesy of {getInstitutionName ()}.
+        </p>
+        <p>
+          Je kunt door naar <a href='/'>de fondsen</a>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
+        </p>
+      </TextBoxS>
+      }
+      <FormS>
         {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
         <div className='x__label x__email'>
           emailadres
@@ -467,7 +483,7 @@ const LoginInner = component (
         <div>
           <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>aanmelden</BigButton>
         </div>
-      </Form>
+      </FormS>
     </LoginS>
   },
 )
@@ -791,10 +807,9 @@ export default container (
   ['Main', {}, {
     institutionLoggedIn: selectInstitutionLoggedIn,
     userLoggedIn: selectUserLoggedIn,
-    getUserType: selectGetUserType,
   }],
   (props) => {
-    const { isMobile, page, institutionLoggedIn, userLoggedIn, getUserType, } = props
+    const { isMobile, page, institutionLoggedIn, userLoggedIn, } = props
     const navigate = useNavigate ()
 
     useWhy ('Main', props)
@@ -813,7 +828,7 @@ export default container (
     useEffect (() => {
       if (not (isLoggedIn)) return navigate ('/login')
       if (isUserLoggedIn && page === 'login') return navigate ('/')
-    }, [isLoggedIn, isUserLoggedIn, getUserType, page, navigate])
+    }, [isLoggedIn, isUserLoggedIn, page, navigate])
 
     if (not (isLoggedIn) && page !== 'login') return
 

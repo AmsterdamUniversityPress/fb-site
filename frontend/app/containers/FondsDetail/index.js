@@ -37,7 +37,6 @@ const Detail = ({ data, }) => <DetailS>
 
 const FondsDetailS = styled.div`
   height: 100%;
-  overflow-y: auto;
 `
 
 const dispatchTable = {
