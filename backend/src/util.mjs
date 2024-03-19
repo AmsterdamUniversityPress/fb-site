@@ -4,6 +4,7 @@ import {
   sprintfN, id, T, recurry,
   ifOk, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
+  againstAll, gt, gte,
 } from 'stick-js/es'
 
 import path from 'path'
@@ -167,3 +168,26 @@ export const isSubsetOf = recurry (2) (
 )
 
 export const isSupersetOf = flip (isSubsetOf)
+
+export const isInt = (n) => lets (
+  () => Math.abs (n),
+  (abs) => Math.floor (abs) === abs,
+)
+export const isNonNegativeInt = againstAll ([isInt, gte (0)])
+export const isPositiveInt = againstAll ([isInt, gt (0)])
+
+// --- on abort it returns the value passed to `abort`, which defaults to `true`
+export const eachAbort = recurry (2) (
+  (f) => (xs) => {
+    let quit = false
+    let _abortVal
+    const abort = (abortVal=true) => {
+      quit = true
+      _abortVal = abortVal
+    }
+    for (const x of xs) {
+      f (abort, x)
+      if (quit) return _abortVal
+    }
+  }
+)
