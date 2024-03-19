@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   add, whenOk, prop, defaultToV,
+  map, ok, id
 } from 'stick-js/es'
 
 import { logWith, } from 'alleycat-js/es/general'

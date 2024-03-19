@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
+  id,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
@@ -16,10 +17,11 @@ import {
   fondsenFetchCompleted as a_fondsenFetchCompleted,
   logIn as a_logIn,
   logOut as a_logOut,
-  loginLogoutCompleted as a_loginLogoutCompleted,
+  loginUserCompleted as a_loginUserCompleted,
+  loggedOutUser as a_loggedOutUser,
+  loggedInInstitution as a_loggedInInstitution,
   passwordUpdate as a_passwordUpdate,
 } from '../actions/main'
-
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 
@@ -72,7 +74,7 @@ function *s_fondsenFetch (pageNum) {
   })
 }
 
-function *s_loginCompleted (res) {
+function *s_loginUserCompleted (res) {
   const onError = (msg) => error ('Error: loginCompleted:', msg)
   const user = res | requestCompleteFold (
     // --- ok
@@ -82,7 +84,7 @@ function *s_loginCompleted (res) {
     // --- 5xx
     () => (onError ('(no message)'), null),
   )
-  yield put (a_loginLogoutCompleted (user))
+  yield put (a_loginUserCompleted (user))
   if (user) yield put (a_fondsenFetch (0))
 }
 
@@ -92,10 +94,17 @@ function *s_helloCompleted (res, first=false) {
     (user) => user,
     // --- 401, i.e. not authorized
     (_umsg) => null,
+    // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
     () => (onError ('(no message)'), null),
   )
-  yield put (a_loginLogoutCompleted (user))
-  if (first && ok (user)) yield put (a_fondsenFetch (0))
+  // --- @todo some of this is repeated from s_loginUserCompleted
+  if (ok (user)) {
+    if (first) yield put (a_fondsenFetch (0))
+    if (user.type === 'institution') yield put (a_loggedInInstitution (user))
+    else if (user.type === 'user') yield put (a_loginUserCompleted (user))
+    else error ('Unexpected user type ' + user.type)
+  }
+  else yield put (a_loginUserCompleted (null))
 }
 
 function *s_hello (first=false) {
@@ -122,7 +131,7 @@ function *s_helloWrapper () {
   if (loggedIn) yield call (s_hello, false)
 }
 
-function *s_logIn ({ email, password, }) {
+function *s_logInUser ({ email, password, }) {
   yield call (doApiCall, {
     url: '/api/login',
     optsMerge: {
@@ -134,7 +143,7 @@ function *s_logIn ({ email, password, }) {
       }),
     },
     resultsModify: map (prop ('data')),
-    continuation: EffSaga (s_loginCompleted),
+    continuation: EffSaga (s_loginUserCompleted),
     imsgDecorate: 'Error logging in',
     // --- if we get 4xx and we have umsg, will show oops bubble with umsg;
     // --- if we get 5xx, show oops with 'Oops, something went wrong!'
@@ -142,26 +151,26 @@ function *s_logIn ({ email, password, }) {
   })
 }
 
-function *s_logOut () {
+function *s_logOutUser () {
   yield call (doApiCall, {
     url: '/api/logout',
     optsMerge: {
       method: 'POST',
     },
-    continuation: EffSaga (s_logoutCompleted),
+    continuation: EffSaga (s_logoutUserCompleted),
     imsgDecorate: 'Error logging out',
     oops: toastError,
   })
 }
 
-function *s_logoutCompleted (res) {
+function *s_logoutUserCompleted (res) {
   const onError = (msg) => error ('Error: logoutCompleted:', msg)
   const ok = res | requestCompleteFold (
     () => true,
     (umsg) => (onError (umsg), false),
     () => (onError ('(no message)'), false),
   )
-  if (ok) yield put (a_loginLogoutCompleted (null))
+  if (ok) yield put (a_loggedOutUser ())
   else yield call (s_hello, false)
 }
 
@@ -183,8 +192,8 @@ export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
-    saga (takeLatest, a_logIn, s_logIn),
-    saga (takeLatest, a_logOut, s_logOut),
+    saga (takeLatest, a_logIn, s_logInUser),
+    saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
   ])
 }

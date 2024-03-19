@@ -20,61 +20,87 @@ const { select, selectTop, selectVal, } = initSelectors (
 )
 
 // --- returns Request which wraps (user | null)
-export const selectUser = selectVal ('user')
+const selectUserUser = selectVal ('userUser')
+const selectUserInstitution = selectVal ('userInstitution')
 
 // --- returns Request which wraps (true | false)
-export const selectLoggedIn = select (
-  'selectLoggedIn',
-  [selectUser],
+export const selectUserLoggedIn = select (
+  'selectUserLoggedIn',
+  [selectUserUser],
   // --- map means take the RequestResults case
   (user) => user | map (ok),
 )
 
-export const selectLoggedInDefaultFalse = select (
-  'selectLoggedInDefaultFalse',
-  [selectUser],
+// --- returns Request which wraps (true | false)
+export const selectInstitutionLoggedIn = select (
+  'selectInstitutionLoggedIn',
+  [selectUserInstitution],
+  // --- map means take the RequestResults case
+  (institution) => institution | map (ok),
+)
+
+// --- folds to true or false
+export const selectUserLoggedInDefaultFalse = select (
+  'selectUserLoggedInDefaultFalse',
+  [selectUserLoggedIn],
   (user) => user | foldIfRequestResults (
     (yesNo) => yesNo,
     () => false,
   ),
 )
 
-export const selectGetUserType = select (
-  'selectGetUserType',
-  [selectUser],
-  (user) => () => user | toJust | prop ('type'),
+// --- folds to true or false
+export const selectInstitutionLoggedInDefaultFalse = select (
+  'selectInstitutionLoggedInDefaultFalse',
+  [selectInstitutionLoggedIn],
+  (institution) => institution | foldIfRequestResults (
+    (yesNo) => yesNo,
+    () => false,
+  ),
 )
 
-// ------ type: institution
+export const selectLoggedInDefaultFalse = select (
+  'selectLoggedInDefaultFalse',
+  [selectUserLoggedIn, selectInstitutionLoggedIn],
+  (user, institution) => user || institution,
+)
+
+export const selectGetUserType = select (
+  'selectGetUserType',
+  [selectUserLoggedInDefaultFalse, selectInstitutionLoggedInDefaultFalse],
+  (user, institution) => () => user ? 'user' : institution ? 'institution' : null,
+)
+
+// ------ type: institution. Only use these once you're sure that userInstitution is a Just.
 
 export const selectGetContactEmail = select (
   'selectGetContactEmail',
-  [selectUser],
-  (user) => () => user | toJust | path (['contact', 'email']),
+  [selectUserInstitution],
+  (institution) => () => institution | toJust | path (['contact', 'email']),
 )
 
 export const selectGetInstitutionName = select (
   'selectGetInstitutionName',
-  [selectUser],
-  (user) => () => user | toJust | prop ('name'),
+  [selectUserInstitution],
+  (institution) => () => institution | toJust | prop ('name'),
 )
 
-// ------ type: user
+// ------ type: user. Only use these once you're sure that userUser is a Just.
 
 export const selectGetFirstName = select (
   'selectGetFirstName',
-  [selectUser],
+  [selectUserUser],
   (user) => () => user | toJust | prop ('firstName'),
 )
 
 export const selectGetLastName = select (
   'selectGetLastName',
-  [selectUser],
+  [selectUserUser],
   (user) => () => user | toJust | prop ('lastName'),
 )
 
 export const selectGetEmail = select (
   'selectGetEmail',
-  [selectUser],
+  [selectUserUser],
   (user) => () => user | toJust | prop ('email'),
 )

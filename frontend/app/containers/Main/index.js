@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
   map, path, condS, eq, guard, otherwise,
-  nil, lets,
+  lets, id, die,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -13,7 +13,7 @@ import styled from 'styled-components'
 import configure from 'alleycat-js/es/configure'
 import { clss, keyPressListen, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
-import {} from 'alleycat-js/es/predicate'
+import { ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
@@ -24,7 +24,8 @@ import {
 } from '../App/actions/main'
 
 import {
-  selectLoggedIn,
+  selectInstitutionLoggedIn,
+  selectUserLoggedIn,
   selectGetFirstName, selectGetLastName, selectGetEmail,
   selectGetContactEmail, selectGetInstitutionName,
   selectGetUserType,
@@ -41,7 +42,7 @@ import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import { mkPagination, } from '../../components/shared/Pagination'
 
-import { component, container, isNotEmptyString, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import { component, container, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
 // import data from '../../../../__data/fb-data-tst.json'
@@ -146,22 +147,32 @@ const UserinfoInstitution = container (
     getContactEmail: selectGetContactEmail,
     getInstitutionName: selectGetInstitutionName,
   }],
-  ({ getContactEmail, getInstitutionName, }) => <UserinfoInstitutionS>
-    <div className='x__institution-name'>
-      Je bent ingelogd courtesy of: {getInstitutionName ()}
-    </div>
-    <div className='x__contact-email'>
-      Contact: {getContactEmail ()}
-    </div>
-    <div className='x__log-in'>
-      <span className='x__icon'>
-        ⴙ
-      </span>
-      <span className='x__text' onClick={() => alert ('todo')}>
-        log in met gebruikersnaam en wachtwoord
-      </span>
-    </div>
-  </UserinfoInstitutionS>,
+  ({ getContactEmail, getInstitutionName, onNavigate, }) => {
+    const navigate = useNavigate ()
+    const onClickLogIn = useCallback (
+      () => {
+        navigate ('/login')
+        onNavigate ()
+      },
+      [navigate, onNavigate],
+    )
+    return <UserinfoInstitutionS>
+      <div className='x__institution-name'>
+        Je bent ingelogd courtesy of: {getInstitutionName ()}
+      </div>
+      <div className='x__contact-email'>
+        Contact: {getContactEmail ()}
+      </div>
+      <div className='x__log-in'>
+        <span className='x__icon'>
+          ⴙ
+        </span>
+        <span className='x__text' onClick={onClickLogIn}>
+          log in met gebruikersnaam en wachtwoord
+        </span>
+      </div>
+    </UserinfoInstitutionS>
+  },
 )
 
 const UserinfoUserS = styled.div`
@@ -213,12 +224,15 @@ const User = container (
         setOpen (false)
         navigate ('/user')},
      [navigate])
+    const onNavigate = useCallbackConst (
+      () => setOpen (not),
+    )
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       {open && <div className='x__contents'>
         {getUserType () | condS ([
-          eq ('institution') | guard (() => <UserinfoInstitution/>),
+          eq ('institution') | guard (() => <UserinfoInstitution onNavigate={onNavigate}/>),
           eq ('user') | guard (() => <>
             <UserinfoUser/>
             <hr/>
@@ -261,9 +275,9 @@ const HeaderS = styled.div`
   }
 `
 
-const Header = () => <HeaderS>
+const Header = ({ isLoggedIn, }) => <HeaderS>
   <div className='x__menu'>
-    <User/>
+    {isLoggedIn && <User/>}
   </div>
   {/*
   <div className='x__logo'>
@@ -364,10 +378,14 @@ const Form = styled.div`
   .x__input {
     background: white;
   }
+  x__text {
+    width: 400px;
+    padding: 20px;
+  }
 `
 
-const Login = component (
-  ['Login'],
+const LoginInner = component (
+  ['LoginInner'],
   ({ logIn, }) => {
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
@@ -403,12 +421,12 @@ const Login = component (
         },
         'Enter',
       ),
-      [doLogIn],
+      [doLogIn, canLogIn],
     )
 
     useEffect (() => {
-      console.log ('inputEmailRef.current.value', inputEmailRef.current.value)
-      console.log ('inputEmailRef.current', inputEmailRef.current)
+      // console.log ('inputEmailRef.current.value', inputEmailRef.current.value)
+      // console.log ('inputEmailRef.current', inputEmailRef.current)
       setEmail (inputEmailRef.current.value)
     }, [])
 
@@ -446,6 +464,13 @@ const Login = component (
       </Form>
     </LoginS>
   },
+)
+
+const Login = container ([
+  'Login', { logInDispatch: logIn, }, {},
+], ({ logInDispatch, }) => <FormWrapper>
+  <LoginInner logIn={logInDispatch}/>
+</FormWrapper>
 )
 
 const SidebarS = styled.div`
@@ -589,7 +614,7 @@ const UserPage = container (
         },
         'Enter',
       ),
-      [doPasswordUpdate],
+      [doPasswordUpdate, canUpdatePassword],
     )
 
     const onClickPasswordUpdate = () => doPasswordUpdate ()
@@ -730,51 +755,65 @@ const ContentsS = styled.div`
 
 const Contents = container (
   ['Contents', {}, {}],
-  ({ page, }) => <ContentsS>
-    <div className='x__sidebar'>
-      <Sidebar/>
-    </div>
-    <div className='x__main'>
-      <div className='x__logo'>
-        <Logo/>
+  ({ page, }) => {
+
+    const [showSidebar, element] = page | condS ([
+      eq ('overview') | guard (() => [true, () => <FondsMain/>]),
+      eq ('detail') | guard (() => [false, () => <FondsDetail/>]),
+      eq ('login') | guard (() => [false, () => <Login/>]),
+      eq ('user') | guard (() => [true, () => <UserPage/>]),
+      otherwise | guard (() => die ('Invalid page ' + page)),
+    ])
+
+    return <ContentsS>
+      {showSidebar && <div className='x__sidebar'>
+        <Sidebar/>
+      </div>}
+      <div className='x__main'>
+        <div className='x__logo'>
+          <Logo/>
+        </div>
+        {element ()}
       </div>
-      {page | condS ([
-        eq ('overview') | guard (() => <FondsMain/>),
-        eq ('detail') | guard (() => <FondsDetail/>),
-        eq ('user') | guard (() => <UserPage/>),
-        otherwise | guard (() => 'Invalid page ' + page),
-      ])}
-    </div>
-  </ContentsS>,
+    </ContentsS>
+  },
 )
 
 export default container (
-  ['Main', { logInDispatch: logIn, }, { loggedIn: selectLoggedIn, }],
+  ['Main', {}, {
+    institutionLoggedIn: selectInstitutionLoggedIn,
+    userLoggedIn: selectUserLoggedIn,
+    getUserType: selectGetUserType,
+  }],
   (props) => {
-    const { isMobile, loggedIn, logInDispatch, page, } = props
-    const logIn = useCallback (
-      (email, password) => logInDispatch (email, password),
-      [logInDispatch],
-    )
+    const { isMobile, page, institutionLoggedIn, userLoggedIn, getUserType, } = props
+    const navigate = useNavigate ()
 
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
 
+    const fold = requestResults ({
+      onError: noop,
+      onResults: id,
+      onLoading: noop,
+    })
+
+    const isInstitutionLoggedIn = institutionLoggedIn | fold
+    const isUserLoggedIn = userLoggedIn | fold
+    const isLoggedIn = isInstitutionLoggedIn || isUserLoggedIn
+
+    useEffect (() => {
+      if (not (isLoggedIn)) return navigate ('/login')
+      if (isUserLoggedIn && page === 'login') return navigate ('/')
+    }, [isLoggedIn, isUserLoggedIn, getUserType, page, navigate])
+
     return <MainS tabIndex={-1}>
-      {loggedIn | requestResults ({
-        onError: noop,
-        onResults: ifTrue (
-          () => <div className='x__contents'>
-            <div className='x__header'>
-              <Header/>
-            </div>
-            <Contents page={page}/>
-          </div>,
-          () => <FormWrapper>
-            <Login logIn={logIn}/>
-          </FormWrapper>,
-        ),
-      })}
+      <div className='x__contents'>
+        <div className='x__header'>
+          <Header isLoggedIn={isLoggedIn}/>
+        </div>
+        {true && <Contents page={page}/>}
+      </div>
     </MainS>
   },
 )

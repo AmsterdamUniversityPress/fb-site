@@ -25,9 +25,19 @@ export const fondsenFetchCompleted = action (
   'fondsenFetchCompleted',
 )
 
-export const loginLogoutCompleted = action (
-  (user) => ({ user, }),
-  'loginLogoutCompleted',
+export const loggedInInstitution = action (
+  (user) => user,
+  'loggedInInstitution',
+)
+
+export const loginUserCompleted = action (
+  (user) => user,
+  'loginUserCompleted',
+)
+
+export const loggedOutUser = action (
+  () => {},
+  'loggedOutUser',
 )
 
 export const logIn = action (
