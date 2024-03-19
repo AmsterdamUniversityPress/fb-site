@@ -324,6 +324,8 @@ const MainS = styled.div`
       cursor: pointer;
     }
   }
+  // > .x__login-wrapper {
+  // }
 `
 
 const BigButton = ({ children, ... restProps }) => <Button
@@ -593,10 +595,6 @@ const UserPage = container (
     const onClickShowPassword = useCallbackConst (
       () => setShowPassword (not),
     )
-    useEffect (() => {
-      const email = getEmail ()
-      console.log ('email', email)
-    })
 
     const doPasswordUpdate = useCallback (
       () => lets (
@@ -606,8 +604,8 @@ const UserPage = container (
       [getEmail, oldPassword, newPassword],
     )
 
-    const onKeyPressInput = useCallback (
-      (event) => event | keyPressListen (
+    const onKeyDownInput = useCallback (
+      keyDownListen (
         () => {
           event.preventDefault ()
           canUpdatePassword && doPasswordUpdate ()
@@ -634,7 +632,7 @@ const UserPage = container (
             type={showPassword ? 'text' : 'password'}
             autoComplete='current-password'
             onChange={onChangeOldPassword}
-            onKeyPress={onKeyPressInput}
+            onKeyDown={onKeyDownInput}
             ref={inputOldPasswordRef}/>
         </div>
         <div className='x__icon'>
@@ -648,7 +646,7 @@ const UserPage = container (
             type={showPassword ? 'text' : 'password'}
             autoComplete='new-password'
             onChange={onChangeNewPassword}
-            onKeyPress={onKeyPressInput}
+            onKeyDown={onKeyDownInput}
             ref={inputNewPasswordRef}/>
         </div>
         <div/>
