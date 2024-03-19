@@ -2,9 +2,10 @@ import {
   pipe, compose, composeRight,
 } from 'stick-js'
 
-import { realpathSync as realpath, } from 'fs'
-import { join as pathJoin, } from 'path'
+import { realpathSync as realpath, } from 'node:fs'
+import { join as pathJoin, } from 'node:path'
 
+import { Nothing, } from 'alleycat-js/es/bilby'
 import { __dirname, } from './util.mjs'
 
 const rootDir = realpath (pathJoin (__dirname (import.meta.url), '..'))
@@ -13,6 +14,8 @@ const dbPath = pathJoin (dbDir, 'main.db')
 
 export const config = {
   dbPath,
+  cookieSecret: Nothing,
+  jwtSecret: Nothing,
   serverPort: 4444,
   authorizeByIP: [
     /*
