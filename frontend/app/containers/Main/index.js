@@ -62,7 +62,7 @@ const imageBackground = configTop.get ('images.background')
 const imageFonds = imageHoutenFrame
 
 // --- pinkish
-const colorHighlight = '#ffdbdbdd'
+const colorHighlight = configTop.get ('colors.highlight')
 
 const UserS = styled.div`
   width: 50px;
@@ -85,8 +85,7 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
-      // @todo x__logout and x__passwordUpdate are repeated
-      > .x__logout {
+      > .x__item {
         > * {
           vertical-align: middle;
         }
@@ -95,11 +94,7 @@ const UserS = styled.div`
         }
       }
       .x__passwordUpdate {
-        > * {
-          vertical-align: middle;
-        }
         > img {
-          margin-right: 13px;
           width: 18px;
           height: 17px;
         }
@@ -235,11 +230,11 @@ const User = container (
             <UserinfoUser/>
             <hr/>
             <div className='x__menu-items'>
-              <MenuItem className='x__logout' onClick={onClickLogout}>
+              <MenuItem className='x__item x__logout' onClick={onClickLogout}>
                 <img src={iconLogout} width='18px'/>
                 <span className='x__text'>afmelden</span>
               </MenuItem>
-              <MenuItem className='x__passwordUpdate' onClick={onClickPasswordUpdate}>
+              <MenuItem className='x__item x__passwordUpdate' onClick={onClickPasswordUpdate}>
                 <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
               </MenuItem>
@@ -265,6 +260,7 @@ const HeaderS = styled.div`
     left: 50%;
     transform: translateX(-50%);
     width: 350px;
+    height: 90px;
   }
   .x__menu {
     flex: 0 0 auto;
@@ -277,14 +273,30 @@ const Header = ({ isLoggedIn, }) => <HeaderS>
   <div className='x__menu'>
     {isLoggedIn && <User/>}
   </div>
-  {/*
-  <div className='x__logo'>
-    <Logo/>
-  </div>
-  */}
 </HeaderS>
 
 const LogoS = styled.div`
+  border: 1px solid black;
+  padding: 20px;
+  &, .x__background {
+    border-radius: 7px;
+  }
+  .x__item {
+    width: 100%;
+    height: 100%;
+  }
+  .x__background {
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #ffc4c4dd;
+    opacity: 0.8;
+  }
+  .x__link {
+    z-index: 2;
+    position: relative;
+  }
   img {
     width: 100%;
   }
@@ -295,9 +307,12 @@ const LogoS = styled.div`
 `
 
 const Logo = () => <LogoS>
-  <Link to='/'>
-    <img src={imageLogo}/>
-  </Link>
+  <div className='x__item x__background'/>
+  <div className='x__item x__link'>
+    <Link to='/'>
+      <img src={imageLogo}/>
+    </Link>
+  </div>
 </LogoS>
 
 const MainS = styled.div`

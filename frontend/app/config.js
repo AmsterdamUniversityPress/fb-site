@@ -90,6 +90,7 @@ export default {
     header: {
       color1: '#EEEEEE',
       color2: '#FFBBBB',
-    }
+    },
+    highlight: '#ffdbdbdd',
   },
 }

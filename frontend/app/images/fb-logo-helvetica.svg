@@ -7,6 +7,7 @@
    viewBox="0 0 18.807343 2.0828476"
    version="1.1"
    id="svg5"
+   fill="black"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
@@ -18,7 +19,7 @@
     <g
        aria-label="Fondsenboek Online"
        id="text852"
-       style="font-weight:100;font-size:2.82223px;font-family:HelveticaNeue;-inkscape-font-specification:'HelveticaNeue Thin';display:inline;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:bevel">
+       style="">
       <path
          d="m 40.103797,128.63527 h 0.118533 v -0.99625 h 0.787403 v -0.10724 H 40.22233 v -0.80434 h 0.846669 v -0.10724 h -0.965202 z"
          id="path1296" />
