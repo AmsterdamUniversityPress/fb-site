@@ -9,6 +9,7 @@ import { logWith, } from 'alleycat-js/es/general'
 
 import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 
+import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
 import iconSearch from './images/icons/search.svg'
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
@@ -71,6 +72,7 @@ export default {
     },
   },
   icons: {
+    login: iconLogin,
     logout: iconLogout,
     search: iconSearch,
     'show-password-hidden': iconShowPasswordHidden,

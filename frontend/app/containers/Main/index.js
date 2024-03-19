@@ -48,6 +48,7 @@ import config from '../../config'
 // import data from '../../../../__data/fb-data-tst.json'
 
 const configTop = configure.init (config)
+const iconLogin = configTop.get ('icons.login')
 const iconLogout = configTop.get ('icons.logout')
 const iconUpdate = configTop.get ('icons.update')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
@@ -109,6 +110,8 @@ const UserS = styled.div`
         }
         > img {
           margin-right: 13px;
+          width: 18px;
+          height: 17px;
         }
       }
     }
@@ -127,11 +130,12 @@ const UserinfoInstitutionS = styled.div`
     text-overflow: ellipsis;
   }
   .x__log-in {
+    margin-top: 9px;
     .x__icon {
       margin-right: 12px;
-      padding: 3px;
-      border: 3px solid #999999;
-      border-radius: 2000px;
+      > img {
+        width: 22px;
+      }
     }
     .x__text {
       cursor: pointer;
@@ -165,7 +169,7 @@ const UserinfoInstitution = container (
       </div>
       <div className='x__log-in'>
         <span className='x__icon'>
-          ⴙ
+          <img src={iconLogin}/>
         </span>
         <span className='x__text' onClick={onClickLogIn}>
           log in met gebruikersnaam en wachtwoord
@@ -242,7 +246,7 @@ const User = container (
                 <span className='x__text'>afmelden</span>
               </div>
               <div onClick={onClickPasswordUpdate} className='x__item x__passwordUpdate'>
-                <img src={iconUpdate} width='18px'/>
+                <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
               </div>
             </div>
