@@ -171,7 +171,7 @@ function *s_logoutUserCompleted (res) {
     () => (onError ('(no message)'), false),
   )
   if (ok) yield put (a_loggedOutUser ())
-  else yield call (s_hello, false)
+  yield call (s_hello, false)
 }
 
 // @todo is this the right form for such an update?
