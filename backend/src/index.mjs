@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id, nil,
+  sprintf1, tryCatch, lets, id, nil, tap, ok,
   gt, againstAny, eq, die,
   not, concatTo, recurry, ifOk, ifNil,
 } from 'stick-js/es'
@@ -10,9 +10,9 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import express from 'express'
 
-import { listen, use, sendStatus, } from 'alleycat-js/es/express'
+import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, } from 'alleycat-js/es/io';
-import { decorateRejection, info, length, } from 'alleycat-js/es/general';
+import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
@@ -28,7 +28,12 @@ import { init as initDb,
   loggedInGet as dbLoggedInGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
-import { env, envOrConfig, ifMapHas, isSubsetOf, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow, } from './util.mjs'
+import {
+  env, envOrConfig, ifMapHas,
+  isNonNegativeInt, isPositiveInt, isSubsetOf,
+  lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
+} from './util.mjs'
+import { getAndValidateQuery, } from './util-express.mjs'
 
 import {
   authFactory,
@@ -208,29 +213,22 @@ const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
   | useAuthMiddleware
-  | secureGet (privsUser) ('/fondsen', (req, res) => {
-    const { query, } = req
-    const { beginIdx, number, } = query
-    // --- @todo check / validate query
-    res | sendStatus (200, {
-      metadata: {
-        totalAvailable: data.length,
-      },
-      results: data.slice (beginIdx, beginIdx + Number (number)),
-    })
-  })
-  | secureGet (privsUser) ('/fonds', (req, res) => {
-    const { query, } = req
-    const { uuid, } = query
-    // --- @todo check / validate
-    console.log ('uuid', uuid)
-    res | sendStatus (
+  | secureGet (privsUser) ('/fondsen', getAndValidateQuery ([
+      ['beginIdx', isNonNegativeInt, Number],
+      ['number', isPositiveInt, Number],
+    ],
+    ({ res }, beginIdx, number) => res | sendStatus (200, {
+      metadata: { totalAvailable: data.length, },
+      results: data.slice (beginIdx, beginIdx + number),
+    })))
+  | secureGet (privsUser) ('/fonds', getAndValidateQuery (
+    [['uuid', ok]],
+    ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
         (fonds) => [200, { results: fonds, }],
         () => [499, { umsg: 'No such uuid ' + uuid, }],
       ),
-    )
-  })
+    )))
   | securePatch (privsAdminUser) ('/user', (req, res) => {
     const { email, oldPassword, newPassword } = req.body.data
     const knownHashed = getUserPassword (email)
