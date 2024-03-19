@@ -243,6 +243,7 @@ const initPassportStrategies = ({
  */
 
 const init = ({
+  authorizeDataDefault=null,
   checkPassword,
   getUserinfoLogin,
   getUserinfoRequest=always ({}),
@@ -303,7 +304,7 @@ const init = ({
     // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
-      authMiddleware (),
+      authMiddleware (authorizeDataDefault),
       (req, res) => {
         const { user, } = req
         if (!user) return res | sendStatus (serverErrorJSONCode, {

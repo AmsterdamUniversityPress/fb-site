@@ -169,10 +169,14 @@ const checkPrivileges = (email, privsNeed=null) => lets (
 )
 
 const alleycatAuth = authFactory.create ().init ({
+  authorizeDataDefault: new Set (),
   checkPassword,
   getUserinfoLogin,
   getUserinfoRequest,
   isAuthorized: async (email, req, privileges=null) => {
+    // --- `privileges` may be null, but we want to make sure it's always explicitly set to
+    // something (we use the empty set to mean no / open authorization)
+    if (nil (privileges)) die ('isAuthorized (): privileges is nil')
     if (not (checkPrivileges (email, privileges)))
       return [false, 'missing privileges for this route']
     return [true]
@@ -220,16 +224,19 @@ const init = ({ port, }) => express ()
     ({ res }, beginIdx, number) => res | sendStatus (200, {
       metadata: { totalAvailable: data.length, },
       results: data.slice (beginIdx, beginIdx + number),
-    })))
-  | secureGet (privsUser) ('/fonds', getAndValidateQuery (
-    [['uuid', ok]],
+    }),
+  ))
+  | secureGet (privsUser) ('/fonds', getAndValidateQuery ([
+      ['uuid', ok],
+    ],
     ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
         (fonds) => [200, { results: fonds, }],
         () => [499, { umsg: 'No such uuid ' + uuid, }],
       ),
-    )))
-  | securePatch (privsAdminUser) ('/user', (req, res) => {
+    ),
+  ))
+  | securePatch (privsUser) ('/user', (req, res) => {
     const { email, oldPassword, newPassword } = req.body.data
     const knownHashed = getUserPassword (email)
     if (!checkPassword (oldPassword, knownHashed))
