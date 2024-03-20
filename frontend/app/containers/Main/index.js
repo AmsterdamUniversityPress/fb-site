@@ -41,6 +41,7 @@ import {
 import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
+import Admin from '../Admin'
 import {} from '../../alleycat-components'
 import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
@@ -56,6 +57,8 @@ const configTop = configure.init (config)
 const iconLogin = configTop.get ('icons.login')
 const iconLogout = configTop.get ('icons.logout')
 const iconUpdate = configTop.get ('icons.update')
+// @todo check admin svg (do we want something like this?)
+const iconAdmin = configTop.get('icons.admin')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
 const iconUser = configTop.get ('icons.user')
@@ -99,6 +102,12 @@ const UserS = styled.div`
         }
       }
       .x__passwordUpdate {
+        > img {
+          width: 18px;
+          height: 17px;
+        }
+      }
+      .x__admin {
         > img {
           width: 18px;
           height: 17px;
@@ -208,6 +217,9 @@ const User = container (
     const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
+    // use to inspect easily
+    // const setOpen = (_) => setOpenX (true)
+
     const onBlur = useCallbackConst (
       () => setOpen (false),
     )
@@ -221,10 +233,16 @@ const User = container (
       () => {
         setOpen (false)
         navigate ('/user')},
-     [navigate])
+      [navigate])
     const onNavigate = useCallbackConst (
       () => setOpen (not),
     )
+    const onClickAdmin = useCallback (
+      () => {
+        setOpen (false)
+        navigate ('/admin')
+      },
+      [navigate])
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
@@ -242,6 +260,10 @@ const User = container (
               <MenuItem className='x__item x__passwordUpdate' onClick={onClickPasswordUpdate}>
                 <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
+              </MenuItem>
+              <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
+                <img src={iconAdmin}/>
+                <span className='x__text'>admin</span>
               </MenuItem>
             </div>
           </>),
@@ -388,17 +410,17 @@ const FormWrapper = styled.div`
 `
 
 const FormS = styled (TextBoxS) `
-   .x__close {
-     position: absolute;
-     top: 8px;
-     right: 8px;
-     cursor: pointer;
-     width: 48px;
-     height: 43px;
-     display: flex;
-    * {
-      margin: auto;
-    }
+  .x__close {
+   position: absolute;
+   top: 8px;
+   right: 8px;
+   cursor: pointer;
+   width: 48px;
+   height: 43px;
+   display: flex;
+  * {
+    margin: auto;
+  }
   }
   .x__grid {
     display: grid;
@@ -859,6 +881,7 @@ const Contents = container (
       eq ('detail') | guard (() => [false, () => <FondsDetail/>]),
       eq ('login') | guard (() => [false, () => <Login/>]),
       eq ('user') | guard (() => [true, () => <UserPage/>]),
+      eq ('admin') | guard (() => [true, () => <Admin/>]),
       otherwise | guard (() => die ('Invalid page ' + page)),
     ])
 

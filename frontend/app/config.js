@@ -12,6 +12,7 @@ import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
 import iconSearch from './images/icons/search.svg'
+import iconAdmin from './images/icons/admin.svg'
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUser from './images/icons/user.svg'
@@ -72,6 +73,7 @@ export default {
     },
   },
   icons: {
+    admin: iconAdmin,
     login: iconLogin,
     logout: iconLogout,
     search: iconSearch,
