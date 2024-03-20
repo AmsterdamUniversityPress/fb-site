@@ -239,14 +239,15 @@ const init = ({ port, }) => express ()
   | securePatch (privsUser) ('/user', (req, res) => {
     const { email, oldPassword, newPassword } = req.body.data
     const knownHashed = getUserPassword (email)
-    if (!checkPassword (oldPassword, knownHashed))
+    if (!checkPassword (oldPassword, knownHashed)) {
       return res | sendStatus (499, {
         umsg: 'Invalid attempt: Wrong Password',
       })
-    // @todo case of error is only a warning in the backend now
-    updateUserPassword (email, hashPassword (newPassword))
-    return res | sendStatus (200, {})
-
+    }
+    if (!updateUserPassword (email, hashPassword (newPassword))) {
+      return res | sendStatusEmpty (500)
+    }
+    return res | sendStatus (200, null)
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info

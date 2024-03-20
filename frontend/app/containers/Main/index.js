@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
   map, path, condS, eq, guard, otherwise,
-  lets, id, die,
+  lets, id, die, whenTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -21,6 +21,7 @@ import {
   logIn,
   logOut,
   passwordUpdate,
+  passwordUpdateDone,
 } from '../App/actions/main'
 
 import {
@@ -33,6 +34,9 @@ import {
 import {
   selectFondsen,
 } from '../App/store/domain/selectors'
+import {
+  selectPasswordUpdated,
+} from '../App/store/ui/selectors'
 
 import saga from './saga'
 
@@ -40,7 +44,8 @@ import FondsDetail from '../FondsDetail'
 import {} from '../../alleycat-components'
 import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
-import { mkPagination, } from '../../components/shared/Pagination'
+import CloseIcon from '../../components/svg/CloseIcon'
+// import Pagination from '../../containers/shared/Pagination'
 
 import { component, container, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
@@ -291,6 +296,7 @@ const LogoS = styled.div`
     left: 0;
     top: 0;
     background: #ffc4c4dd;
+    // background: black;
     opacity: 0.8;
   }
   .x__link {
@@ -363,12 +369,15 @@ const LoginS = styled.form`
 `
 
 const TextBoxS = styled.div`
-  padding: 35px;
+  position: relative;
+  padding: 38px;
+  padding-top: 58px;
   border: 1px solid black;
   border-radius: 10px;
   background: ${colorHighlight};
   font-size: 20px;
   width: 80%;
+  max-width: 600px;
 `
 
 const FormWrapper = styled.div`
@@ -379,31 +388,45 @@ const FormWrapper = styled.div`
 `
 
 const FormS = styled (TextBoxS) `
-  display: grid;
-  grid-template-columns: 117px auto 24px;
-  grid-auto-rows: 50px;
-  row-gap: 40px;
-  column-gap: 20px;
-  input {
-    height: 100%;
-    width: 100%;
-    border: 1px solid #999999;
-    padding: 10px;
+   .x__close {
+     position: absolute;
+     top: 8px;
+     right: 8px;
+     cursor: pointer;
+     width: 48px;
+     height: 43px;
+     display: flex;
+    * {
+      margin: auto;
+    }
   }
-  .x__label, .x__icon {
-    display: inline-block;
-    position: relative;
-    top: 50%;
-    height: 35px;
-    transform: translateY(-50%);
-  }
-  .x__input {
-    background: white;
-  }
-  // --- @todo this should probably be .x__text
-  x__text {
-    width: 400px;
-    padding: 20px;
+  .x__grid {
+    display: grid;
+    grid-template-columns: 117px auto 24px;
+    grid-auto-rows: 50px;
+    row-gap: 40px;
+    column-gap: 20px;
+    input {
+      height: 100%;
+      width: 100%;
+      border: 1px solid #999999;
+      padding: 10px;
+    }
+    .x__label, .x__icon {
+      display: inline-block;
+      position: relative;
+      top: 50%;
+      height: 35px;
+      transform: translateY(-50%);
+    }
+    .x__input {
+      background: white;
+    }
+    // --- @todo this should probably be .x__text
+    x__text {
+      width: 400px;
+      padding: 20px;
+    }
   }
 `
 
@@ -478,25 +501,27 @@ const LoginInner = container (
       }
       <FormS>
         {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
-        <div className='x__label x__email'>
-          emailadres
-        </div>
-        <div className='x__input x__email-input'>
-          <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
-        </div>
-        <div/>
-        <div className='x__label x__password'>
-          wachtwoord
-        </div>
-        <div className='x__input x__password-input'>
-          <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
-        </div>
-        <div className='x__icon'>
-          <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
-        </div>
-        <div/>
-        <div>
+        <div className='x__grid'>
+          <div className='x__label x__email'>
+            emailadres
+          </div>
+          <div className='x__input x__email-input'>
+            <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
+          </div>
+          <div/>
+          <div className='x__label x__password'>
+            wachtwoord
+          </div>
+          <div className='x__input x__password-input'>
+            <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
+          </div>
+          <div className='x__icon'>
+            <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+          </div>
+          <div/>
+          <div>
           <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>aanmelden</BigButton>
+          </div>
         </div>
       </FormS>
     </LoginS>
@@ -593,31 +618,50 @@ const Fondsen = container (
   ({ fondsen, }) => <FondsenS>
     {fondsen | requestResults ({
       onError: noop,
-      onResults: map (
-        ({ uuid, naam_organisatie, categories, website, ... _rest }) => {
-          return <Fonds
-            key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categories={categories}
-            website={website}
-          />
-        },
-      ),
+      onResults: (fondsen) => <div>
+        {/* <Pagination/> */}
+        {fondsen | map (
+          ({ uuid, naam_organisatie, categories, website, ... _rest }) => {
+            return <Fonds
+              key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categories={categories}
+              website={website}
+            />
+          },
+        )}
+      </div>
     })}
   </FondsenS>,
 )
 
 const UserPage = container (
   ['UserPage',
-    { passwordUpdateDispatch: passwordUpdate, },
-    { getEmail: selectGetEmail, }
+    {
+      passwordUpdateDispatch: passwordUpdate,
+      passwordUpdateDoneDispatch: passwordUpdateDone,
+    },
+    {
+      getEmail: selectGetEmail,
+      passwordUpdated: selectPasswordUpdated,
+    }
   ],
-  ({ passwordUpdateDispatch, getEmail, }) => {
-    const email = "test@email.com"
+  ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, getEmail, passwordUpdated, }) => {
     const [oldPassword, setOldPassword] = useState ('')
     const [newPassword, setNewPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
 
     const inputOldPasswordRef = useRef (null)
     const inputNewPasswordRef = useRef (null)
+
+    const navigate = useNavigate ()
+
+    useEffect (() => {
+      passwordUpdated | whenTrue (
+        () => {
+          navigate ('/')
+          passwordUpdateDoneDispatch ()
+        }
+      )
+    }, [passwordUpdated])
 
     const onChangeOldPassword = useCallbackConst (
       (event) => setOldPassword (event.target.value),
@@ -636,7 +680,7 @@ const UserPage = container (
         () => getEmail (),
         (email) => passwordUpdateDispatch (email, oldPassword, newPassword),
       ),
-      [getEmail, oldPassword, newPassword],
+      [getEmail, oldPassword, newPassword, passwordUpdateDispatch],
     )
 
     const onKeyDownInput = useCallback (
@@ -657,39 +701,53 @@ const UserPage = container (
       [oldPassword, newPassword],
     )
 
+    const onClickClose = useCallbackConst (() => {
+      navigate ('/')
+      passwordUpdateDoneDispatch ()
+    })
+
     return <FormWrapper>
-      <Form style={{ marginTop: '-20%', }}>
-        <div className='x__label x__password'>
-          oud wachtwoord
+      <FormS style={{ marginTop: '-20%', }}>
+        <div className='x__close' onClick={onClickClose}>
+          <CloseIcon
+            height={25}
+            width={25}
+            strokeWidth='0.6px'
+          />
         </div>
-        <div className='x__input x__password-input'>
-          <input
-            type={showPassword ? 'text' : 'password'}
-            autoComplete='current-password'
-            onChange={onChangeOldPassword}
-            onKeyDown={onKeyDownInput}
-            ref={inputOldPasswordRef}/>
+        <div className='x__grid'>
+          <div className='x__label x__password'>
+            oud wachtwoord
+          </div>
+          <div className='x__input x__password-input'>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              autoComplete='current-password'
+              onChange={onChangeOldPassword}
+              onKeyDown={onKeyDownInput}
+              ref={inputOldPasswordRef}/>
+          </div>
+          <div className='x__icon'>
+            <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+          </div>
+          <div className='x__label x__new-password'>
+            nieuw wachtwoord
+          </div>
+          <div className='x__input x__new-password-input'>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              autoComplete='new-password'
+              onChange={onChangeNewPassword}
+              onKeyDown={onKeyDownInput}
+              ref={inputNewPasswordRef}/>
+          </div>
+          <div/>
+          <div/>
+          <div>
+            <BigButton disabled={not (canUpdatePassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
+          </div>
         </div>
-        <div className='x__icon'>
-          <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
-        </div>
-        <div className='x__label x__new-password'>
-          nieuw wachtwoord
-        </div>
-        <div className='x__input x__new-password-input'>
-          <input
-            type={showPassword ? 'text' : 'password'}
-            autoComplete='new-password'
-            onChange={onChangeNewPassword}
-            onKeyDown={onKeyDownInput}
-            ref={inputNewPasswordRef}/>
-        </div>
-        <div/>
-        <div/>
-        <div>
-          <BigButton disabled={not (canUpdatePassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
-        </div>
-      </Form>
+      </FormS>
     </FormWrapper>
   }
 )

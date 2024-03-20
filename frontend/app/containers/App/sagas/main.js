@@ -1,15 +1,15 @@
 import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
-  id,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
-import { requestCompleteFold, requestJSONStdOpts, noParseCodes, } from 'alleycat-js/es/fetch'
+import { requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
 import { between, error, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
+import { cata, } from 'alleycat-js/es/bilby'
 
 import {
   appMounted as a_appMounted,
@@ -21,11 +21,12 @@ import {
   loggedOutUser as a_loggedOutUser,
   loggedInInstitution as a_loggedInInstitution,
   passwordUpdate as a_passwordUpdate,
+  passwordUpdateCompleted as a_passwordUpdateCompleted,
 } from '../actions/main'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 
-import { doApiCall, saga, toastError, } from '../../../common'
+import { doApiCall, saga, toastError, toastInfo, } from '../../../common'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -174,17 +175,29 @@ function *s_logoutUserCompleted (res) {
   yield call (s_hello, false)
 }
 
-// @todo is this the right form for such an update?
-function *s_passwordUpdate ({ email, password, }) {
+function *s_passwordUpdateCompleted (rcomplete) {
+  toastInfo ("s_passwordUpdateCompleted")
+  console.log ('rcomplete', rcomplete)
+  rcomplete | cata ({
+    // error is dealt with in s_passwordUpdate
+    RequestCompleteError: (_e) => {},
+    RequestCompleteSuccess: (_) => toastInfo ("Password successfully updated")
+  })
+}
+
+function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
   yield call (doApiCall, {
     url: '/api/user',
     optsMerge: {
       method: 'PATCH',
       body: JSON.stringify ({
         // --- @todo hash password before sending?
-        data: { email, password, },
+        data: { email, oldPassword, newPassword, },
       }),
     },
+    continuation: EffAction (a_passwordUpdateCompleted),
+    imsgDecorate: 'Error password update',
+    oops: toastError,
   })
 }
 
@@ -195,5 +208,6 @@ export default function *sagaRoot () {
     saga (takeLatest, a_logIn, s_logInUser),
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
+    saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
   ])
 }

@@ -51,6 +51,18 @@ export const logOut = action (
 )
 
 export const passwordUpdate = action (
-  (email, password) => ({ email, password, }),
+  (email, oldPassword, newPassword) => ({ email, oldPassword, newPassword, }),
   'passwordUpdate',
+)
+
+// @todo needs better name (what is the difference with completed?)
+// used to put the passwordUpdated in the store back to requestInit
+export const passwordUpdateDone = action (
+  () => {},
+  'passwordUpdateDone',
+)
+
+export const passwordUpdateCompleted = action (
+  (rcomplete) => rcomplete,
+  'passwordUpdateCompleted',
 )
