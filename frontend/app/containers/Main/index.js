@@ -22,6 +22,7 @@ import {
   logOut,
   passwordUpdate,
   passwordUpdateDone,
+  usersFetch,
 } from '../App/actions/main'
 
 import {
@@ -212,9 +213,16 @@ const UserinfoUser = container (
 )
 
 const User = container (
-  ['User', { logOutDispatch: logOut, }, { getUserType: selectGetUserType,}],
-  ({ getUserType, logOutDispatch, }) => {
-    const navigate = useNavigate ()
+  ['User',
+	{
+	  logOutDispatch: logOut,
+      usersFetchDispatch: usersFetch,
+	},
+	{
+	  getUserType: selectGetUserType,
+	}],
+  ({ getUserType, logOutDispatch, usersFetchDispatch, }) => {
+	const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
     // use to inspect easily
@@ -240,6 +248,7 @@ const User = container (
     const onClickAdmin = useCallback (
       () => {
         setOpen (false)
+ 		usersFetchDispatch ()
         navigate ('/admin')
       },
       [navigate])

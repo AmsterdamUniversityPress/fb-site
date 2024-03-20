@@ -1,5 +1,6 @@
 import {
   pipe, compose, composeRight,
+  noop,
 } from 'stick-js/es'
 
 import { logWith, } from 'alleycat-js/es/general'
@@ -65,4 +66,14 @@ export const passwordUpdateDone = action (
 export const passwordUpdateCompleted = action (
   (rcomplete) => rcomplete,
   'passwordUpdateCompleted',
+)
+
+export const usersFetch = action (
+  noop,
+  'usersFetch',
+)
+
+export const usersFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'usersFetchCompleted',
 )

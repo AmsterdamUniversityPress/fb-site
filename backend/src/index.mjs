@@ -26,6 +26,7 @@ import { init as initDb,
   loggedInAdd as dbLoggedInAdd,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
+  usersGet as dbUsersGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
 import {
@@ -248,6 +249,11 @@ const init = ({ port, }) => express ()
       return res | sendStatusEmpty (500)
     }
     return res | sendStatus (200, null)
+  })
+  | secureGet (privsAdminUser) ('/users', (_req, res) => {
+    // @todo kattenluik has a nice doCallResults function for this...
+    const users = doDbCallDie (dbUsersGet, [])
+    return res | sendStatus (200, { users, })
   })
   | listen (port) (() => {
     String (port) | green | sprintf1 ('listening on port %s') | info

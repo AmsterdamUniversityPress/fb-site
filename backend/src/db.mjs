@@ -121,3 +121,8 @@ export const loggedInRemove = (email) => doEither (
     SB (`delete from loggedIn where id = ?`, userId),
   ),
 )
+
+export const usersGet = () => sqliteApi.all (
+  S ('select email, firstName, lastName from user'),
+)
+

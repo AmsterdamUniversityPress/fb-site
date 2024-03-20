@@ -7,7 +7,7 @@ import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
 import { requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
-import { between, error, } from 'alleycat-js/es/general'
+import { between, error, logWith, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 import { cata, } from 'alleycat-js/es/bilby'
 
@@ -22,6 +22,8 @@ import {
   loggedInInstitution as a_loggedInInstitution,
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
+  usersFetch as a_usersFetch,
+  usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
@@ -176,8 +178,6 @@ function *s_logoutUserCompleted (res) {
 }
 
 function *s_passwordUpdateCompleted (rcomplete) {
-  toastInfo ("s_passwordUpdateCompleted")
-  console.log ('rcomplete', rcomplete)
   rcomplete | cata ({
     // error is dealt with in s_passwordUpdate
     RequestCompleteError: (_e) => {},
@@ -201,6 +201,16 @@ function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
   })
 }
 
+export function *s_usersFetch () {
+  yield call (doApiCall, {
+    url: '/api/users',
+    continuation: EffAction (a_usersFetchCompleted),
+    resultsModify: map (prop ('users')),
+    imsgDecorate: 'Error fetching users',
+    oops: toastError,
+  })
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
@@ -209,5 +219,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
+    saga (takeLatest, a_usersFetch, s_usersFetch),
   ])
+
 }
