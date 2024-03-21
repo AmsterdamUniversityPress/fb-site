@@ -104,18 +104,16 @@ const UserS = styled.div`
         }
         > img {
           margin-right: 13px;
+          width: 18px;
+          height: 17px;
         }
       }
       .x__passwordUpdate {
         > img {
-          width: 18px;
-          height: 17px;
         }
       }
       .x__admin {
         > img {
-          width: 18px;
-          height: 17px;
         }
       }
     }
