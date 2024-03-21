@@ -27,6 +27,7 @@ import { init as initDb,
   loggedInAdd as dbLoggedInAdd,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
+  privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
@@ -124,12 +125,14 @@ const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
 const getUserinfoLogin = async (email) => {
-  const info = doDbCallWarnNull (dbUserGet, [ email, ])
+  const info = doDbCallDie (dbUserGet, [email])
+  const privileges = doDbCallDie (dbPrivilegesGet, [email])
   const { firstName, lastName, password, } = info
   return {
     password,
     userinfo: {
       type: 'user',
+      privileges,
       email,
       firstName,
       lastName,

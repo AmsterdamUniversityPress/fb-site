@@ -7,15 +7,15 @@ import {
 
 import { dirname, } from 'path'
 
-import { yellow, } from 'alleycat-js/es/io';
-import { info, decorateRejection, } from 'alleycat-js/es/general';
+import { yellow, } from 'alleycat-js/es/io'
+import { info, decorateRejection, } from 'alleycat-js/es/general'
 import { isLeft, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
 
 import { config, } from './config.mjs'
-import { errorX, mkdirIfNeeded, } from './io.mjs';
-import { doEither, } from './util.mjs';
+import { errorX, mkdirIfNeeded, } from './io.mjs'
+import { doEither, } from './util.mjs'
 
 const configTop = config | configure.init
 
@@ -45,8 +45,8 @@ const createTables = [
   S (`create table userPrivilege (
     id integer primary key autoincrement,
     userId int not null,
-    userPrivilege string not null,
-    unique (userId, userPrivilege)
+    privilege string not null,
+    unique (userId, privilege)
   )`)
 ]
 
@@ -57,10 +57,8 @@ const daysInPast = daysInFuture << multiply (-1)
 const initTestData = (encryptPassword) => lets (
   () => encryptPassword,
   (encrypt) => doEither (
-    () => userAdd ('sjdfjsdfjsdfj@alleycat.cc', 'x', 'x', encrypt ('xxx'), daysInPast (1)),
-    () => userAdd ('expired@alleycat.cc', 'ed', 'van gisteren', encrypt ('xxx'), daysInPast (1)),
-    () => userAdd ('allen@alleycat.cc', 'allen', 'fishmaster', encrypt ('appel'), daysInFuture (2)),
-    () => userAdd ('arie@alleycat.cc', 'arie', 'bombarie', encrypt ('peer'), daysInFuture (1)),
+    () => userAdd ('allen@alleycat.cc', 'allen', 'fishmaster', ['user'], encrypt ('appel')),
+    () => userAdd ('arie@alleycat.cc', 'arie', 'bombarie', ['user', 'user-admin'], encrypt ('peer')),
   ),
 )
 
@@ -82,10 +80,15 @@ export const init = (encryptPassword) => {
   )
 }
 
-export const userAdd = (email, firstName, lastName, password) => sqliteApi.run (
-  SB (`insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
-  [email, firstName, lastName, password],
-))
+export const userAdd = (email, firstName, lastName, privileges, password) => doEither (
+  () => sqliteApi.run (SB (
+    `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
+    [email, firstName, lastName, password]),
+  ),
+  ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
+    (priv) => SB (`insert into userPrivilege (userId, privilege) values (?, ?)`, [userId, priv]),
+  )),
+)
 
 export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
@@ -126,3 +129,8 @@ export const usersGet = () => sqliteApi.all (
   S ('select email, firstName, lastName from user'),
 )
 
+export const privilegesGet = (email) => sqliteApi.allPluck (SB (
+  `select privilege from user u join userPrivilege up
+  on u.id = up.userId
+  where u.email = ?`, email
+))

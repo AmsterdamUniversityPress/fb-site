@@ -128,6 +128,7 @@ const PaginationInner = component ([
 
   // --- @todo selector
   const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
+
   const lastIdx = page | last | prop ('idx')
   const isLast = selectedIdx === lastIdx
   const isFirst = selectedIdx === 0
