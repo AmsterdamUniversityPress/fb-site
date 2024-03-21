@@ -32,7 +32,6 @@ import config from '../../config'
 const configTop = configure.init (config)
 const colorHighlight = configTop.get ('colors.highlight')
 
-
 const AdminS = styled.div`
   height: 100%;
   width: 98%;
@@ -113,6 +112,7 @@ export default container (
         onError: noop,
         onResults: (data) => data
           | map (({ email, firstName, lastName, }) => <UserRow
+              key={email}
               email={email}
               firstName={firstName}
               lastName={lastName}
