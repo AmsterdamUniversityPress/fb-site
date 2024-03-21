@@ -129,13 +129,12 @@ const PaginationInner = component ([
   // --- @todo selector
   const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
 
-  const lastIdx = page | last | prop ('idx')
-  const isLast = selectedIdx === lastIdx
-  const isFirst = selectedIdx === 0
-  const canLeft = not (isFirst)
-  const canRight = not (isLast)
-  const prevIdx = Math.max (0, selectedIdx - 1)
-  const nextIdx = Math.min (lastIdx, selectedIdx + 1)
+  const lastIdx = last (page).idx
+  const [isFirst, isLast] = [selectedIdx === 0, selectedIdx === lastIdx]
+  const [canLeft, canRight] = [not (isFirst), not (isLast)]
+  const [prevIdx, nextIdx] = [
+    Math.max (0, selectedIdx - 1), Math.min (lastIdx, selectedIdx + 1),
+  ]
   const pageRange = lets (
     () => isLast ? [1, 2] : [0, 3],
     ([n, m]) => page.slice (prevIdx - n, prevIdx + m),
@@ -146,15 +145,15 @@ const PaginationInner = component ([
   )
   const onClickLeft1 = useCallback (
     () => canLeft && onClicksPage [prevIdx] (),
-    [canLeft, selectedIdx, onClicksPage],
+    [canLeft, onClicksPage, prevIdx],
   )
   const onClickRight2 = useCallback (
     () => canRight && onClicksPage [lastIdx] (),
-    [canRight, onClicksPage],
+    [canRight, onClicksPage, lastIdx],
   )
   const onClickRight1 = useCallback (
     () => canRight && onClicksPage [nextIdx] (),
-    [canRight, selectedIdx, onClicksPage],
+    [canRight, onClicksPage, nextIdx],
   )
 
   return <PaginationS>
