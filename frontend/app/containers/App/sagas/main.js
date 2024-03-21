@@ -232,6 +232,7 @@ function *s_setPage () {
 }
 
 function *s_setNumPerPageIdx () {
+  yield put (a_setPage (0))
   yield call (s_fondsenRefresh)
 }
 
