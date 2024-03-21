@@ -28,6 +28,7 @@ import {
 } from '../actions/main'
 import {
   setPage as a_setPage,
+  setNumPerPageIdx as a_setNumPerPageIdx,
 } from '../../shared/Pagination/actions'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
@@ -230,6 +231,10 @@ function *s_setPage () {
   yield call (s_fondsenRefresh)
 }
 
+function *s_setNumPerPageIdx () {
+  yield call (s_fondsenRefresh)
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
@@ -242,5 +247,6 @@ export default function *sagaRoot () {
 
     // --- Pagination
     saga (takeLatest, a_setPage, s_setPage),
+    saga (takeLatest, a_setNumPerPageIdx, s_setNumPerPageIdx),
   ])
 }
