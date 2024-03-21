@@ -1,12 +1,13 @@
 import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
+  id, ifOk, concatTo, tap, join,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
-import { requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
+import { requestCompleteFold, requestJSONStdOpts, noParseCodes, } from 'alleycat-js/es/fetch'
 import { between, error, logWith, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 import { cata, } from 'alleycat-js/es/bilby'
@@ -35,10 +36,15 @@ const configTop = configure.init (config)
 const helloInterval = configTop.get ('general.helloInterval')
 
 // --- @temporary, for testing
-const mkURL = (base='') => lets (
+const mkURL = (base='/') => lets (
   () => document.location,
-  ({ protocol, hostname, }) => protocol + '//' + hostname + '/' + base,
-  (_, l) => new URL (l),
+  ({ port, }) => port | ifOk (concatTo (':'), () => ''),
+  ({ protocol, hostname, }, port) => [
+    [protocol, hostname] | join ('//'),
+    port,
+    base,
+  ] | join (''),
+  (_, __, l) => new URL (l),
 )
 const getIPAuthorize = () => lets (
   () => new URLSearchParams (document.location.search),
