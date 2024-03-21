@@ -93,6 +93,9 @@ export default {
       color1: '#EEEEEE',
       color2: '#FFBBBB',
     },
-    highlight: '#ffdbdbdd',
+    highlight: '#ffdbdb',
+    highlightAlpha: '#ffdbdbdd',
+    highlight2: '#ffc4c4',
+    highlight2Alpha: '#ffc4c4dd',
   },
 }

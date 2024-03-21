@@ -72,8 +72,10 @@ const imageBackground = configTop.get ('images.background')
 
 const imageFonds = imageHoutenFrame
 
-// --- pinkish
-const colorHighlight = configTop.get ('colors.highlight')
+const configColors = configTop.focus ('colors')
+const colors = configColors.gets (
+  'highlight', 'highlightAlpha', 'highlight2Alpha', 'highlight2Alpha',
+)
 
 const UserS = styled.div`
   width: 50px;
@@ -328,8 +330,7 @@ const LogoS = styled.div`
     position: absolute;
     left: 0;
     top: 0;
-    background: #ffc4c4dd;
-    // background: black;
+    background: ${colors.highlight2Alpha};
     opacity: 0.8;
   }
   .x__link {
@@ -346,12 +347,12 @@ const LogoS = styled.div`
 `
 
 const Logo = () => <LogoS>
-  <div className='x__item x__background'/>
-  <div className='x__item x__link'>
-    <Link to='/'>
+  <Link to='/'>
+    <div className='x__item x__background'/>
+    <div className='x__item x__link'>
       <img src={imageLogo}/>
-    </Link>
-  </div>
+    </div>
+  </Link>
 </LogoS>
 
 const MainS = styled.div`
@@ -407,7 +408,7 @@ const TextBoxS = styled.div`
   padding-top: 58px;
   border: 1px solid black;
   border-radius: 10px;
-  background: ${colorHighlight};
+  background: ${colors.highlightAlpha};
   font-size: 20px;
   width: 80%;
   max-width: 600px;
@@ -585,7 +586,7 @@ const FondsS = styled.div`
   display: inline-block;
   height: 500px;
   // background: #aaaa66ff;
-  background: ${colorHighlight};
+  background: ${colors.highlightAlpha};
   vertical-align: top;
   width: 350px;
   margin: 3px;
@@ -641,9 +642,10 @@ const Fonds = ({ uuid, naam_organisatie, categories, website, }) => {
 }
 
 const FondsenS = styled.div`
-  // background: #ffffbb66;
   text-align: center;
   min-width: 100px;
+  .x__main {
+  }
 `
 
 const PaginationWrapperS = styled.div`
@@ -682,6 +684,7 @@ const Fondsen = container (
       />,
     )}
     {fondsen | requestResults ({
+      spinnerProps: { color: colors.highlightAlpha, },
       onError: noop,
       onResults: (results) => <>
         {results | map (
@@ -866,7 +869,6 @@ const FondsMainS = styled.div`
   > .x__search {
     flex: 0 0 120px;
     text-align: center;
-    margin-bottom: 50px;
   }
   > .x__main {
     // --- @todo
