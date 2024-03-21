@@ -31,6 +31,7 @@ import {
   selectGetFirstName, selectGetLastName, selectGetEmail,
   selectGetContactEmail, selectGetInstitutionName,
   selectGetUserType,
+  selectHasPrivilegeUserAdmin,
 } from '../App/store/app/selectors'
 import {
   selectFondsen,
@@ -54,13 +55,10 @@ import Pagination from '../../containers/shared/Pagination'
 import { component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
-// import data from '../../../../__data/fb-data-tst.json'
-
 const configTop = configure.init (config)
 const iconLogin = configTop.get ('icons.login')
 const iconLogout = configTop.get ('icons.logout')
 const iconUpdate = configTop.get ('icons.update')
-// @todo check admin svg (do we want something like this?)
 const iconAdmin = configTop.get('icons.admin')
 const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
 const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
@@ -222,8 +220,9 @@ const User = container (
 	},
 	{
 	  getUserType: selectGetUserType,
+      hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
 	}],
-  ({ getUserType, logOutDispatch, usersFetchDispatch, }) => {
+  ({ getUserType, hasPrivilegeUserAdmin, logOutDispatch, usersFetchDispatch, }) => {
 	const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
@@ -272,10 +271,10 @@ const User = container (
                 <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
               </MenuItem>
-              <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
+              {hasPrivilegeUserAdmin && <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
                 <img src={iconAdmin}/>
                 <span className='x__text'>admin</span>
-              </MenuItem>
+              </MenuItem>}
             </div>
           </>),
           otherwise | guard (() => null),
@@ -922,7 +921,7 @@ const Contents = container (
       eq ('detail') | guard (() => [false, () => <FondsDetail/>]),
       eq ('login') | guard (() => [false, () => <Login/>]),
       eq ('user') | guard (() => [true, () => <UserPage/>]),
-      eq ('admin') | guard (() => [true, () => <Admin/>]),
+      eq ('admin') | guard (() => [false, () => <Admin/>]),
       otherwise | guard (() => die ('Invalid page ' + page)),
     ])
 

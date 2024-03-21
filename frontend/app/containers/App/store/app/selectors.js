@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  ok, prop, map, path,
+  ok, prop, map, path, id,
 } from 'stick-js/es'
 
 import { createSelector, defaultMemoize as memoize, } from 'reselect'
@@ -103,4 +103,18 @@ export const selectGetEmail = select (
   'selectGetEmail',
   [selectUserUser],
   (user) => () => user | toJust | prop ('email'),
+)
+
+const selectPrivileges = selectVal ('userPrivileges')
+
+const selectPrivilegesSet = select (
+  'privilegesSet',
+  [selectPrivileges],
+  (privileges) => new Set (privileges | fold (id, [])),
+)
+
+export const selectHasPrivilegeUserAdmin = select (
+  'hasPrivilegeUserAdmin',
+  [selectPrivilegesSet],
+  (privs) => privs.has ('user-admin'),
 )
