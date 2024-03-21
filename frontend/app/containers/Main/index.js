@@ -96,6 +96,7 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
+      font-size: 17px;
       > .x__item {
         > * {
           vertical-align: middle;
@@ -184,7 +185,7 @@ const UserinfoInstitution = container (
 )
 
 const UserinfoUserS = styled.div`
-  font-weight: 200;
+  font-size: 19px;
   > .x__name {
   }
   > .x__email {
