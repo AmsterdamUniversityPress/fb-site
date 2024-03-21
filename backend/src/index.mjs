@@ -8,6 +8,7 @@ import {
 import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express from 'express'
 
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
@@ -214,9 +215,20 @@ const securePatch = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs
 const privsUser = new Set (['user'])
 const privsAdminUser = new Set (['admin-user'])
 
+const corsOptions = {
+  // --- reflect the request origin.
+  origin: true,
+  // --- allow credentials mode 'include' in the request.
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+}
+
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
+  | use (cors (corsOptions))
   | useAuthMiddleware
   | secureGet (privsUser) ('/fondsen', getAndValidateQuery ([
       ['beginIdx', isNonNegativeInt, Number],
