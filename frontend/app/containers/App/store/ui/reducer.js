@@ -3,7 +3,7 @@ import {
   assoc,
 } from 'stick-js/es'
 
-import { cata, } from 'alleycat-js/es/bilby'
+import { cata, Nothing, } from 'alleycat-js/es/bilby'
 
 import { logWith, } from 'alleycat-js/es/general'
 import { RequestInit, RequestError, RequestLoading, RequestResults, } from 'alleycat-js/es/fetch'

@@ -1,12 +1,9 @@
 import {
   pipe, compose, composeRight,
-  noop, prop,
 } from 'stick-js/es'
 
-import React, { PureComponent, } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-
-import { whenTrueV, } from 'alleycat-js/es/predicate'
 
 const CloseIconS = styled.svg``
 
@@ -15,7 +12,6 @@ const CloseIcon = ({
   width=20,
   stroke='black',
   strokeWidth='1.0px',
-  strokeWidthInner='1.0px',
   onClick,
 }) => <CloseIconS
    width={width}

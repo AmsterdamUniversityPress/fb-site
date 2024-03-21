@@ -214,16 +214,16 @@ const UserinfoUser = container (
 
 const User = container (
   ['User',
-	{
-	  logOutDispatch: logOut,
+    {
+      logOutDispatch: logOut,
       usersFetchDispatch: usersFetch,
-	},
-	{
-	  getUserType: selectGetUserType,
+    },
+    {
+      getUserType: selectGetUserType,
       hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
-	}],
+    }],
   ({ getUserType, hasPrivilegeUserAdmin, logOutDispatch, usersFetchDispatch, }) => {
-	const navigate = useNavigate ()
+    const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
     // use to inspect easily
@@ -249,10 +249,10 @@ const User = container (
     const onClickAdmin = useCallback (
       () => {
         setOpen (false)
- 		usersFetchDispatch ()
+        usersFetchDispatch ()
         navigate ('/admin')
       },
-      [navigate])
+      [usersFetchDispatch, navigate])
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
@@ -724,7 +724,7 @@ const UserPage = container (
           passwordUpdateDoneDispatch ()
         }
       )
-    }, [passwordUpdated])
+    }, [navigate, passwordUpdateDoneDispatch, passwordUpdated])
 
     const onChangeOldPassword = useCallbackConst (
       (event) => setOldPassword (event.target.value),

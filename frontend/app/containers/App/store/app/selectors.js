@@ -3,16 +3,13 @@ import {
   ok, prop, map, path, id,
 } from 'stick-js/es'
 
-import { createSelector, defaultMemoize as memoize, } from 'reselect'
-
-import { fold, foldMaybe, isJust, toJust, } from 'alleycat-js/es/bilby'
-import configure from 'alleycat-js/es/configure'
+import { fold, toJust, } from 'alleycat-js/es/bilby'
 import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
-import { logWith, ierror, reduceX, } from 'alleycat-js/es/general'
+import { logWith, } from 'alleycat-js/es/general'
 
 import { initialState, } from './reducer'
 
-import { initSelectors, nullMap, } from '../../../../common'
+import { initSelectors, } from '../../../../common'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'app',

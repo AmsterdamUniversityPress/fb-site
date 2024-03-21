@@ -4,7 +4,6 @@ import {
 } from 'stick-js/es'
 
 import React, { PureComponent, } from 'react'
-import styled from 'styled-components'
 
 import { error, } from 'alleycat-js/es/general'
 
@@ -21,7 +20,7 @@ export class ErrorBoundary extends PureComponent {
     | error
   }
 
-  static getDerivedStateFromError (err) {
+  static getDerivedStateFromError (_err) {
     return { hasError: true, }
   }
 

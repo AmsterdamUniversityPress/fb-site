@@ -133,14 +133,13 @@ export default container (
       width | whenOk (
         isMobileWidth >> setIsMobile,
       )
-    })
+    }, [width])
 
     useEffect (
       () => {
         appMountedDispatch ()
         return () => iwarn ('App unmounting, unexpected')
       },
-      [],
       [appMountedDispatch],
     )
 

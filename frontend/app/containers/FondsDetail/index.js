@@ -60,7 +60,7 @@ export default container (
 
     useEffect (() => {
       fondsDetailFetchDispatch (uuid)
-    }, [uuid])
+    }, [fondsDetailFetchDispatch, uuid])
 
     return <FondsDetailS>
       {fonds | requestResults ({
