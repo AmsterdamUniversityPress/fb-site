@@ -30,18 +30,47 @@ import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWi
 import config from '../../config'
 
 const configTop = configure.init (config)
-const colorHighlight = configTop.get ('colors.highlight')
+const colorHighlight = configTop.get ('colors.highlightAlpha')
 
 const AdminS = styled.div`
-  height: 100%;
-  width: 98%;
-  position: relative;
-  margin: 10px;
-  padding: 58px;
+  min-height: 300px;
+  width: 80%;
+  margin: auto;
+  margin-top: 100px;
   border: 1px solid black;
   border-radius: 10px;
+  padding: 58px;
   background: ${colorHighlight};
   font-size: 20px;
+  > .x__main {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-auto-rows: 70px;
+    > .row {
+      display: contents;
+      // cursor: pointer;
+      &:hover {
+        > * {
+          // margin: 0px;
+          // border: 2px solid #bdffb3ff;
+        }
+      }
+      > * {
+        // margin: 2px;
+      }
+      > .col0 {
+        border-right: 2px solid black;
+      }
+      > .col0, > .col1 {
+        padding: 10px;
+      }
+    }
+    > .x__header {
+      border-bottom: 2px solid black;
+    }
+    > .x__name, .x__email {
+    }
+  }
   .x__close {
      position: absolute;
      top: 8px;
@@ -55,30 +84,6 @@ const AdminS = styled.div`
     }
   }
 `
-
-const UserRowS = styled.div`
-  .x__name {
-    border: 1px solid #999999;
-    padding-right: 50px;
-    width: 250px;
-    display: inline-block;
-  }
-  .x__email {
-    border: 1px solid #999999;
-    width: 250px;
-    display: inline-block;
-  }
-`
-
-const UserRow = ({ email, firstName, lastName, }) => <UserRowS>
-  <div className='x__name'>
-  {firstName} {lastName}
-  </div>
-  <div className='x__email'>
-  {email}
-  </div>
-
-</UserRowS>
 
 const dispatchTable = {
 }
@@ -108,18 +113,28 @@ export default container (
           strokeWidth='0.6px'
         />
       </div>
-      { users | requestResults ({
-        onError: noop,
-        onResults: (data) => data
-          | map (({ email, firstName, lastName, }) => <UserRow
-              key={email}
-              email={email}
-              firstName={firstName}
-              lastName={lastName}
-            />
-          )
-        }
-      )}
+      <div className='x__main'>
+        {users | requestResults ({
+          onError: noop,
+          onResults: (data) => <>
+            <div className='col0 x__header'>
+              Naam
+            </div>
+            <div className='col1 x__header'>
+              Emailadres
+            </div>
+            {data | map (({ email, firstName, lastName, }) => <div className='row' key={email}>
+              <div className='col0 x__name'>
+                {firstName} {lastName}
+              </div>
+              <div className='col1 x__email'>
+                {email}
+              </div>
+            </div>
+            )}
+          </>
+        })}
+      </div>
     </AdminS>
   }
 )
