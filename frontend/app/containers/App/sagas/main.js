@@ -23,6 +23,7 @@ import {
   loggedInInstitution as a_loggedInInstitution,
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
+  sendWelcomeEmail as a_sendWelcomeEmail,
   usersFetch as a_usersFetch,
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
@@ -236,6 +237,21 @@ function *s_setNumPerPageIdx () {
   yield call (s_fondsenRefresh)
 }
 
+function *s_sendWelcomeEmail (email, again=true) {
+  function *done () {
+    yield call (s_sendWelcomeEmailCompleted, email, again)
+  }
+  yield call (doApiCall, {
+    url: '/api/user/send-welcome-email',
+    continuation: EffSaga (done),
+    oops: toastError,
+  })
+}
+
+function *s_sendWelcomeEmailCompleted (email, again) {
+  if (again) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email)
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
@@ -244,6 +260,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
+    saga (takeLatest, a_sendWelcomeEmail, s_sendWelcomeEmail),
     saga (takeLatest, a_usersFetch, s_usersFetch),
 
     // --- Pagination

@@ -23,6 +23,8 @@ import {
   selectUsers,
 } from './selectors'
 
+import { sendWelcomeEmail, userAdd, userRemove, } from '../App/actions/main'
+
 import CloseIcon from '../../components/svg/CloseIcon'
 import { Button, } from '../../components/shared'
 
@@ -115,6 +117,7 @@ const AdminS = styled.div`
 `
 
 const dispatchTable = {
+  sendWelcomeEmailDispatch: sendWelcomeEmail,
 }
 
 const selectorTable = {
@@ -124,18 +127,18 @@ const selectorTable = {
 export default container (
   ['Admin', dispatchTable, selectorTable],
   (props) => {
-    const { users, } = props
+    const { users, sendWelcomeEmailDispatch, } = props
     const navigate = useNavigate ()
     const onClickClose = useCallbackConst (() => {
       navigate ('/')
     })
     const onClickRemove = useCallback (
-      () => alert ('todo'),
+      (email) => alert ('todo remove ' + email),
       [],
     )
     const onClickResendMail = useCallback (
-      () => alert ('todo'),
-      [],
+      (email) => sendWelcomeEmailDispatch (email),
+      [sendWelcomeEmailDispatch],
     )
 
     useWhy ('Admin', props)
@@ -171,10 +174,10 @@ export default container (
               </div>
               <div className='col2 x__buttons'>
                 <div className='x__buttons-flex'>
-                  <Button onClick={onClickResendMail}>
+                  <Button onClick={() => onClickResendMail (email)}>
                     welkomst e-mail opnieuw versturen
                   </Button>
-                  <Button onClick={onClickRemove}>
+                  <Button onClick={() => onClickRemove (email)}>
                     gebruiker verwijderen
                   </Button>
                 </div>

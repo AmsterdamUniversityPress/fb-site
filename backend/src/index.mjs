@@ -270,6 +270,10 @@ const init = ({ port, }) => express ()
     }
     return res | sendStatus (200, null)
   })
+  | secureGet (privsUser) ('/user/send-welcome-email', (_req, res) => {
+    console.log ('todo, send mail')
+    return res | sendStatus (200, null)
+  })
   | secureGet (privsAdminUser) ('/users', (_req, res) => {
     // @todo kattenluik has a nice doCallResults function for this...
     const users = doDbCallDie (dbUsersGet, [])

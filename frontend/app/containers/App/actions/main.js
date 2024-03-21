@@ -77,3 +77,18 @@ export const usersFetchCompleted = action (
   (rcomplete) => rcomplete,
   'usersFetchCompleted',
 )
+
+export const sendWelcomeEmail = action (
+  (email) => email,
+  'sendWelcomeEmail',
+)
+
+export const userAdd = action (
+  (firstName, lastName, email) => [firstName, lastName, email],
+  'userAdd',
+)
+
+export const userRemove = action (
+  (email) => email,
+  'userRemove',
+)
