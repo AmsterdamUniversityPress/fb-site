@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   tap, nil, map, die, mergeM, always,
   ifOk, ifTrue, whenFalse, not, lets, ok,
-  join, concat, factory, factoryProps,
+  join, concat, factory, factoryProps, ifNil,
 } from 'stick-js/es'
 
 import jwtModule from 'jsonwebtoken'
@@ -177,17 +177,23 @@ const initPassportStrategies = ({
     // --- on failure to retrieve these, this will result in roughly
     //   `done (null, null, { message: 'Missing credentials', })`
     { usernameField, passwordField, },
-    (username, password, done) => {
-      const user = getUserinfoLogin (username)
-      if (!user)
-        return done (null, false, { message: 'User not found', })
-      const { password: passwordFromDb, userinfo, } = user
-      if (!passwordFromDb || !userinfo)
-        return done ('Invalid user object', false, { message: 'Internal error', })
-      if (!checkPassword (password, passwordFromDb))
-        return done (null, false, { message: 'Wrong Password', })
-      return done (null, { username, userinfo, }, { message: 'logged in successfully', })
-    }
+    (username, password, done) => getUserinfoLogin (username)
+    | then ((user) => user | ifNil (
+      () => done (null, false, { message: 'User not found', }),
+      () => {
+        const { password: passwordFromDb, userinfo, } = user
+        if (!passwordFromDb || !userinfo)
+          return done ('Invalid user object', false, { message: 'Internal error', })
+        if (!checkPassword (password, passwordFromDb))
+          return done (null, false, { message: 'Wrong Password', })
+        return done (null, { username, userinfo, }, { message: 'logged in successfully', })
+      },
+    ))
+    | recover ((e) => done (
+      'Error with getUserinfoLogin (): ' + e.toString (),
+      false,
+      { message: 'Internal error', },
+    ))
   ))
 
   passport.use ('jwt', new JWTStrategy (
@@ -267,11 +273,14 @@ const init = ({
 }) => {
   // --- caller must catch rejection
   const checkLoggedIn = (username, req) => {
-    const user = getUserinfoLogin (username)
-    // --- for example, removed from database while the user still has a valid JWT
-    if (nil (user)) return [null, 'User was removed / no longer valid']
-    const { userinfo, } = user
-    return isLoggedIn (username, userinfo, req)
+    let userinfo
+    return getUserinfoLogin (username)
+    | then ((user) => {
+      // --- for example, removed from database while the user still has a valid JWT
+      if (nil (user)) return [null, 'User was removed / no longer valid']
+      userinfo = user.userinfo
+      return isLoggedIn (username, userinfo, req)
+    })
     | then (([loggedIn, reason]) => loggedIn | ifTrue (
       () => [userinfo],
       () => [null, reason],

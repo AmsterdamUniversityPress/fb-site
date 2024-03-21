@@ -123,8 +123,10 @@ const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
-const getUserinfoLogin = (email) => doDbCallWarnNull (dbUserGet, [ email, ])
-  | (({ email, firstName, lastName, password, }) => ({
+const getUserinfoLogin = async (email) => {
+  const info = doDbCallWarnNull (dbUserGet, [ email, ])
+  const { firstName, lastName, password, } = info
+  return {
     password,
     userinfo: {
       type: 'user',
@@ -132,7 +134,8 @@ const getUserinfoLogin = (email) => doDbCallWarnNull (dbUserGet, [ email, ])
       firstName,
       lastName,
     },
-  }))
+  }
+}
 
 const getUserPassword = (email) => email | getUserinfoLogin
   | (({ password, _userinfo }) => password)
