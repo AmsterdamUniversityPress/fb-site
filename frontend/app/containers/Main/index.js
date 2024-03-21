@@ -660,7 +660,6 @@ const PaginationWrapperS = styled.div`
 const PaginationWrapper = ({ numItems, textNumber, textPage, }) => <PaginationWrapperS>
   <div className='x__main'>
     <Pagination
-      collectionName='fondsen'
       numItems={numItems}
       textNumber={textNumber}
       textPage={textPage}
@@ -678,7 +677,7 @@ const Fondsen = container (
       (numItems) => <PaginationWrapper
         numItems={numItems}
         textNumber='Aantal per pagina:'
-        textPage='Pagina:'
+        textPage=''
       />,
     )}
     {fondsen | requestResults ({
