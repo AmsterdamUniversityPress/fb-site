@@ -5,7 +5,7 @@ import {
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
   againstAny, contains, containsV, flip,
-  map, addIndex,
+  map, addIndex, ifTrue,
 } from 'stick-js/es'
 
 // --- for spinner
@@ -29,7 +29,7 @@ import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
 import { initSelectorsTell, } from 'alleycat-js/es/select'
-import { mgt, mediaRule, } from 'alleycat-js/es/styled'
+import { mediaRule, mgt, mlt, } from 'alleycat-js/es/styled'
 
 import { spinner, } from './alleycat-components'
 import config from './config'
@@ -53,19 +53,28 @@ desktops, etc.
 We generally need mediaPhone, mediaTablet, and mediaDesktop.
 `
 
+const alwaysMobile = configTop.get ('general.alwaysMobile')
+
 export const mediaPhoneWidth      = 0
 export const mediaPhoneBigWidth   = 576
 export const mediaTabletWidth     = 768
 export const mediaDesktopWidth    = 992
 export const mediaDesktopBigWidth = 1200
 
-export const mediaPhone      = mediaPhoneWidth      | mgt | mediaRule
-export const mediaPhoneBig   = mediaPhoneBigWidth   | mgt | mediaRule
-export const mediaTablet     = mediaTabletWidth     | mgt | mediaRule
-export const mediaDesktop    = mediaDesktopWidth    | mgt | mediaRule
-export const mediaDesktopBig = mediaDesktopBigWidth | mgt | mediaRule
+const [mediaRulePhone, mediaRuleTablet, mediaRuleDesktop, mediaRuleDesktopBig, mediaRulePhoneOnly] = lets (
+  () => [mgt (0), mlt (0)],
+  ([always, never]) => alwaysMobile | ifTrue (
+	() => [always, never, never, never, always],
+	() => [mgt (0), mgt (801), mgt (992), mgt (1200), mlt (801)],
+  ),
+)
 
-export const isMobileWidth = mediaTabletWidth | lt
+export const mediaPhone      = mediaRulePhone      | mediaRule
+export const mediaTablet     = mediaRuleTablet     | mediaRule
+export const mediaDesktop    = mediaRuleDesktop    | mediaRule
+export const mediaDesktopBig = mediaRuleDesktopBig | mediaRule
+export const mediaPhoneOnly  = mediaRulePhoneOnly  | mediaRule
+export const isMobileWidth = 992 | lt
 
 // --- note, user agent tests are never totally reliable.
 // --- see mdn docs for a pretty good break-down.

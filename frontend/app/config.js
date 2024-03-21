@@ -64,6 +64,7 @@ export default {
     },
   },
   general: {
+    alwaysMobile: false,
     helloInterval: 60000,
   },
   font: {
