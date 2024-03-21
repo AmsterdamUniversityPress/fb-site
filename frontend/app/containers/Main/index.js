@@ -250,7 +250,7 @@ const User = container (
       () => {
         setOpen (false)
         usersFetchDispatch ()
-        navigate ('/admin')
+        navigate ('/user-admin')
       },
       [usersFetchDispatch, navigate])
 
@@ -273,7 +273,7 @@ const User = container (
               </MenuItem>
               {hasPrivilegeUserAdmin && <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
                 <img src={iconAdmin}/>
-                <span className='x__text'>admin</span>
+                <span className='x__text'>gebruikers beheren</span>
               </MenuItem>}
             </div>
           </>),
@@ -921,7 +921,7 @@ const Contents = container (
       eq ('detail') | guard (() => [false, () => <FondsDetail/>]),
       eq ('login') | guard (() => [false, () => <Login/>]),
       eq ('user') | guard (() => [true, () => <UserPage/>]),
-      eq ('admin') | guard (() => [false, () => <Admin/>]),
+      eq ('user-admin') | guard (() => [false, () => <Admin/>]),
       otherwise | guard (() => die ('Invalid page ' + page)),
     ])
 

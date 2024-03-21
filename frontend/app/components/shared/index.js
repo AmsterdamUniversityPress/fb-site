@@ -51,7 +51,7 @@ const ButtonBaseS = styled.button`
 `
 
 export const ButtonS = styled (ButtonBaseS)`
-  background: #efefef;
+  background: #f4f4f4;
   padding: 4px;
   position: relative;
   opacity: 0.5;

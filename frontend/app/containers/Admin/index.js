@@ -23,8 +23,8 @@ import {
   selectUsers,
 } from './selectors'
 
-// import {} from '../../components/X/Loadable'
 import CloseIcon from '../../components/svg/CloseIcon'
+import { Button, } from '../../components/shared'
 
 import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
@@ -40,13 +40,18 @@ const AdminS = styled.div`
   border: 1px solid black;
   border-radius: 10px;
   padding: 58px;
-  background: ${colorHighlight};
+  background: white;
   font-size: 20px;
   > .x__main {
     display: grid;
-    grid-template-columns: auto auto;
-    grid-auto-rows: 70px;
-    > .row {
+    grid-template-columns: auto auto auto;
+    grid-auto-rows: 90px;
+    > .x__header {
+      border-bottom: 2px solid #00000022;
+      opacity: 0.6;
+    }
+    > .data-row {
+      font-size: 18px;
       display: contents;
       // cursor: pointer;
       &:hover {
@@ -59,16 +64,40 @@ const AdminS = styled.div`
         // margin: 2px;
       }
       > .col0 {
-        border-right: 2px solid black;
+        border-left: 2px solid #00000022;
+      }
+      > .col2 {
+        border-right: 2px solid #00000022;
       }
       > .col0, > .col1 {
-        padding: 10px;
+        border-right: 1px solid #00000022;
       }
-    }
-    > .x__header {
-      border-bottom: 2px solid black;
-    }
-    > .x__name, .x__email {
+      > .col0, > .col1, > .col2 {
+        padding: 10px;
+        border-bottom: 2px solid #00000022;
+        display: flex;
+        align-items: center;
+        > * {
+          vertical-align: middle;
+          flex: 0 0 auto;
+        }
+      }
+      > .col0, > .col1 {
+      }
+      > .x__name, .x__email {
+      }
+      > .x__buttons {
+        font-size: 16px;
+        .x__buttons-flex {
+          display: flex;
+          height: 100%;
+          justify-content: space-around;
+          flex-direction: column;
+          > * {
+            flex: 0 0 auto;
+          }
+        }
+      }
     }
   }
   .x__close {
@@ -100,6 +129,14 @@ export default container (
     const onClickClose = useCallbackConst (() => {
       navigate ('/')
     })
+    const onClickRemove = useCallback (
+      () => alert ('todo'),
+      [],
+    )
+    const onClickResendMail = useCallback (
+      () => alert ('todo'),
+      [],
+    )
 
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
@@ -121,14 +158,26 @@ export default container (
               Naam
             </div>
             <div className='col1 x__header'>
-              Emailadres
+              E-mailadres
             </div>
-            {data | map (({ email, firstName, lastName, }) => <div className='row' key={email}>
+            <div className='col2 x__header'>
+            </div>
+            {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
               <div className='col0 x__name'>
                 {firstName} {lastName}
               </div>
               <div className='col1 x__email'>
                 {email}
+              </div>
+              <div className='col2 x__buttons'>
+                <div className='x__buttons-flex'>
+                  <Button onClick={onClickResendMail}>
+                    welkomst e-mail opnieuw versturen
+                  </Button>
+                  <Button onClick={onClickRemove}>
+                    gebruiker verwijderen
+                  </Button>
+                </div>
               </div>
             </div>
             )}
