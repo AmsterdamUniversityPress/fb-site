@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
   map, path, condS, eq, guard, otherwise,
-  lets, id, die, whenTrue,
+  lets, id, die, tap, whenTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -34,6 +34,7 @@ import {
 } from '../App/store/app/selectors'
 import {
   selectFondsen,
+  selectNumFondsen,
 } from '../App/store/domain/selectors'
 import {
   selectPasswordUpdated,
@@ -48,8 +49,9 @@ import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 // import Pagination from '../../containers/shared/Pagination'
+import Pagination from '../../containers/shared/Pagination'
 
-import { component, container, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import { component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
 // import data from '../../../../__data/fb-data-tst.json'
@@ -644,14 +646,45 @@ const FondsenS = styled.div`
   min-width: 100px;
 `
 
+const PaginationWrapperS = styled.div`
+  width: 800px;
+  margin: auto;
+  margin-bottom: 30px;
+  padding: 20px;
+  font-size: 20px;
+  background: white;
+  .x__main {
+  }
+`
+
+const PaginationWrapper = ({ numItems, textNumber, textPage, }) => <PaginationWrapperS>
+  <div className='x__main'>
+    <Pagination
+      collectionName='fondsen'
+      numItems={numItems}
+      textNumber={textNumber}
+      textPage={textPage}
+    />
+  </div>
+</PaginationWrapperS>
+
 const Fondsen = container (
-  ['Fondsen', {}, { fondsen: selectFondsen, }],
-  ({ fondsen, }) => <FondsenS>
+  ['Fondsen', {}, {
+    fondsen: selectFondsen,
+    numFondsenMb: selectNumFondsen,
+  }],
+  ({ fondsen, numFondsenMb, }) => <FondsenS>
+    {numFondsenMb | foldWhenJust (
+      (numItems) => <PaginationWrapper
+        numItems={numItems}
+        textNumber='Aantal per pagina:'
+        textPage='Pagina:'
+      />,
+    )}
     {fondsen | requestResults ({
       onError: noop,
-      onResults: (fondsen) => <div>
-        {/* <Pagination/> */}
-        {fondsen | map (
+      onResults: (results) => <>
+        {results | map (
           ({ uuid, naam_organisatie, categories, website, ... _rest }) => {
             return <Fonds
               key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categories={categories}
@@ -659,7 +692,7 @@ const Fondsen = container (
             />
           },
         )}
-      </div>
+      </>,
     })}
   </FondsenS>,
 )

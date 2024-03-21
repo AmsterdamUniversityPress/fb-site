@@ -4,18 +4,29 @@ import {
 } from 'stick-js/es'
 
 import React, { useMemo, } from 'react'
+
 import styled from 'styled-components'
 
 import { clss, } from 'alleycat-js/es/dom'
+import {} from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 
-import { component, container, useWhy, } from '../../common'
+import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
+
+import { setNumPerPageIdx, setPage, } from './actions'
+import reducer from './reducer'
+import { createReducer, } from '../../../redux'
+import saga from './saga'
+import { selectNumsPerPageComponent, selectPageComponent, } from './selectors'
+
+import { component, container, useWhy, } from '../../../common'
 
 const PaginationS = styled.div`
   line-height: 2em;
 
   >.x__num-per-page, >.x__cur-page >.x__page {
     >.x__num {
+      cursor: pointer;
       display: inline-block;
       padding: 0px 6px 0px 6px;
       min-width: 35px;
@@ -26,13 +37,17 @@ const PaginationS = styled.div`
       >.x__cursor {
         display: none;
         position: relative;
-        top: 55px;
+        top: 40px;
         height: 0px;
         width: 100%;
         border-top: 2px solid black;
       }
-      &.x--selected >.x__cursor {
-        display: block;
+      &.x--selected {
+        cursor: inherit;
+        >.x__cursor {
+          cursor: inherit;
+          display: block;
+        }
       }
     }
   }
@@ -49,19 +64,21 @@ const PaginationS = styled.div`
       overflow-x: auto;
       overflow-y: hidden;
       width: 650px;
-      height: 80px;
+      height: 57px;
       white-space: nowrap !important;
     }
   }
 `
 
-const Pagination = component ([
-  'Pagination',
+const PaginationInner = component ([
+  'PaginationInner',
 ], (props) => {
   const {
     collectionName,
     numsPerPage, page,
-    setNumPerPageIdxDispatch, setCurPageDispatch,
+    setNumPerPageIdxDispatch, setPageDispatch,
+    textNumber='Number per page:',
+    textPage='Page:',
   } = props
 
   const onClickNpp = useCallbackConst (
@@ -74,7 +91,7 @@ const Pagination = component ([
   )
 
   const onClickPage = useCallbackConst (
-    (idx) => () => { setCurPageDispatch (idx) },
+    (idx) => () => { setPageDispatch (idx) },
   )
 
   const onClicksPage = useMemo (
@@ -82,10 +99,11 @@ const Pagination = component ([
     [page, onClickPage],
   )
 
-  useWhy ('Pagination', props)
+  useWhy ('PaginationInner', props)
+
   return <PaginationS>
     <div className='x__num-per-page'>
-      Number of {collectionName} per page:
+      {textNumber}
       {numsPerPage | map (({ n, idx, selected, }) => {
         const onClick = { onClick: onClicksNpp [idx], }
         const cls = clss ('x__num', selected && 'x--selected')
@@ -96,9 +114,7 @@ const Pagination = component ([
       })}
     </div>
     {page.length > 1 && <div className='x__cur-page'>
-      <div>
-        Page:
-      </div>
+      <div>{textPage}</div>
       <div className='x__page'>
         {page | map (({ n, idx, selected, }) => {
           const onClick = { onClick: onClicksPage [idx], }
@@ -114,27 +130,35 @@ const Pagination = component ([
 })
 
 // --- a function which returns a React component (a Redux container)
-export const mkPagination = ({
-  setNumPerPageIdx, setCurPage,
-  selectNumsPerPage, selectPage,
-}) => container ([
-  'PaginationWrapper',
+export default container ([
+  'Pagination',
   {
     setNumPerPageIdxDispatch: setNumPerPageIdx,
-    setCurPageDispatch: setCurPage,
+    setPageDispatch: setPage,
   },
   {
-    numsPerPage: selectNumsPerPage,
-    page: selectPage,
+    numsPerPage: selectNumsPerPageComponent,
+    page: selectPageComponent,
   },
-], ({
-    setNumPerPageIdxDispatch, setCurPageDispatch, numsPerPage, page,
-    ... restProps
-  }) => <Pagination
-    {... restProps}
-    setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
-    setCurPageDispatch={setCurPageDispatch}
-    numsPerPage={numsPerPage}
-    page={page}
-  />
+], (props) => {
+    const {
+      setNumPerPageIdxDispatch, setPageDispatch, numsPerPage, page,
+      numItems, textNumber, textPage,
+      ... restProps
+    } = props
+
+    useWhy ('Pagination', props)
+    useReduxReducer ({ createReducer, reducer, key: 'Pagination', })
+    useSaga ({ saga, key: 'Pagination', })
+
+    return <PaginationInner
+      {... restProps}
+      setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
+      setPageDispatch={setPageDispatch}
+      numsPerPage={numsPerPage}
+      page={page (numItems)}
+      textNumber={textNumber}
+      textPage={textPage}
+    />
+  },
 )

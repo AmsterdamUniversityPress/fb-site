@@ -3,12 +3,14 @@
 
 import {
   pipe, compose, composeRight,
-  map, prop,
+  map, prop, path, tap,
 } from 'stick-js/es'
 
 import { initialState, } from './reducer'
 
-import { initSelectors, } from '../../../../common'
+import { length, logWith, } from 'alleycat-js/es/general'
+
+import { toRequestResults, initSelectors, } from '../../../../common'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'domain',
@@ -30,3 +32,7 @@ export const selectFondsen = select (
   _selectFondsen,
   (fondsenRequest) => fondsenRequest | map (prop ('results')),
 )
+
+export const selectNumFondsen = selectVal ('numFondsen')
+
+// --- @todo consistent naming for selectors involving a request

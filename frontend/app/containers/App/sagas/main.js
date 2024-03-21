@@ -26,8 +26,13 @@ import {
   usersFetch as a_usersFetch,
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
+import {
+  setPage as a_setPage,
+} from '../../shared/Pagination/actions'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
+
+import { selectNumPerPage, selectPage, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, } from '../../../common'
 import config from '../../../config'
@@ -69,8 +74,7 @@ function *s_appMounted () {
 }
 
 function *s_fondsenFetch (pageNum) {
-  // const pageLength = yield select (...)
-  const pageLength = 30
+  const pageLength = yield select (selectNumPerPage)
   const beginIdx = pageNum * pageLength
   const url = mkURL ()
   url.pathname = '/api/fondsen'
@@ -81,6 +85,11 @@ function *s_fondsenFetch (pageNum) {
     continuation: EffAction (a_fondsenFetchCompleted),
     oops: toastError,
   })
+}
+
+function *s_fondsenRefresh () {
+  const pageNum = yield select (selectPage)
+  yield put (a_fondsenFetch (pageNum))
 }
 
 function *s_loginUserCompleted (res) {
@@ -94,7 +103,7 @@ function *s_loginUserCompleted (res) {
     () => (onError ('(no message)'), null),
   )
   yield put (a_loginUserCompleted (user))
-  if (user) yield put (a_fondsenFetch (0))
+  if (user) yield call (s_fondsenRefresh)
 }
 
 function *s_helloCompleted (res, first=false) {
@@ -108,7 +117,7 @@ function *s_helloCompleted (res, first=false) {
   )
   // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
-    if (first) yield put (a_fondsenFetch (0))
+    if (first) yield call (s_fondsenRefresh)
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (user))
     else error ('Unexpected user type ' + user.type)
@@ -217,6 +226,10 @@ export function *s_usersFetch () {
   })
 }
 
+function *s_setPage () {
+  yield call (s_fondsenRefresh)
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
@@ -226,6 +239,8 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
-  ])
 
+    // --- Pagination
+    saga (takeLatest, a_setPage, s_setPage),
+  ])
 }
