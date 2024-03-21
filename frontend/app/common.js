@@ -1,11 +1,11 @@
 import {
   pipe, compose, composeRight,
-  concatTo, lt, bindProp, noop,
+  concatTo, lt, bindProp, noop, die,
   bindTryProp, defaultTo, lets, invoke, ifOk, id, not,
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
-  againstAny,
-  contains, containsV, flip,
+  againstAny, contains, containsV, flip,
+  map, addIndex,
 } from 'stick-js/es'
 
 // --- for spinner
@@ -180,17 +180,34 @@ export function *doApiCall (...args) {
 
 export const requestResults = ({
   Spinner=spinner ('comet'),
+  spinnerProps={},
   onError=ifOk (
     String >> concatTo ('Error: '),
     () => 'Error',
   ),
   onResults=id,
-  onLoading=() => <Spinner/>,
+  onLoading=() => <Spinner {... spinnerProps}/>,
 } = {}) => cata ({
   RequestInit: () => null,
   RequestLoading: (_) => onLoading (),
   RequestError: (err) => err | onError,
   RequestResults: (res) => res | onResults,
+})
+
+// :: (a -> b) -> Request a -> b | undefined
+export const foldWhenRequestResults = (f) => cata ({
+  RequestInit: () => void 8,
+  RequestLoading: () => void 8,
+  RequestError: () => void 8,
+  RequestResults: (res) => f (res),
+})
+
+// :: (a -> b) -> Request a -> b | undefined
+export const toRequestResults = cata ({
+  RequestInit: () => die ('toRequestResults (): got RequestInit'),
+  RequestLoading: () => die ('toRequestResults (): got RequestLoading'),
+  RequestError: () => die ('toRequestResults (): got RequestError'),
+  RequestResults: (res) => res,
 })
 
 // :: (a -> b) -> Maybe a -> b | undefined
@@ -222,3 +239,5 @@ export const notContainedInV = compose2 (containedInV, not)
  */
 
 export const keyDownListen = keyPressListen
+
+export const mapX = addIndex (map)
