@@ -72,7 +72,9 @@ const imageFonds = imageHoutenFrame
 
 const configColors = configTop.focus ('colors')
 const colors = configColors.gets (
-  'highlight', 'highlightAlpha', 'highlight2Alpha', 'highlight2Alpha',
+  'highlight', 'highlightAlpha',
+  'highlight2Alpha', 'highlight2Alpha',
+  'highlight3Alpha', 'highlight3Alpha',
 )
 
 const UserS = styled.div`
@@ -316,20 +318,13 @@ const Header = ({ isLoggedIn, }) => <HeaderS>
 const LogoS = styled.div`
   border: 1px solid black;
   padding: 20px;
+  background: ${colors.highlight3Alpha};
   &, .x__background {
     border-radius: 7px;
   }
   .x__item {
     width: 100%;
     height: 100%;
-  }
-  .x__background {
-    z-index: 1;
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: ${colors.highlight2Alpha};
-    opacity: 0.8;
   }
   .x__link {
     z-index: 2;
@@ -346,7 +341,6 @@ const LogoS = styled.div`
 
 const Logo = () => <LogoS>
   <Link to='/'>
-    <div className='x__item x__background'/>
     <div className='x__item x__link'>
       <img src={imageLogo}/>
     </div>
