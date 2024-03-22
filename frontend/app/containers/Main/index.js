@@ -641,7 +641,7 @@ const FondsenS = styled.div`
 `
 
 const PaginationWrapperS = styled.div`
-  width: 800px;
+  width: 460px;
   margin: auto;
   margin-bottom: 30px;
   padding: 20px;

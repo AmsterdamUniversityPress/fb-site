@@ -5,7 +5,7 @@ import styled from 'styled-components'
 
 import 'react-toastify/dist/ReactToastify.css'
 
-const ToastTransition = toastCssTransition({
+const ToastTransition = toastCssTransition ({
   enter: 'Toastify__slide-enter',
   exit: 'Toastify__slide-exit',
   duration: [300, 100],
@@ -15,6 +15,13 @@ const ToastTransition = toastCssTransition({
 const ToastContainerS = styled (ToastContainer)`
   .Toastify__toast--error {
     background: #b21515;
+    color: white;
+    .Toastify__close-button {
+      color: white;
+    }
+  }
+  .Toastify__toast--info {
+    color: black;
   }
 `
 
