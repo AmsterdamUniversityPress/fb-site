@@ -84,6 +84,12 @@ export const selectGetInstitutionName = select (
 
 // ------ type: user. Only use these once you're sure that userUser is a Just.
 
+// export const selectGetPrivilege = select (
+  // 'selectGetPrivilege',
+  // [selectUserUser],
+  // (user) => () => user | toJust | prop ('privilege'),
+// )
+
 export const selectGetFirstName = select (
   'selectGetFirstName',
   [selectUserUser],

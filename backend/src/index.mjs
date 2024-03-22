@@ -27,6 +27,8 @@ import { init as initDb,
   loggedInAdd as dbLoggedInAdd,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
+  // privilegeAdd as dbPrivilegeAdd,
+  // privilegeGet as dbPrivilegeGet,
   privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
 } from './db.mjs';
@@ -114,6 +116,7 @@ const doDbCallDie = (dbFunc, vals) => doDbCall (
   vals,
 )
 
+// const getPrivilege = (email) => doDbCallDie (dbPrivilegeGet, [ email, ])
 // --- @throws
 const getLoggedIn = (email) => doDbCallDie (dbLoggedInGet, [ email, ])
 // --- @throws

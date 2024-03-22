@@ -50,15 +50,15 @@ const createTables = [
   )`)
 ]
 
-// @todo remove
-const daysInFuture = (n) => Number (new Date ()) + n*24*3600*1000
-const daysInPast = daysInFuture << multiply (-1)
-
 const initTestData = (encryptPassword) => lets (
   () => encryptPassword,
   (encrypt) => doEither (
     () => userAdd ('allen@alleycat.cc', 'allen', 'fishmaster', ['user'], encrypt ('appel')),
     () => userAdd ('arie@alleycat.cc', 'arie', 'bombarie', ['user', 'user-admin'], encrypt ('peer')),
+    // () => privilegeAdd ('sjdfjsdfjsdfj@alleycat.cc', 'user'),
+    // () => privilegeAdd ('expired@alleycat.cc', 'user'),
+    // () => privilegeAdd ('arie@alleycat.cc', 'admin-user'),
+    // () => privilegeAdd ('allen@alleycat.cc', 'user'),
   ),
 )
 
@@ -94,6 +94,12 @@ export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
 
+// export const userInfoGet = (email) => lets (
+  // () => privilegeGet (email),
+  // () => userGet (email),
+  // (privilege, info) => (privilege, info)
+// )
+
 const userIdGet = (email) => sqliteApi.getPluck (
   SB ('select id from user where email = ?', email),
 )
@@ -124,6 +130,17 @@ export const loggedInRemove = (email) => doEither (
     SB (`delete from loggedIn where id = ?`, userId),
   ),
 )
+
+// export const privilegeAdd = (email, privilege) => doEither (
+  // () => userIdGet (email),
+  // (userId) => sqliteApi.run (
+    // SB (`insert into privilege (userId, privilege) values (?, ?)`, [ userId, privilege ]),
+  // )
+// )
+
+// export const privilegeGet = (email) => sqliteApi.getPluck (
+  // SB ('select p.privilege from user u outer left join privilege p on u.id = p.userId where u.email = ?', email)
+// )
 
 export const usersGet = () => sqliteApi.all (
   S ('select email, firstName, lastName from user'),
