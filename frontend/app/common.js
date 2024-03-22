@@ -162,11 +162,15 @@ export const reducer = 'debug.reducers' | configTop.get | reducerTell
 export const initSelectors = 'debug.selectors' | configTop.get | initSelectorsTell
 
 const toastXOptions = recurry (3) (
-  (f) => (opts) => (msg) => toast [f] (msg, opts | mergeToM ({
-    transition: ToastBounce,
-    autoClose: 5000,
-    closeOnClick: true,
-  })),
+  // --- msg can be nil (for example if there's a user error with no umsg), in which case the toast won't show at all.
+  (f) => (opts) => (msg) => lets (
+    () => msg ?? 'Oops! Something went wrong',
+    (msg_) => toast [f] (msg_, opts | mergeToM ({
+      transition: ToastBounce,
+      autoClose: 5000,
+      closeOnClick: true,
+    })),
+  ),
 )
 
 export const toastErrorOptions = toastXOptions ('error')
