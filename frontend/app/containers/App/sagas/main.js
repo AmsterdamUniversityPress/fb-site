@@ -237,9 +237,9 @@ function *s_setNumPerPageIdx () {
   yield call (s_fondsenRefresh)
 }
 
-function *s_sendWelcomeEmail (email, again=true) {
-  function *done () {
-    yield call (s_sendWelcomeEmailCompleted, email, again)
+function *s_sendWelcomeEmail (email) {
+  function *done (res) {
+    yield call (s_sendWelcomeEmailCompleted, res, email)
   }
   yield call (doApiCall, {
     url: '/api/user/send-welcome-email',
@@ -248,8 +248,14 @@ function *s_sendWelcomeEmail (email, again=true) {
   })
 }
 
-function *s_sendWelcomeEmailCompleted (email, again) {
-  if (again) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email)
+function *s_sendWelcomeEmailCompleted (res, email) {
+  const ok = res | requestCompleteFold (
+    // --- ok
+    () => true,
+    (umsg) => (error (umsg), false),
+    () => false,
+  )
+  if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email)
 }
 
 export default function *sagaRoot () {

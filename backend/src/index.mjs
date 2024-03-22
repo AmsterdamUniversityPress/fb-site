@@ -11,6 +11,9 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 
+import nodemailer from 'nodemailer'
+
+import { recover, then, } from 'alleycat-js/es/async'
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, } from 'alleycat-js/es/io';
 import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
@@ -47,11 +50,12 @@ import {
 
 const configTop = config | configure.init
 
-const { authorizeByIP, serverPort, } = tryCatch (
+const { authorizeByIP, email: emailOpts, serverPort, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'authorizeByIP',
+    'email',
     'serverPort',
   ),
 )
@@ -80,6 +84,12 @@ const data = appEnv | lookupOnOrDie (
 )
 
 const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
+
+const emailTransporter = nodemailer.createTransport ({
+  connectionTimeout: 3000,
+  dnsTimeout: 3000,
+  ... emailOpts,
+})
 
 const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
@@ -273,10 +283,21 @@ const init = ({ port, }) => express ()
     }
     return res | sendStatus (200, null)
   })
-  | secureGet (privsUser) ('/user/send-welcome-email', (_req, res) => {
-    console.log ('todo, send mail')
-    return res | sendStatus (200, null)
+  | secureGet (privsAdminUser) ('/user/send-welcome-email', (_req, res) => {
+    emailTransporter.sendMail ({
+      from: '"FB Online" <fb@alleycat.cc>',
+      to: 'xxx',
+      subject: 'Hallo van FB',
+      text: 'welkom',
+      html: '<b>welkom</b>',
+    })
+    | then ((_mailInfo) => res | sendStatus (200, null))
+    | recover ((e) => {
+      warn (decorateRejection ('Unable to send email: ', e))
+      res | sendStatusEmpty (500)
+    })
   })
+
   | secureGet (privsAdminUser) ('/users', (_req, res) => {
     // @todo kattenluik has a nice doCallResults function for this...
     const users = doDbCallDie (dbUsersGet, [])
