@@ -26,6 +26,24 @@ const { dbPath, } = tryCatch (
 )
 const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 
+// --- @todo find a good place for this
+/* The bsqlite3 library lets us wrap an arbitrary function in db.transaction () and then run it.
+ * It's fine if those functions themselves open and close transactions (which means we are free to
+ * use `runs`).
+ * When the function exits the transaction is committed and if an error is thrown it rolls back.
+ * This function lets us wrap a series of Either functions in a transaction by making sure that an
+ * error is first seen by the `transaction` function, so that the roll back happens, and then
+ * wrapped in Left (or Right for ok).
+ */
+const doEitherWithTransaction = (... fs) => tryCatch (
+  (res) => Right (res),
+  (err) => Left (err),
+  () => sqliteApi.db.transaction (() => doEither (... fs) | fold (
+    (e) => die ('Rolling back transaction due to error:', e),
+    (r) => r,
+  )) (),
+)
+
 const createTables = [
   S (`drop table if exists user`),
   S (`drop table if exists loggedIn`),
@@ -90,14 +108,26 @@ export const userAdd = (email, firstName, lastName, privileges, password) => doE
   )),
 )
 
+export const userRemove = (email) => doEitherWithTransaction (
+  () => sqliteApi.getPluck (SB (
+    `select id from user where email = ?`, email,
+  )),
+  (userId) => sqliteApi.run (SB (
+    `delete from userPrivilege where userId = ?`, userId,
+  )),
+  () => sqliteApi.run (SB (
+    `delete from user where email = ?`, email,
+  )),
+)
+
 export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
 
-// export const userInfoGet = (email) => lets (
+// export const userInfoGet = (email) => doEither (
   // () => privilegeGet (email),
-  // () => userGet (email),
-  // (privilege, info) => (privilege, info)
+// (privilege) => userGet (email) | map ((info) => [privilege, info])
+  // ([privilege, info]) => [privilege, info]
 // )
 
 const userIdGet = (email) => sqliteApi.getPluck (
