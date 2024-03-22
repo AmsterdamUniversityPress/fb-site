@@ -163,6 +163,7 @@ const customErrorHandler = (err, _req, res, _next) => {
   }
   // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
   const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
+  // --- @todo the umsg which gets sent here is often a string, not an object.
   // --- note that `imsg` gets logged by us but we don't send it (it's internal to us)
   const { status, umsg=defaultMessage, imsg, } = err
   if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
