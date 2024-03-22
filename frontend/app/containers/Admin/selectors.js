@@ -16,4 +16,6 @@ const { select, selectTop, selectVal, } = initSelectors (
 )
 
 export const selectUsers = selectVal ('users')
-export const selectEmailRequestLoading = selectVal ('emailRequestLoading')
+export const selectEmailRequestPending = selectVal ('emailRequestPending')
+export const selectUserAddPending = selectVal ('userAddPending')
+export const selectUserRemovePending = selectVal ('userRemovePending')

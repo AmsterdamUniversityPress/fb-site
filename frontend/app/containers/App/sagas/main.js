@@ -25,6 +25,10 @@ import {
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
   sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
+  userRemove as a_userRemove,
+  userRemoveCompleted as a_userRemoveCompleted,
+  userAdd as a_userAdd,
+  userAddCompleted as a_userAddCompleted,
   usersFetch as a_usersFetch,
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
@@ -219,7 +223,34 @@ function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
   })
 }
 
-export function *s_usersFetch () {
+function *s_userAdd ({ email, firstName, lastName, privileges }) {
+  console.log ('adding user', firstName, lastName, email, privileges)
+  yield call (doApiCall, {
+    url: '/api/user-admin',
+    optsMerge: {
+      method: 'PUT',
+      body: JSON.stringify ({
+        data: { email, firstName, lastName, privileges }
+      })
+    },
+    continuation: EffAction (a_userAddCompleted),
+    oops: toastError,
+  })
+}
+
+function *s_userRemove (email) {
+  console.log ('removing', email)
+  yield call (doApiCall, {
+    url: '/api/user-admin/' + email,
+    optsMerge: {
+      method: 'DELETE',
+    },
+    coninuation: EffAction (a_userRemoveCompleted),
+    oops: toastError,
+  })
+}
+
+function *s_usersFetch () {
   yield call (doApiCall, {
     url: '/api/users',
     continuation: EffAction (a_usersFetchCompleted),
@@ -255,8 +286,8 @@ function *s_sendWelcomeEmail (email) {
   })
 }
 
-function *s_sendWelcomeEmailCompleted ({ res, email, }) {
-  const ok = res | requestCompleteFold (
+function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
+  const ok = rcomplete | requestCompleteFold (
     // --- ok
     () => true,
     (umsg) => (error (umsg), false),
@@ -276,6 +307,8 @@ export default function *sagaRoot () {
     saga (takeEvery, a_sendWelcomeEmail, s_sendWelcomeEmail),
     saga (takeLatest, a_sendWelcomeEmailCompleted, s_sendWelcomeEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
+    saga (takeLatest, a_userRemove, s_userRemove),
+    saga (takeLatest, a_userAdd, s_userAdd),
 
     // --- Pagination
     saga (takeLatest, a_setPage, s_setPage),

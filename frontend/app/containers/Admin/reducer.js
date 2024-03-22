@@ -11,12 +11,18 @@ import {
   sendWelcomeEmail,
   sendWelcomeEmailCompleted,
   usersFetchCompleted,
+  userAdd,
+  userAddCompleted,
+  userRemove,
+  userRemoveCompleted,
 } from '../App/actions/main'
 
 import { reducer, } from '../../common'
 
 export const initialState = {
-  emailRequestLoading: new Set (),
+  emailRequestPending: new Set (),
+  userAddPending: false,
+  userRemovePending: new Set (),
   users: RequestInit,
 }
 
@@ -28,8 +34,24 @@ const setAdd = recurry (2) (
 )
 
 const reducerTable = makeReducer (
-  sendWelcomeEmail, (email) => update ('emailRequestLoading', setAdd (email)),
-  sendWelcomeEmailCompleted, ({ email, ... _ }) => update ('emailRequestLoading', setRemove (email)),
+  sendWelcomeEmail, (email) => update (
+    'emailRequestPending', setAdd (email),
+  ),
+  sendWelcomeEmailCompleted, ({ email, ... _ }) => update (
+    'emailRequestPending', setRemove (email),
+  ),
+  userAdd, (... _) => assoc (
+    'userAddPending', true,
+  ),
+  userAddCompleted, (... _ ) => assoc (
+    'userAddPending', false,
+  ),
+  userRemove, (email) => update (
+    'userRemovePending', setAdd (email),
+  ),
+  userRemoveCompleted, ({ email, ... _ }) => update (
+    'userRemovePending', setRemove (email),
+  ),
   usersFetchCompleted, (rcomplete) => assoc (
     'users', rcomplete | cata ({
       RequestCompleteError: (e) => RequestError (e),

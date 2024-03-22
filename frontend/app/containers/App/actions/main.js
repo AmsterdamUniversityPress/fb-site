@@ -84,16 +84,26 @@ export const sendWelcomeEmail = action (
 )
 
 export const sendWelcomeEmailCompleted = action (
-  (res, email) => ({ res, email, }),
+  (rcomplete, email) => ({ rcomplete, email, }),
   'sendWelcomeEmailCompleted',
 )
 
 export const userAdd = action (
-  (firstName, lastName, email) => [firstName, lastName, email],
+  ( email, firstName, lastName, privileges ) => ({ email, firstName, lastName, privileges, }),
   'userAdd',
+)
+
+export const userAddCompleted = action (
+  (rcomplete, firstName, lastName, email) => ({ rcomplete, firstName, lastName, email, }),
+  'userAddCompleted',
 )
 
 export const userRemove = action (
   (email) => email,
   'userRemove',
+)
+
+export const userRemoveCompleted = action (
+  (rcomplete, email) => ({ res: rcomplete, email, }),
+  'userRemoveCompleted',
 )
