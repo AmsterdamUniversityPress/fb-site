@@ -24,7 +24,8 @@ import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import { init as initDb,
-  // userAdd as dbUserAdd,
+  userAdd as dbUserAdd,
+  userRemove as dbUserRemove,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
   loggedInAdd as dbLoggedInAdd,
@@ -230,9 +231,11 @@ const alleycatAuth = authFactory.create ().init ({
 })
 
 const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
+const secureDelete = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('delete')
 const secureGet = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('get')
 const securePatch = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('patch')
 const securePost = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('post')
+const securePut = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('put')
 
 const privsUser = new Set (['user'])
 const privsAdminUser = new Set (['admin-user'])
@@ -282,6 +285,22 @@ const init = ({ port, }) => express ()
     if (!updateUserPassword (email, hashPassword (newPassword))) {
       return res | sendStatusEmpty (500)
     }
+    return res | sendStatus (200, null)
+  })
+  | secureDelete (privsAdminUser) ('/user-admin/:email', (req, res) => {
+    const email = req.params.email
+    // const email = 'arie@alleycat.cc'
+    console.log ('email', email)
+    doDbCallDie (dbUserRemove, [email])
+    return res | sendStatus (200, null)
+  })
+  | securePut (privsAdminUser) ('/user-admin/', (req, res) => {
+    // @todo where to get the (new) password from?
+    const password = "boom"
+    console.log ('addUser')
+    const { email, firstName, lastName, privileges, } = req.body.data
+    console.log ('', email, firstName, lastName, privileges)
+    doDbCallDie (dbUserAdd, [email, firstName, lastName, privileges, password])
     return res | sendStatus (200, null)
   })
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
