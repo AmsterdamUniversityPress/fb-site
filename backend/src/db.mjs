@@ -114,7 +114,7 @@ export const userPasswordUpdate = (email, hashed_password) => doEither (
 export const loggedInAdd = (email) => doEither (
   () => userIdGet (email),
   (userId) => sqliteApi.run (
-    SB (`insert into loggedIn (userId) values (?)`, userId),
+    SB (`insert or ignore into loggedIn (userId) values (?)`, userId),
   )
 )
 
