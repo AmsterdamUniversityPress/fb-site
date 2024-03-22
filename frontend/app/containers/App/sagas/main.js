@@ -243,6 +243,12 @@ function *s_sendWelcomeEmail (email) {
   }
   yield call (doApiCall, {
     url: '/api/user/send-welcome-email',
+    optsMerge: {
+      method: 'POST',
+      body: JSON.stringify ({
+        data: { email, },
+      }),
+    },
     continuation: EffSaga (done),
     oops: toastError,
   })

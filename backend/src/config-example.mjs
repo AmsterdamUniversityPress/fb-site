@@ -25,6 +25,7 @@ export const config = {
       user: 'xxx@yourdomain.xx',
       pass: 'xxx',
     },
+    fromString: '"Your Name" <xxx@yourdomain.xx>',
   },
   jwtSecret: Nothing,
   serverPort: 4444,

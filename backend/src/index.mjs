@@ -41,7 +41,7 @@ import {
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
 } from './util.mjs'
-import { getAndValidateQuery, } from './util-express.mjs'
+import { getAndValidateQuery, getAndValidateBodyParams, } from './util-express.mjs'
 
 import {
   authFactory,
@@ -232,6 +232,7 @@ const alleycatAuth = authFactory.create ().init ({
 const useAuthMiddleware = alleycatAuth.getUseAuthMiddleware ()
 const secureGet = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('get')
 const securePatch = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('patch')
+const securePost = (privs) => alleycatAuth.secureMethod ({ authorizeData: privs, }) ('post')
 
 const privsUser = new Set (['user'])
 const privsAdminUser = new Set (['admin-user'])
@@ -283,21 +284,24 @@ const init = ({ port, }) => express ()
     }
     return res | sendStatus (200, null)
   })
-  | secureGet (privsAdminUser) ('/user/send-welcome-email', (_req, res) => {
-    emailTransporter.sendMail ({
-      from: '"FB Online" <fb@alleycat.cc>',
-      to: 'xxx',
-      subject: 'Hallo van FB',
-      text: 'welkom',
-      html: '<b>welkom</b>',
-    })
-    | then ((_mailInfo) => res | sendStatus (200, null))
-    | recover ((e) => {
-      warn (decorateRejection ('Unable to send email: ', e))
-      res | sendStatusEmpty (500)
-    })
-  })
-
+  | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
+      ['email', ok],
+    ],
+    ({ res }, to) => {
+      emailTransporter.sendMail ({
+        to,
+        from: emailOpts.fromString,
+        subject: 'Hallo van FB',
+        text: 'welkom',
+        html: '<b>welkom</b>',
+      })
+      | then ((_mailInfo) => res | sendStatus (200, null))
+      | recover ((e) => {
+        warn (decorateRejection ('Unable to send email: ', e))
+        res | sendStatusEmpty (500)
+      })
+    },
+  ))
   | secureGet (privsAdminUser) ('/users', (_req, res) => {
     // @todo kattenluik has a nice doCallResults function for this...
     const users = doDbCallDie (dbUsersGet, [])
