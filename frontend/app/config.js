@@ -64,6 +64,7 @@ export default {
     },
   },
   general: {
+    appElement: '#app',
     alwaysMobile: false,
     helloInterval: 60000,
   },
