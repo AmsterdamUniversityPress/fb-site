@@ -67,15 +67,15 @@ const composeAuthMiddlewares = (middlewares) => {
       // --- not authorized
       (lastUmsg) => lets (
         () => lastUmsg | ifOk (() => [lastUmsg], () => []),
-        (lastUmsg_) => umsgs | concat (lastUmsg_) | join (','),
-        (_, umsg) => next ({ umsg, status: 499, }),
+        (lastUmsg_) => umsgs | concat (lastUmsg_) | join (', '),
+        (_, umsg) => next ({ umsg, status: 499, sendObject: true, }),
       ),
       // --- internal error
-      (imsg) => next ({ imsg, status: 599, }),
+      (imsg) => next ({ imsg, status: 599, sendObject: true, }),
     ))
     | recover ((e) => lets (
       () => e | decorateRejection ('composeAuthMiddlewares (): '),
-      (imsg) => next ({ imsg, status: 599, }),
+      (imsg) => next ({ imsg, status: 599, sendObject: true, }),
     ))
   }
 }
@@ -102,13 +102,13 @@ const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, nu
     // called or 2) the JWT could not be decoded.
 
     // --- case 1) with an internal error, or some other internal error perhaps -> return 599
-    if (err) return next ({ status: 599, imsg: err, })
+    if (err) return next ({ status: 599, imsg: err, sendObject: true, })
     const { reason='(reason unknown)', details, } = user
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
-    // --- @future 499 is currently hardcoded
-    if (not (details)) return next ({ status: 499, umsg: 'Unable to authenticate: ' + reason, })
-    if (not (details.username)) return next ({ status: 599, imsg: 'Missing username', })
+    // --- @future 499 and 599 are currently hardcoded
+    if (not (details)) return next ({ status: 499, umsg: 'Unable to authenticate: ' + reason, sendObject: true, })
+    if (not (details.username)) return next ({ status: 599, imsg: 'Missing username', sendObject: true, })
     isAuthorized (details.username, req)
     | then (([authorized, reason]) => authorized | ifTrue (
       () => {
@@ -118,24 +118,23 @@ const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, nu
         req.user = details
         return next (null)
       },
-      () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), }),
+      () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), sendObject: true, }),
     ))
-    | recover ((e) => next ({ status: 599, imsg: e, }))
+    | recover ((e) => next ({ status: 599, imsg: e, sendObject: true, }))
   }) (req, res, next)
 }
 
 const requestAuthenticate = (getUserinfoRequest, isLoggedInRequest, isAuthorized) => (req, _res, next) => {
-  if (nil (isLoggedInRequest)) return next ({ status: 499, })
+  if (nil (isLoggedInRequest)) return next ({ status: 499, sendObject: true, })
   let userinfo
   startP ()
   | then (() => isLoggedInRequest (req))
   | then (([loggedIn, reason]) => loggedIn | ifTrue (
     () => {
       userinfo = getUserinfoRequest (req)
-      if (nil (userinfo)) return next ({ status: 599, imsg: 'requestAuthenticate (): no userinfo', })
-      // returnnext ()
+      if (nil (userinfo)) return next ({ status: 599, imsg: 'requestAuthenticate (): no userinfo', sendObject: true, })
     },
-    () => next ({ status: 499, umsg: 'Not authenticated: ' + (reason ?? '(no reason)'), }),
+    () => next ({ status: 499, umsg: 'Not authenticated: ' + (reason ?? '(no reason)'), sendObject: true, }),
   ))
   | then (() => isAuthorized (null, req))
   | then (([authorized, reason]) => authorized | ifTrue (
@@ -143,13 +142,13 @@ const requestAuthenticate = (getUserinfoRequest, isLoggedInRequest, isAuthorized
       req.user = { userinfo, username: null, }
       return next ()
     },
-    () => next ({ status: 499, umsg: 'Not authorized: ' + (reason ?? '(no reason)'), }),
+    () => next ({ status: 499, umsg: 'Not authorized: ' + (reason ?? '(no reason)'), sendObject: true, }),
   ))
   | recover ((e) => lets (
     // --- in case it's an exception
     () => e.toString (),
     (es) => es | decorateRejection ('requestAuthenticate (): isLoggedInRequest: '),
-    (_, imsg) => next ({ imsg, status: 599, }),
+    (_, imsg) => next ({ imsg, status: 599, sendObject: true, }),
   ))
 }
 
@@ -162,12 +161,15 @@ const customErrorHandler = (err, _req, res, _next) => {
     return res | sendStatusEmpty (500)
   }
   // --- custom error with code (`umsg` and `imsg` are assumed to be strings)
-  const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
-  // --- @todo the umsg which gets sent here is often a string, not an object.
-  // --- note that `imsg` gets logged by us but we don't send it (it's internal to us)
-  const { status, umsg=defaultMessage, imsg, } = err
+  // const defaultMessage = { umsg: 'Internal error', imsg: 'Internal error', }
+  // --- note that this `imsg` is internal to us (we log it here and don't send it), as opposed to
+  // the other `imsg` which we may send along with the response body.
+  const { status, umsg='Internal error', imsg, sendObject=false, } = err
   if (status | between (500, 599)) warn ('Middleware error:', umsg, imsg)
-  return res | sendStatus (status, umsg)
+  return lets (
+    () => sendObject ? { umsg, } : umsg,
+    (body) => res | sendStatus (status, body),
+  )
 }
 
 const initPassportStrategies = ({
@@ -387,7 +389,7 @@ const init = ({
 }
 
 const authProto = {
-  // --- this had the side effect of initialising the passport strategies inside the passport
+  // --- this has the side effect of initialising the passport strategies inside the passport
   // module, probably as mutable state.
   init (... args) {
     const { useAuthMiddleware, authMiddleware, } = init (... args)
