@@ -20,19 +20,23 @@ import {} from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
+  selectEmailRequestLoading,
   selectUsers,
 } from './selectors'
 
-import { sendWelcomeEmail, userAdd, userRemove, } from '../App/actions/main'
+import { sendWelcomeEmail, userAdd, userRemove, usersFetch, } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
 import { Button, } from '../../components/shared'
+import { spinner, } from '../../alleycat-components'
 
 import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 
 const configTop = configure.init (config)
 const colorHighlight = configTop.get ('colors.highlightAlpha')
+
+const Spinner = spinner ('comet')
 
 const AdminS = styled.div`
   min-height: 300px;
@@ -46,7 +50,7 @@ const AdminS = styled.div`
   font-size: 20px;
   > .x__main {
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: auto auto auto auto;
     grid-auto-rows: 90px;
     > .x__header {
       border-bottom: 2px solid #00000022;
@@ -68,13 +72,14 @@ const AdminS = styled.div`
       > .col0 {
         border-left: 2px solid #00000022;
       }
-      > .col2 {
+      > .col3 {
         border-right: 2px solid #00000022;
+        min-width: 32px;
       }
       > .col0, > .col1 {
         border-right: 1px solid #00000022;
       }
-      > .col0, > .col1, > .col2 {
+      > .col0, > .col1, > .col2, .col3 {
         padding: 10px;
         border-bottom: 2px solid #00000022;
         display: flex;
@@ -118,16 +123,18 @@ const AdminS = styled.div`
 
 const dispatchTable = {
   sendWelcomeEmailDispatch: sendWelcomeEmail,
+  usersFetchDispatch: usersFetch,
 }
 
 const selectorTable = {
   users: selectUsers,
+  emailRequestLoading: selectEmailRequestLoading,
 }
 
 export default container (
   ['Admin', dispatchTable, selectorTable],
   (props) => {
-    const { users, sendWelcomeEmailDispatch, } = props
+    const { users, emailRequestLoading, sendWelcomeEmailDispatch, usersFetchDispatch, } = props
     const navigate = useNavigate ()
     const onClickClose = useCallbackConst (() => {
       navigate ('/')
@@ -140,6 +147,10 @@ export default container (
       (email) => sendWelcomeEmailDispatch (email),
       [sendWelcomeEmailDispatch],
     )
+
+    useEffect (() => {
+      usersFetchDispatch ()
+    }, [usersFetchDispatch])
 
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
@@ -163,8 +174,8 @@ export default container (
             <div className='col1 x__header'>
               E-mailadres
             </div>
-            <div className='col2 x__header'>
-            </div>
+            <div className='col2 x__header'/>
+            <div className='col3 x__header'/>
             {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
               <div className='col0 x__name'>
                 {firstName} {lastName}
@@ -181,6 +192,9 @@ export default container (
                     gebruiker verwijderen
                   </Button>
                 </div>
+              </div>
+              <div className='col3'>
+                {emailRequestLoading.has (email) && <Spinner size={20}/>}
               </div>
             </div>
             )}

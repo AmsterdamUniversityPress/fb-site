@@ -83,6 +83,11 @@ export const sendWelcomeEmail = action (
   'sendWelcomeEmail',
 )
 
+export const sendWelcomeEmailCompleted = action (
+  (res, email) => ({ res, email, }),
+  'sendWelcomeEmailCompleted',
+)
+
 export const userAdd = action (
   (firstName, lastName, email) => [firstName, lastName, email],
   'userAdd',

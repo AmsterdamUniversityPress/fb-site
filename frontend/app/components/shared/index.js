@@ -20,8 +20,6 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, } from '../../common'
 
-import { spinner, } from '../../alleycat-components'
-
 import config from '../../config'
 
 const configTop = config | configure.init

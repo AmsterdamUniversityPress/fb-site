@@ -22,7 +22,6 @@ import {
   logOut,
   passwordUpdate,
   passwordUpdateDone,
-  usersFetch,
 } from '../App/actions/main'
 
 import {
@@ -219,13 +218,12 @@ const User = container (
   ['User',
     {
       logOutDispatch: logOut,
-      usersFetchDispatch: usersFetch,
     },
     {
       getUserType: selectGetUserType,
       hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
     }],
-  ({ getUserType, hasPrivilegeUserAdmin, logOutDispatch, usersFetchDispatch, }) => {
+  ({ getUserType, hasPrivilegeUserAdmin, logOutDispatch, }) => {
     const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
@@ -252,10 +250,9 @@ const User = container (
     const onClickAdmin = useCallback (
       () => {
         setOpen (false)
-        usersFetchDispatch ()
         navigate ('/user-admin')
       },
-      [usersFetchDispatch, navigate])
+      [navigate])
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
@@ -937,10 +934,11 @@ const Contents = container (
 export default container (
   ['Main', {}, {
     institutionLoggedIn: selectInstitutionLoggedIn,
+    hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
     userLoggedIn: selectUserLoggedIn,
   }],
   (props) => {
-    const { isMobile, page, institutionLoggedIn, userLoggedIn, } = props
+    const { isMobile, page, hasPrivilegeUserAdmin, institutionLoggedIn, userLoggedIn, } = props
     const navigate = useNavigate ()
 
     useWhy ('Main', props)
@@ -959,6 +957,7 @@ export default container (
     useEffect (() => {
       if (not (isLoggedIn)) return navigate ('/login')
       if (isUserLoggedIn && page === 'login') return navigate ('/')
+      if (not (hasPrivilegeUserAdmin) && page === '/user-admin') return navigate ('/')
     }, [isLoggedIn, isUserLoggedIn, page, navigate])
 
     if (not (isLoggedIn) && page !== 'login') return

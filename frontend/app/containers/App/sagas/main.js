@@ -4,7 +4,7 @@ import {
   id, ifOk, concatTo, tap, join,
 } from 'stick-js/es'
 
-import { all, call, put, select, takeLatest, delay, } from 'redux-saga/effects'
+import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
 import { requestCompleteFold, requestJSONStdOpts, noParseCodes, } from 'alleycat-js/es/fetch'
@@ -24,6 +24,7 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
+  sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
   usersFetch as a_usersFetch,
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
@@ -239,7 +240,7 @@ function *s_setNumPerPageIdx () {
 
 function *s_sendWelcomeEmail (email) {
   function *done (res) {
-    yield call (s_sendWelcomeEmailCompleted, res, email)
+    yield put (a_sendWelcomeEmailCompleted (res, email))
   }
   yield call (doApiCall, {
     url: '/api/user/send-welcome-email',
@@ -254,7 +255,7 @@ function *s_sendWelcomeEmail (email) {
   })
 }
 
-function *s_sendWelcomeEmailCompleted (res, email) {
+function *s_sendWelcomeEmailCompleted ({ res, email, }) {
   const ok = res | requestCompleteFold (
     // --- ok
     () => true,
@@ -272,7 +273,8 @@ export default function *sagaRoot () {
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
-    saga (takeLatest, a_sendWelcomeEmail, s_sendWelcomeEmail),
+    saga (takeEvery, a_sendWelcomeEmail, s_sendWelcomeEmail),
+    saga (takeLatest, a_sendWelcomeEmailCompleted, s_sendWelcomeEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
 
     // --- Pagination
