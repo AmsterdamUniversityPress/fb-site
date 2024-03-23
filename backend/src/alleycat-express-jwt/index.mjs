@@ -98,8 +98,8 @@ const composeAuthMiddlewares = (middlewares) => {
 
 const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, null]))) => (req, res, next) => {
   passport.authenticate ('jwt', (err, user, _info, _status) => {
-    // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy was
-    // called or 2) the JWT could not be decoded.
+    // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy (in the
+    // `passport.use ('jwt', ...)` block was called or 2) the JWT could not be decoded.
 
     // --- case 1) with an internal error, or some other internal error perhaps -> return 599
     if (err) return next ({ status: 599, imsg: err, sendObject: true, })
@@ -206,7 +206,8 @@ const initPassportStrategies = ({
       secretOrKey: jwtSecret,
     },
     // --- once we're here, it means that the JWT was valid and we were able to decode it.
-    (req, { username }, done) => {
+    // --- `iat` is a timestamp (seconds resolution) which is put there automatically.
+    (req, { username, iat: _iat, }, done) => {
       return checkLoggedIn (username, req)
       | then (([userinfo, reason]) => done (
         null,
