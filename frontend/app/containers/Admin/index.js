@@ -152,6 +152,7 @@ export default container (
       userRemovePending, userAddPending, emailRequestPending,
     } = props
 
+    const [emailToRemove, setEmailToRemove] = useState (null)
     const [removeDialogOpen, setRemoveDialogOpen] = useState (false)
 
     const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogOpen)
@@ -159,17 +160,21 @@ export default container (
     const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email) || userAddPending
 
     const navigate = useNavigate ()
+
     const onClickClose = useCallbackConst (() => {
       navigate ('/')
     })
-
-    const clickDialogYes = useCallback (
-      (email) => () => {
-        userRemoveDispatch (email)
-        closeRemoveDialog ()
-      },
-      [],
-    )
+    const onClickRemoveCancel = useCallback (() => {
+      closeRemoveDialog ()
+    }, [userRemoveDispatch, emailToRemove])
+    const onClickRemoveConfirm = useCallback (() => {
+      userRemoveDispatch (emailToRemove)
+      closeRemoveDialog ()
+    }, [userRemoveDispatch, emailToRemove])
+    const onClickRemove = useCallback ((email) => {
+      openRemoveDialog ()
+      setEmailToRemove (email)
+    })
     const onClickResendMail = useCallback (
       (email) => sendWelcomeEmailDispatch (email),
       [sendWelcomeEmailDispatch],
@@ -182,8 +187,6 @@ export default container (
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
     useSaga ({ saga, key: 'Admin', })
-
-    const dialogContents = "Weet je zeker dat je de gebruiker wilt verwijderen?"
 
     return <AdminS>
       <div className='x__close' onClick={onClickClose}>
@@ -206,15 +209,27 @@ export default container (
             <div className='col2 x__header'/>
             <div className='col3 x__header'/>
             {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
-              {/*
-              */}
               <Dialog
                 isOpen={removeDialogOpen}
                 onRequestClose={closeRemoveDialog}
+                /* --- @todo did we used to have these?
                 onYes={clickDialogYes (email)}
                 onNo={closeRemoveDialog}
-                contents={dialogContents}
-              />
+                */
+              >
+                <p>
+                  Gebruiker <span className='x__email-to-remove'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
+                </p>
+                <p>
+                  Weet je zeker dat je wil doorgaan?
+                </p>
+                <Button onClick={onClickRemoveConfirm}>
+                  Ja
+                </Button>
+                <Button onClick={onClickRemoveCancel}>
+                  Nee
+                </Button>
+              </Dialog>
               <div className='col0 x__name'>
                 {firstName} {lastName}
               </div>
@@ -226,7 +241,7 @@ export default container (
                   <Button onClick={() => onClickResendMail (email)}>
                     welkomst e-mail opnieuw versturen
                   </Button>
-                  <Button onClick={openRemoveDialog}>
+                  <Button onClick={() => onClickRemove (email)}>
                     gebruiker verwijderen
                   </Button>
                 </div>
