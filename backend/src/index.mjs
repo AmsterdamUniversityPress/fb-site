@@ -297,9 +297,7 @@ const init = ({ port, }) => express ()
   | securePut (privsAdminUser) ('/user-admin/', (req, res) => {
     // @todo where to get the (new) password from?
     const password = "boom"
-    console.log ('addUser')
     const { email, firstName, lastName, privileges, } = req.body.data
-    console.log ('', email, firstName, lastName, privileges)
     doDbCallDie (dbUserAdd, [email, firstName, lastName, privileges, password])
     return res | sendStatus (200, null)
   })

@@ -1,10 +1,11 @@
 import {
   pipe, compose, composeRight,
   map, noop, F, T,
+  allAgainst,
 } from 'stick-js/es'
 
-import React, { Fragment, useCallback, useEffect, useRef, useState, } from 'react'
-import { useNavigate, } from 'react-router-dom'
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
+import { keyPressListen, useNavigate, } from 'react-router-dom'
 
 import styled from 'styled-components'
 
@@ -35,7 +36,9 @@ import { Button, } from '../../components/shared'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 
-import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import { container, useWhy, keyDownListen, isNotEmptyString,
+  mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
+  requestResults, } from '../../common'
 import config from '../../config'
 
 const configTop = configure.init (config)
@@ -59,8 +62,38 @@ const AdminS = styled.div`
     grid-template-columns: auto auto 300px auto;
     grid-auto-rows: 90px;
     > .x__header {
-      border-bottom: 2px solid #00000022;
       opacity: 0.6;
+      border-bottom: 2px solid #00000022;
+    }
+    > .x__addUser {
+      display: contents;
+      .x__buttons {
+        font-size: 16px;
+      }
+      input {
+        width: 50%;
+        border: 1px solid black;
+      }
+      > .col0 {
+        border-left: 2px solid #00000022;
+      }
+      > .col3 {
+        border-right: 2px solid #00000022;
+        min-width: 32px;
+      }
+      > .col0, > .col1 {
+        border-right: 1px solid #00000022;
+      }
+      > .col0, > .col1, > .col2, .col3 {
+        padding: 10px;
+        border-bottom: 2px solid #00000022;
+        display: flex;
+        align-items: center;
+        > * {
+          vertical-align: middle;
+          flex: 0 0 auto;
+        }
+      }
     }
     > .data-row {
       font-size: 18px;
@@ -155,6 +188,10 @@ export default container (
 
     const [emailToRemove, setEmailToRemove] = useState (null)
     const [removeDialogOpen, setRemoveDialogOpen] = useState (false)
+    const [firstName, setFirstName] = useState ('')
+    const [lastName, setLastName] = useState ('')
+    const [email, setEmail] = useState ('')
+    const [privileges, setPrivileges] = useState ([])
 
     const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogOpen)
     const openRemoveDialog = useCallbackConst (T >> setRemoveDialogOpen)
@@ -179,6 +216,41 @@ export default container (
     const onClickResendMail = useCallback (
       (email) => sendWelcomeEmailDispatch (email),
       [sendWelcomeEmailDispatch],
+    )
+
+    const onChangeFirstName = useCallbackConst (
+      (event) => setFirstName (event.target.value),
+    )
+    const onChangeLastName = useCallbackConst (
+      (event) => setLastName (event.target.value),
+    )
+    const onChangeEmail = useCallbackConst (
+      (event) => setEmail (event.target.value),
+    )
+    const onChangePrivileges = useCallbackConst (
+      (event) => setPrivileges ([event.target.value]),
+    )
+    const doUserAdd = useCallback (
+      () => userAddDispatch (email, firstName, lastName, privileges),
+      [firstName, lastName, email, privileges, userAdd],
+    )
+    const canUserAdd = useMemo (
+      () => [firstName, lastName, email, privileges] | allAgainst (isNotEmptyString),
+      [firstName, lastName, email, privileges],
+    )
+    const onKeyDownInput = useCallback (
+      (event) => event | keyDownListen (
+        () => {
+          event.preventDefault ()
+          canUserAdd && doUserAdd ()
+        },
+        'Enter',
+      ),
+      [canUserAdd, doUserAdd],
+    )
+    const onClickUserAdd = useCallback (
+      () => doUserAdd (),
+      [doUserAdd]
     )
 
     useEffect (() => {
@@ -252,6 +324,25 @@ export default container (
               </div>
             </div>
             )}
+            <div className='x__addUser'>
+              <div className='col0'>
+                <input type='text' onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
+                <input type='text' onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
+              </div>
+              <div className='col1'>
+                <input type='text' onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
+              </div>
+              <div className='col2'>
+                <input type='text' onChange={onChangePrivileges} onKeyDown={onKeyDownInput}/>
+              </div>
+              <div className='col3'>
+                <div className='x__buttons'>
+                  <Button onClick={onClickUserAdd}>
+                    gebruiker toevoegen
+                  </Button>
+                </div>
+              </div>
+            </div>
           </>
         })}
       </div>
