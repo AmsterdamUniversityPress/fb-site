@@ -238,14 +238,20 @@ function *s_userAdd ({ email, firstName, lastName, privileges }) {
   })
 }
 
+function *s_userRemoveCompleted (_rcomplete) {
+  yield put (a_usersFetch ())
+}
+
 function *s_userRemove (email) {
-  console.log ('removing', email)
+  function *done (rcomplete) {
+    yield put (a_userRemoveCompleted (rcomplete, email))
+  }
   yield call (doApiCall, {
     url: '/api/user-admin/' + email,
     optsMerge: {
       method: 'DELETE',
     },
-    coninuation: EffAction (a_userRemoveCompleted),
+    continuation: EffSaga (done),
     oops: toastError,
   })
 }
@@ -270,8 +276,8 @@ function *s_setNumPerPageIdx () {
 }
 
 function *s_sendWelcomeEmail (email) {
-  function *done (res) {
-    yield put (a_sendWelcomeEmailCompleted (res, email))
+  function *done (rcomplete) {
+    yield put (a_sendWelcomeEmailCompleted (rcomplete, email))
   }
   yield call (doApiCall, {
     url: '/api/user/send-welcome-email',
@@ -308,6 +314,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_sendWelcomeEmailCompleted, s_sendWelcomeEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
     saga (takeLatest, a_userRemove, s_userRemove),
+    saga (takeLatest, a_userRemoveCompleted, s_userRemoveCompleted),
     saga (takeLatest, a_userAdd, s_userAdd),
 
     // --- Pagination

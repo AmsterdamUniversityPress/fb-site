@@ -7,11 +7,11 @@ import {
 
 import { dirname, } from 'path'
 
-import { yellow, } from 'alleycat-js/es/io'
-import { info, decorateRejection, } from 'alleycat-js/es/general'
-import { isLeft, fold, } from 'alleycat-js/es/bilby'
-import configure from 'alleycat-js/es/configure'
+import { Left, Right, isLeft, fold, } from 'alleycat-js/es/bilby'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
+import configure from 'alleycat-js/es/configure'
+import { info, decorateRejection, } from 'alleycat-js/es/general'
+import { yellow, } from 'alleycat-js/es/io'
 
 import { config, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'

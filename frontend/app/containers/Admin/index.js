@@ -46,6 +46,7 @@ const Spinner = spinner ('comet')
 const AdminS = styled.div`
   min-height: 300px;
   width: 80%;
+  min-width: 850px;
   margin: auto;
   margin-top: 100px;
   border: 1px solid black;
