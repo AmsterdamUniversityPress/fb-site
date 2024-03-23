@@ -82,6 +82,7 @@ const AppWrapper = styled.div`
   overflow-y: hidden;
   margin: 0 auto;
   height: 100%;
+  font-family: Arial;
 `
 
 const dispatchTable = {

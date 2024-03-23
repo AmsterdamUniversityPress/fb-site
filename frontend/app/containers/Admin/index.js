@@ -56,7 +56,7 @@ const AdminS = styled.div`
   font-size: 20px;
   > .x__main {
     display: grid;
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: auto auto 300px auto;
     grid-auto-rows: 90px;
     > .x__header {
       border-bottom: 2px solid #00000022;

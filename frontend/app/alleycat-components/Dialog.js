@@ -41,14 +41,12 @@ const styleContentBase = {
 
 const ModalContentsS = styled.div`
   height: 100%;
-  font-size: 30px;
+  font-size: 20px;
   .x__close {
     position: absolute;
     right: 10px;
     top: 10px;
     font-size: 20px;
-    font-family: sans-serif;
-    font-weight: bold;
     cursor: pointer;
   }
   ${mediaQuery (
@@ -58,7 +56,7 @@ const ModalContentsS = styled.div`
       border-radius: 50px;
     `),
     mediaTablet (`
-      border: 10px solid black;
+      border: 2px solid black;
       border-radius: 10px;
     `),
   )}
@@ -67,14 +65,16 @@ const ModalContentsS = styled.div`
 // --- @todo merge with ModalContentsS
 const ModalContents2S = styled.div`
   height: 100%;
-  padding: 20px;
+  width: 80%;
+  margin: auto;
+  padding: 30px;
+  padding-left: 40px;
   button {
     display: inline-block;
     min-width: 100px;
     margin: 10px;
   }
   >.x__title {
-    font-family: Walter Turncoat;
     color: #fd60b5;
     margin: 10px;;
     text-align: center;

@@ -36,7 +36,7 @@ const reducerTable = makeReducer (
       () => RequestLoading (Nothing),
     )),
     assoc ('userPrivileges', user | ifOk (
-      () => Just (user.privileges | tap (logWith ('privs'))),
+      () => Just (user.privileges),
       () => Nothing,
     )),
   ),
