@@ -3,6 +3,7 @@ import {
   sprintf1, tryCatch, lets, id, nil, tap, ok,
   gt, againstAny, eq, die,
   not, concatTo, recurry, ifOk, ifNil,
+  repeatF, prop, dot1, join,
 } from 'stick-js/es'
 
 import bcrypt from 'bcrypt'
@@ -79,6 +80,21 @@ const appEnv = lets (
   (validate) => env ('APP_ENV', validate),
 )
 
+// --- (Int, String) => String
+const generatePassword = (length, chars) => {
+  const generateChar = () => lets (
+    () => Math.floor (Math.random () * chars.length),
+    (n) => chars | dot1 ('charAt') (n)
+  )
+  return repeatF (generateChar, length) | join ('')
+}
+
+const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const integers = "0123456789"
+const exCharacters = "!@#$%^&*_-=+"
+const chars = alpha + integers + exCharacters
+
+
 const data = appEnv | lookupOnOrDie (
   'ierror appEnv',
   { tst: dataTst, acc: dataAcc, prd: dataPrd, }
@@ -93,8 +109,6 @@ const emailTransporter = nodemailer.createTransport ({
 })
 
 const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
-
-initDb (hashPassword)
 
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
@@ -305,12 +319,17 @@ const init = ({ port, }) => express ()
       ['email', ok],
     ],
     ({ res }, to) => {
-      emailTransporter.sendMail ({
+      const password = generatePassword (10, chars)
+      // @todo no mail in send in this case, this info should be known to the admin-user
+      if (!updateUserPassword (to, hashPassword (password))) {
+        return res | sendStatusEmpty (500)
+      }
+      return emailTransporter.sendMail ({
         to,
         from: emailOpts.fromString,
         subject: 'Hallo van FB',
         text: 'welkom',
-        html: '<b>welkom</b>',
+        html: '<b>welkom, je nieuwe wachtwoord is ' + password +'</b>',
       })
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
@@ -328,4 +347,5 @@ const init = ({ port, }) => express ()
     String (port) | green | sprintf1 ('listening on port %s') | info
   })
 
+initDb (hashPassword)
 init ({ port: serverPort, })
