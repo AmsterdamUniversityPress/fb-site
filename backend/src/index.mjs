@@ -151,12 +151,19 @@ const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate
 
 // --- must return { password, userinfo, }, where userinfo is an arbitrary
 // structure which will be made available to the frontend, or `null`
+// --- @todo update description
 const getUserinfoLoginSync = (email) => {
   const info = doDbCallDie (dbUserGet, [email])
   const privileges = doDbCallDie (dbPrivilegesGet, [email])
   const { firstName, lastName, password, } = info
   return {
     password,
+    // --- a value which will be merged in to `req` and made available to
+    // middleware and routing functions.
+    // --- for example, to mimic the default passport behavior of setting
+    // `req.user`, set this to `{ user: someValue, }`
+    // --- use `null` or empty object to not set anything.
+    reqData: null,
     userinfo: {
       type: 'user',
       privileges,

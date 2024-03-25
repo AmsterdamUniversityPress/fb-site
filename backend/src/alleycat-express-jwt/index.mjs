@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tap, nil, map, die, mergeM, always,
+  tap, nil, map, die, mergeM, mergeToM, whenOk, always,
   ifOk, ifTrue, whenFalse, not, lets, ok,
   join, concat, factory, factoryProps, ifNil,
 } from 'stick-js/es'
@@ -10,7 +10,7 @@ import passport from 'passport'
 import localStrategy from 'passport-local'
 import { Strategy as JWTStrategy, } from 'passport-jwt'
 
-import { recover, rejectP, resolveP, startP, then, } from 'alleycat-js/es/async'
+import { allP, recover, rejectP, resolveP, startP, then, } from 'alleycat-js/es/async'
 import {
   getN, post, postN, send, sendStatus, sendStatusEmpty,
   use,
@@ -97,25 +97,28 @@ const composeAuthMiddlewares = (middlewares) => {
 // --- @todo this function authenticates and authorizes, need better name
 
 const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, null]))) => (req, res, next) => {
-  passport.authenticate ('jwt', (err, user, _info, _status) => {
+  passport.authenticate ('jwt', (err, results, _info, _status) => {
     // --- once we're here, it means 1) the JWT was decoded and our callback to JWTStrategy (in the
     // `passport.use ('jwt', ...)` block was called or 2) the JWT could not be decoded.
 
     // --- case 1) with an internal error, or some other internal error perhaps -> return 599
     if (err) return next ({ status: 599, imsg: err, sendObject: true, })
-    const { reason='(reason unknown)', details, } = user
+    const { reason='(reason unknown)', details, } = results
     // --- case 1) where the verify function returned false or null for user, i.e., the user
     // is not logged in, or case 2) -> return 499
     // --- @future 499 and 599 are currently hardcoded
     if (not (details)) return next ({ status: 499, umsg: 'Unable to authenticate: ' + reason, sendObject: true, })
-    if (not (details.username)) return next ({ status: 599, imsg: 'Missing username', sendObject: true, })
-    isAuthorized (details.username, req)
+    const { reqData=null, username, userinfo, _ } = details
+    if (not (username)) return next ({ status: 599, imsg: 'Missing username', sendObject: true, })
+    isAuthorized (username, req)
     | then (([authorized, reason]) => authorized | ifTrue (
       () => {
-        // --- logged in and authorized: set `req.user` and do not do anything with sessions (the
-        // only thing we store in the cookie is the JWT itself, and that is done during the `login`
-        // middleware)
-        req.user = details
+        // --- logged in and authorized.
+        // - merge `reqData` into `req` if provided
+        // - merge `{ userinfo, }` into `req`
+        // - do not do anything with sessions (the only thing we use cookies for is to store the JWT
+        // itself, and that is done during the `login` middleware)
+        [reqData, { userinfo, }] | map (whenOk (mergeToM (req)))
         return next (null)
       },
       () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), sendObject: true, }),
@@ -181,15 +184,15 @@ const initPassportStrategies = ({
     //   `done (null, null, { message: 'Missing credentials', })`
     { usernameField, passwordField, },
     (username, passwordTry, done) => getUserinfoLogin (username)
-    | then ((user) => user | ifNil (
+    | then ((results) => results | ifNil (
       () => done (null, false, { message: 'User not found', }),
       () => {
-        const { password: passwordKnown, userinfo, } = user
+        const { password: passwordKnown, reqData=null, userinfo, } = results
         if (!passwordKnown || !userinfo)
           return done ('Invalid user object', false, { message: 'Internal error', })
         if (!checkPassword (passwordTry, passwordKnown))
           return done (null, false, { message: 'Wrong Password', })
-        return done (null, { username, userinfo, }, { message: 'logged in successfully', })
+        return done (null, { username, reqData, userinfo, }, { message: 'logged in successfully', })
       },
     ))
     | recover ((e) => done (
@@ -209,13 +212,13 @@ const initPassportStrategies = ({
     // --- `iat` is a timestamp (seconds resolution) which is put there automatically.
     (req, { username, iat: _iat, }, done) => {
       return checkLoggedIn (username, req)
-      | then (([userinfo, reason]) => done (
+      | then (([reqData, userinfo, reason]) => done (
         null,
         userinfo | ifOk (
-          // --- 200, user object is now available as `req.user`
+          // --- 200
           () => ({
             reason: null,
-            details: { username, userinfo, },
+            details: { reqData, username, userinfo, },
           }),
           // --- 401, not logged in (login was invalidated somehow without /logout having been called)
           () => ({
@@ -279,15 +282,19 @@ const init = ({
   const checkLoggedIn = (username, req) => {
     let userinfo
     return getUserinfoLogin (username)
-    | then ((user) => {
+    | then ((results) => {
       // --- for example, removed from database while the user still has a valid JWT
-      if (nil (user)) return [null, 'User was removed / no longer valid']
-      userinfo = user.userinfo
-      return isLoggedIn (username, userinfo, req)
+      if (nil (results)) return [null, 'User was removed / no longer valid']
+      const { reqData, } = results
+      userinfo = results.userinfo
+      return allP ([
+        reqData,
+        isLoggedIn (username, userinfo, req),
+      ])
     })
-    | then (([loggedIn, reason]) => loggedIn | ifTrue (
-      () => [userinfo],
-      () => [null, reason],
+    | then (([reqData, [loggedIn, reason]]) => loggedIn | ifTrue (
+      () => [reqData, userinfo],
+      () => [null, null, reason],
     ))
   }
   initPassportStrategies ({
@@ -319,11 +326,10 @@ const init = ({
     getN (routeHello, [
       authMiddleware (authorizeDataDefault),
       (req, res) => {
-        const { user, } = req
-        if (!user) return res | sendStatus (serverErrorJSONCode, {
+        const { userinfo, } = req
+        if (!userinfo) return res | sendStatus (serverErrorJSONCode, {
           imsg: routeHello + ': missing user info',
         })
-        const { userinfo, ... _ } = user
         return res | send ({ data: userinfo, })
       },
       customErrorHandler,
@@ -345,7 +351,7 @@ const init = ({
         if (!user) return res | sendStatus (clientErrorJSONCode, {
           umsg: 'Invalid login: ' + message,
         })
-        const { username, userinfo, } = user
+        const { username, userinfo, ... _ } = user
         const jwt = jwtModule.sign ({ username, }, jwtSecret)
         res | cookie.set (jwt)
         // --- not expected to return anything
