@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, noop, F, T,
+  map, noop, F, T, not,
   allAgainst,
 } from 'stick-js/es'
 
@@ -337,7 +337,7 @@ export default container (
               </div>
               <div className='col3'>
                 <div className='x__buttons'>
-                  <Button onClick={onClickUserAdd}>
+                  <Button disabled={not (canUserAdd)} onClick={onClickUserAdd}>
                     gebruiker toevoegen
                   </Button>
                 </div>
