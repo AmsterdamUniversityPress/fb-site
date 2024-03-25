@@ -17,8 +17,11 @@ import { logWith, mapX, } from 'alleycat-js/es/general'
 import { ifTrueV, whenTrueV, } from 'alleycat-js/es/predicate'
 import { ElemP, deconstructProps, withDisplayName} from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
+import { clss, } from 'alleycat-js/es/dom'
 
 import { mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, } from '../../common'
+
+import Dialog from '../../alleycat-components/Dialog'
 
 import config from '../../config'
 
@@ -164,6 +167,29 @@ const ButtonMS = styled (Button2)`
   flex: 1 0 auto;
 `
 
+export const AreYouSureDialog = ({
+  isMobile,
+  isOpen, onRequestClose,
+  closeOnOverlayClick=void 8,
+  onYes, onNo,
+  contents='',
+  extraWarn=false,
+}) => <Dialog
+  isOpen={isOpen}
+  onRequestClose={onRequestClose}
+  closeOnOverlayClick={closeOnOverlayClick}
+  isMobile={isMobile}
+>
+  <div className={clss ('x__contents', contents || 'u--display-none')}>
+    {extraWarn && <div className='x__warning-sign'/>}
+    {contents}
+  </div>
+  <div className='x__buttons'>
+    <Button onClick={onYes}>Ja</Button>
+    <Button onClick={onNo}>Nee</Button>
+  </div>
+</Dialog>
+
 export const ButtonM = ({ text, selected, disabled, greyed, onClick, width='100px', }) =>
   <ButtonMS
     selected={selected}
@@ -175,3 +201,4 @@ export const ButtonM = ({ text, selected, disabled, greyed, onClick, width='100p
   >
     {text}
   </ButtonMS>
+
