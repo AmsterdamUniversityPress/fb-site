@@ -180,14 +180,14 @@ const initPassportStrategies = ({
     // --- on failure to retrieve these, this will result in roughly
     //   `done (null, null, { message: 'Missing credentials', })`
     { usernameField, passwordField, },
-    (username, password, done) => getUserinfoLogin (username)
+    (username, passwordTry, done) => getUserinfoLogin (username)
     | then ((user) => user | ifNil (
       () => done (null, false, { message: 'User not found', }),
       () => {
-        const { password: passwordFromDb, userinfo, } = user
-        if (!passwordFromDb || !userinfo)
+        const { password: passwordKnown, userinfo, } = user
+        if (!passwordKnown || !userinfo)
           return done ('Invalid user object', false, { message: 'Internal error', })
-        if (!checkPassword (password, passwordFromDb))
+        if (!checkPassword (passwordTry, passwordKnown))
           return done (null, false, { message: 'Wrong Password', })
         return done (null, { username, userinfo, }, { message: 'logged in successfully', })
       },
