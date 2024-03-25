@@ -32,9 +32,9 @@ import {
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
-import { Button, } from '../../components/shared'
+import { Button, AreYouSureDialog, } from '../../components/shared'
+
 import { spinner, } from '../../alleycat-components'
-import Dialog from '../../alleycat-components/Dialog'
 
 import { container, useWhy, keyDownListen, isNotEmptyString,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
@@ -186,6 +186,9 @@ export default container (
       userRemovePending, userAddPending, emailRequestPending,
     } = props
 
+    // @todo get from Contents or something.
+    const isMobile = false
+
     const [emailToRemove, setEmailToRemove] = useState (null)
     const [removeDialogOpen, setRemoveDialogOpen] = useState (false)
     const [firstName, setFirstName] = useState ('')
@@ -261,6 +264,16 @@ export default container (
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
     useSaga ({ saga, key: 'Admin', })
 
+    // @todo memoize?
+    const contentsRemoveDialog = (emailToRemove) => <>
+      <p>
+        Gebruiker <span className='x__email-to-remove'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
+      </p>
+      <p>
+        Weet je zeker dat je wil doorgaan?
+      </p>
+      </>
+
     return <AdminS>
       <div className='x__close' onClick={onClickClose}>
         <CloseIcon
@@ -282,27 +295,14 @@ export default container (
             <div className='col2 x__header'/>
             <div className='col3 x__header'/>
             {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
-              <Dialog
+              <AreYouSureDialog
+                isMobile={isMobile}
                 isOpen={removeDialogOpen}
                 onRequestClose={closeRemoveDialog}
-                /* --- @todo did we used to have these?
-                onYes={clickDialogYes (email)}
-                onNo={closeRemoveDialog}
-                */
-              >
-                <p>
-                  Gebruiker <span className='x__email-to-remove'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
-                </p>
-                <p>
-                  Weet je zeker dat je wil doorgaan?
-                </p>
-                <Button onClick={onClickRemoveConfirm}>
-                  Ja
-                </Button>
-                <Button onClick={onClickRemoveCancel}>
-                  Nee
-                </Button>
-              </Dialog>
+                onYes={onClickRemoveConfirm}
+                onNo={onClickRemoveCancel}
+                contents={contentsRemoveDialog (emailToRemove)}
+              />
               <div className='col0 x__name'>
                 {firstName} {lastName}
               </div>
