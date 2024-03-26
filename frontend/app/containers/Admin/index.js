@@ -32,7 +32,7 @@ import {
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
-import { Button, AreYouSureDialog, } from '../../components/shared'
+import { AreYouSureDialog, BigButton, Button, MenuItem, } from '../../components/shared'
 
 import { spinner, } from '../../alleycat-components'
 
@@ -44,6 +44,7 @@ import config from '../../config'
 
 const configTop = configure.init (config)
 const colorHighlight = configTop.get ('colors.highlightAlpha')
+const iconUpdate = configTop.get ('icons.update')
 
 const Spinner = spinner ('comet')
 
@@ -60,8 +61,11 @@ const AdminS = styled.div`
   font-size: 20px;
   > .x__main {
     display: grid;
-    grid-template-columns: auto auto 300px auto;
+    grid-template-columns: [col0] auto [col1] auto [col2] 300px [col3] auto [col-end];
     grid-auto-rows: 90px;
+    > .x__add-user {
+      grid-column: 1 / span col-end;
+    }
     > .x__header {
       opacity: 0.6;
       border-bottom: 2px solid #00000022;
@@ -321,6 +325,14 @@ export default container (
         {users | requestResults ({
           onError: noop,
           onResults: (data) => <>
+            <div className='x__add-user'>
+              <MenuItem
+                onClick={noop}
+                imgSrc={iconUpdate}
+                text='Gebruiker toevoegen'
+                size='page'
+              />
+            </div>
             <div className='col0 x__header'>
               Naam
             </div>

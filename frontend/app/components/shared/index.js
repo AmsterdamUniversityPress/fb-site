@@ -1,21 +1,15 @@
 import {
   pipe, compose, composeRight,
-  prop, whenTrue, sprintf1,
-  ifOk, always,
-  tap, id, lets, mergeTo,
-  whenOk, concatTo,
-  sprintfN,
-  arg0,
+  prop, sprintf1, ifNil,
 } from 'stick-js/es'
 
-import React, { PureComponent, } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { Link, } from 'react-router-dom'
 
 import configure from 'alleycat-js/es/configure'
-import { logWith, mapX, } from 'alleycat-js/es/general'
-import { ifTrueV, whenTrueV, } from 'alleycat-js/es/predicate'
-import { ElemP, deconstructProps, withDisplayName} from 'alleycat-js/es/react'
+import { logWith, } from 'alleycat-js/es/general'
+import { ifTrueV, } from 'alleycat-js/es/predicate'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 import { clss, } from 'alleycat-js/es/dom'
 
@@ -204,3 +198,59 @@ export const ButtonM = ({ text, selected, disabled, greyed, onClick, width='100p
     {text}
   </ButtonMS>
 
+export const BigButton = ({ children, ... restProps }) => <Button
+  style={{ padding: '10px', }}
+  {... restProps}
+>
+  {children}
+</Button>
+
+const MenuItemS = styled.div`
+  cursor: pointer;
+  &:hover > .x__text {
+    border-bottom: 2px solid #00000099;
+  }
+  > img {
+    vertical-align: middle;
+  }
+  > .x__text {
+    vertical-align: middle;
+  }
+  &.x--size-menu {
+    > img {
+      margin-right: 13px;
+      width: 18px;
+      height: 17px;
+    }
+    > .x__text {
+      padding-bottom: 5px;
+      font-size: 17px;
+    }
+  }
+  &.x--size-page {
+    > img {
+      margin-right: 13px;
+      width: 20px;
+      height: 19px;
+    }
+    > .x__text {
+      padding-bottom: 5px;
+      font-size: 20px;
+    }
+  }
+`
+
+export const MenuItem = ({
+  imgSrc, text='',
+  // --- 'menu' | 'page'
+  size='menu',
+  Contents=null, contentsProps={}, ... restProps
+}) => <MenuItemS {... restProps} className={'x--size-' + size}>
+  <img src={imgSrc}/>
+  <span className='x__text'>
+    {Contents | ifNil (
+      () => text,
+      () => <Contents {... contentsProps}/>,
+    )}
+  </span>
+</MenuItemS>

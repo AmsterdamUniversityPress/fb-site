@@ -45,10 +45,9 @@ import saga from './saga'
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import {} from '../../alleycat-components'
-import { Button, } from '../../components/shared'
+import { BigButton, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
-// import Pagination from '../../containers/shared/Pagination'
 import Pagination from '../../containers/shared/Pagination'
 
 import { component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
@@ -97,36 +96,7 @@ const UserS = styled.div`
     }
     > .x__menu-items {
       margin-top: 12px;
-      font-size: 17px;
-      > .x__item {
-        > * {
-          vertical-align: middle;
-        }
-        > img {
-          margin-right: 13px;
-          width: 18px;
-          height: 17px;
-        }
-      }
-      .x__passwordUpdate {
-        > img {
-        }
-      }
-      .x__admin {
-        > img {
-        }
-      }
     }
-  }
-`
-
-const MenuItem = styled.div`
-  cursor: pointer;
-  &:hover > .x__text {
-    border-bottom: 2px solid #00000099;
-  }
-  .x__text {
-    padding-bottom: 5px;
   }
 `
 
@@ -173,14 +143,12 @@ const UserinfoInstitution = container (
       <div className='x__contact-email'>
         Contact: {getContactEmail ()}
       </div>
-      <MenuItem className='x__log-in'>
-        <span className='x__icon'>
-          <img src={iconLogin}/>
-        </span>
-        <span className='x__text' onClick={onClickLogIn}>
-          log in met gebruikersnaam en wachtwoord
-        </span>
-      </MenuItem>
+      <MenuItem
+        className='x__log-in'
+        onClick={onClickLogIn}
+        imgSrc={iconLogin}
+        text='log in met gebruikersnaam en wachtwoord'
+      />
     </UserinfoInstitutionS>
   },
 )
@@ -263,18 +231,21 @@ const User = container (
             <UserinfoUser/>
             <hr/>
             <div className='x__menu-items'>
-              <MenuItem className='x__item x__logout' onClick={onClickLogout}>
-                <img src={iconLogout} width='18px'/>
-                <span className='x__text'>afmelden</span>
-              </MenuItem>
-              <MenuItem className='x__item x__passwordUpdate' onClick={onClickPasswordUpdate}>
-                <img src={iconUpdate}/>
-                <span className='x__text'>wachtwoord veranderen</span>
-              </MenuItem>
-              {hasPrivilegeAdminUser && <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
-                <img src={iconAdmin}/>
-                <span className='x__text'>gebruikers beheren</span>
-              </MenuItem>}
+              <MenuItem
+                onClick={onClickLogout}
+                imgSrc={iconLogout}
+                text='afmelden'
+              />
+              <MenuItem
+                onClick={onClickPasswordUpdate}
+                imgSrc={iconUpdate}
+                text='wachtwoord veranderen'
+              />
+              {hasPrivilegeAdminUser && <MenuItem
+                onClick={onClickAdmin}
+                imgSrc={iconAdmin}
+                text='gebruikers beheren'
+              />}
             </div>
           </>),
           otherwise | guard (() => null),
@@ -369,13 +340,6 @@ const MainS = styled.div`
   // > .x__login-wrapper {
   // }
 `
-
-const BigButton = ({ children, ... restProps }) => <Button
-  style={{ padding: '10px', }}
-  {... restProps}
->
-  {children}
-</Button>
 
 const IconShowPasswordS = styled.div`
   cursor: pointer;
