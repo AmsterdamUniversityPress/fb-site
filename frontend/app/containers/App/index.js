@@ -74,6 +74,9 @@ const AppWrapper = styled.div`
     mediaPhone ('font-size: 14px'),
     mediaTablet ('font-size: 12px'),
   )}
+  &.x--dialog-open {
+    filter: brightness(0.6) blur(3px);
+  }
   // --- this is mysterious -- it's a hack which *might* help with scrolling/flickering issues on
   // iPhone5 Safari by forcing GPU.
   transform: translate3d(0, 0, 0);

@@ -68,6 +68,8 @@ export default {
   },
   general: {
     appElement: '#app',
+    // --- for selecting everything other than the modal dialog
+    appWrapperSelector: '[class*=AppWrapper]',
     alwaysMobile: false,
     helloInterval: 60000,
   },

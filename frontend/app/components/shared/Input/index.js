@@ -34,7 +34,6 @@ const InputBaseMixin = `
   ${mediaQuery (
     mediaPhone (`font-size: 25px; `),
     mediaTablet (`font-size: 20px; `),
-    mediaDesktop (`font-size: 13px; `),
   )}
 `
 
@@ -108,7 +107,6 @@ const InputWrapper = invoke (() => {
             height,
             padding,
             border,
-            fontSize: '1.8rem',
             ... styles [where],
             ... inputStyle,
           }}
@@ -120,7 +118,7 @@ const InputWrapper = invoke (() => {
 
 export const Input = withDisplayName ('InputAuto') (
   (props) => {
-    const { theRef, withIcon=[], height='35px', width='100%', padding='9px', border=void 8, } = props
+    const { theRef, withIcon=[], height='35px', width='100%', padding='10px', border=void 8, } = props
     return <InputWrapper
       {...props}
       withIcon={withIcon}

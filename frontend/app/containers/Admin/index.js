@@ -33,6 +33,7 @@ import {
 
 import CloseIcon from '../../components/svg/CloseIcon'
 import { AreYouSureDialog, BigButton, Button, MenuItem, } from '../../components/shared'
+import { Input, } from '../../components/shared/Input'
 
 import { spinner, } from '../../alleycat-components'
 
@@ -41,6 +42,7 @@ import {
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults, } from '../../common'
 import config from '../../config'
+import Dialog from '../../alleycat-components/Dialog'
 
 const configTop = configure.init (config)
 const configIcons = configTop.focus ('icons')
@@ -74,36 +76,6 @@ const AdminS = styled.div`
     > .x__header {
       opacity: 0.6;
       border-bottom: 2px solid #00000022;
-    }
-    > .x__addUser {
-      display: contents;
-      .x__buttons {
-        font-size: 16px;
-      }
-      input {
-        width: 50%;
-        border: 1px solid black;
-      }
-      > .col0 {
-        border-left: 2px solid #00000022;
-      }
-      > .col3 {
-        border-right: 2px solid #00000022;
-        min-width: 32px;
-      }
-      > .col0, > .col1 {
-        border-right: 1px solid #00000022;
-      }
-      > .col0, > .col1, > .col2, .col3 {
-        padding: 10px;
-        border-bottom: 2px solid #00000022;
-        display: flex;
-        align-items: center;
-        > * {
-          vertical-align: middle;
-          flex: 0 0 auto;
-        }
-      }
     }
     > .data-row {
       font-size: 18px;
@@ -201,10 +173,67 @@ const ContentsMailDialog = component (
   </DialogContentsS>,
 )
 
+const ContentsUserAdd = container (
+  ['UserAdd', { userAddDispatch: userAdd, }, {}],
+  ({ userAddDispatch, }) => {
+    const [firstName, setFirstName] = useState ('')
+    const [lastName, setLastName] = useState ('')
+    const [email, setEmail] = useState ('')
+    const onChangeFirstName = useCallbackConst (
+      (event) => setFirstName (event.target.value),
+    )
+    const onChangeLastName = useCallbackConst (
+      (event) => setLastName (event.target.value),
+    )
+    const onChangeEmail = useCallbackConst (
+      (event) => setEmail (event.target.value),
+    )
+    const canSubmit = useMemo (
+      () => [firstName, lastName, email] | allAgainst (isNotEmptyString),
+      [firstName, lastName, email],
+    )
+    const doUserAdd = useCallback (
+      () => userAddDispatch (email, firstName, lastName, ['user']),
+      [email, firstName, lastName, userAddDispatch],
+    )
+    const onKeyDownInput = useCallback (
+      (event) => event | keyDownListen (
+        () => {
+          // event.preventDefault ()
+          canSubmit && doUserAdd ()
+        },
+        'Enter',
+      ),
+      [canSubmit, doUserAdd],
+    )
+    const onClickSubmit = useCallback (
+      () => doUserAdd (),
+      [doUserAdd]
+    )
+
+    return <DialogContentsS>
+      <p>
+        voornaam <Input onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
+      </p>
+      <p>
+        achternaam <Input onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
+      </p>
+      <p>
+        e-mailadres <Input onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
+      </p>
+      <p>
+        <Button disabled={not (canSubmit)} onClick={onClickSubmit}>
+          toevoegen
+        </Button>
+      </p>
+
+    </DialogContentsS>
+  },
+)
+
 const dispatchTable = {
   sendWelcomeEmailDispatch: sendWelcomeEmail,
   usersFetchDispatch: usersFetch,
-  userAddDispatch: userAdd,
   userRemoveDispatch: userRemove,
 }
 
@@ -221,7 +250,6 @@ export default container (
     const {
       users,
       userRemoveDispatch,
-      userAddDispatch,
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
       userRemovePending, userAddPending, emailRequestPending,
@@ -231,13 +259,10 @@ export default container (
     const isMobile = false
 
     const [emailToRemove, setEmailToRemove] = useState (null)
-    const [removeDialogOpen, setRemoveDialogOpen] = useState (false)
+    const [removeDialogIsOpen, setRemoveDialogIsOpen] = useState (false)
     const [emailToSend, setEmailToSend] = useState (null)
-    const [sendMailDialogOpen, setSendMailDialogOpen] = useState (false)
-    const [firstName, setFirstName] = useState ('')
-    const [lastName, setLastName] = useState ('')
-    const [email, setEmail] = useState ('')
-    const [privileges, setPrivileges] = useState ([])
+    const [sendMailDialogIsOpen, setSendMailDialogIsOpen] = useState (false)
+    const [addUserDialogIsOpen, setAddUserDialogIsOpen] = useState (false)
 
     const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email) || userAddPending
 
@@ -249,10 +274,12 @@ export default container (
 
     // --- Dialogs
 
-    const openRemoveDialog = useCallbackConst (T >> setRemoveDialogOpen)
-    const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogOpen)
-    const openSendMailDialog = useCallbackConst (T >> setSendMailDialogOpen)
-    const closeSendMailDialog = useCallbackConst (F >> setSendMailDialogOpen)
+    const openRemoveDialog = useCallbackConst (T >> setRemoveDialogIsOpen)
+    const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogIsOpen)
+    const openSendMailDialog = useCallbackConst (T >> setSendMailDialogIsOpen)
+    const closeSendMailDialog = useCallbackConst (F >> setSendMailDialogIsOpen)
+    const openAddUserDialog = useCallbackConst (T >> setAddUserDialogIsOpen)
+    const closeAddUserDialog = useCallbackConst (F >> setAddUserDialogIsOpen)
 
     const onClickRemove = useCallbackConst ((email) => {
       openRemoveDialog ()
@@ -263,6 +290,7 @@ export default container (
       closeRemoveDialog ()
     }, [userRemoveDispatch, emailToRemove])
     const onClickRemoveCancel = useCallbackConst (() => closeRemoveDialog ())
+    const onClickAddUser = useCallbackConst (() => openAddUserDialog ())
     const onClickSendMail = useCallback ((email) => {
       openSendMailDialog ()
       setEmailToSend (email)
@@ -273,43 +301,6 @@ export default container (
     }, [emailToSend, sendWelcomeEmailDispatch],)
     const onClickSendMailCancel = useCallbackConst (() => closeSendMailDialog ())
 
-    // --- Add user
-
-    const onChangeFirstName = useCallbackConst (
-      (event) => setFirstName (event.target.value),
-    )
-    const onChangeLastName = useCallbackConst (
-      (event) => setLastName (event.target.value),
-    )
-    const onChangeEmail = useCallbackConst (
-      (event) => setEmail (event.target.value),
-    )
-    const onChangePrivileges = useCallbackConst (
-      (event) => setPrivileges ([event.target.value]),
-    )
-    const doUserAdd = useCallback (
-      () => userAddDispatch (email, firstName, lastName, privileges),
-      [firstName, lastName, email, privileges, userAdd],
-    )
-    const canUserAdd = useMemo (
-      () => [firstName, lastName, email, privileges] | allAgainst (isNotEmptyString),
-      [firstName, lastName, email, privileges],
-    )
-    const onKeyDownInput = useCallback (
-      (event) => event | keyDownListen (
-        () => {
-          event.preventDefault ()
-          canUserAdd && doUserAdd ()
-        },
-        'Enter',
-      ),
-      [canUserAdd, doUserAdd],
-    )
-    const onClickUserAdd = useCallback (
-      () => doUserAdd (),
-      [doUserAdd]
-    )
-
     useEffect (() => {
       usersFetchDispatch ()
     }, [usersFetchDispatch])
@@ -319,9 +310,17 @@ export default container (
     useSaga ({ saga, key: 'Admin', })
 
     return <AdminS>
+      <Dialog
+        isOpen={addUserDialogIsOpen}
+        onRequestClose={closeAddUserDialog}
+        closeOnOverlayClick={true}
+        isMobile={isMobile}
+      >
+        <ContentsUserAdd/>
+      </Dialog>
       <AreYouSureDialog
         isMobile={isMobile}
-        isOpen={removeDialogOpen}
+        isOpen={removeDialogIsOpen}
         onRequestClose={closeRemoveDialog}
         onYes={onClickRemoveConfirm}
         onNo={onClickRemoveCancel}
@@ -330,7 +329,7 @@ export default container (
       />
       <AreYouSureDialog
         isMobile={isMobile}
-        isOpen={sendMailDialogOpen}
+        isOpen={sendMailDialogIsOpen}
         onRequestClose={closeSendMailDialog}
         onYes={onClickSendMailConfirm}
         onNo={onClickSendMailCancel}
@@ -350,7 +349,7 @@ export default container (
           onResults: (data) => <>
             <div className='x__add-user'>
               <MenuItem
-                onClick={noop}
+                onClick={onClickAddUser}
                 imgSrc={iconAdd}
                 text='Gebruiker toevoegen'
                 size='page'
@@ -390,25 +389,6 @@ export default container (
               </div>
             </div>
             )}
-            <div className='x__addUser'>
-              <div className='col0'>
-                <input type='text' onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
-                <input type='text' onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
-              </div>
-              <div className='col1'>
-                <input type='text' onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
-              </div>
-              <div className='col2'>
-                <input type='text' onChange={onChangePrivileges} onKeyDown={onKeyDownInput}/>
-              </div>
-              <div className='col3'>
-                <div className='x__buttons'>
-                  <Button disabled={not (canUserAdd)} onClick={onClickUserAdd}>
-                    gebruiker toevoegen
-                  </Button>
-                </div>
-              </div>
-            </div>
           </>
         })}
       </div>

@@ -3,7 +3,7 @@ import {
   merge,
 } from 'stick-js/es'
 
-import React, { Fragment, memo, useCallback, useEffect, useRef, useState, } from 'react'
+import React, { useMemo, useCallback, useEffect, useRef, useState, } from 'react'
 
 import Modal from 'react-modal'
 import styled from 'styled-components'
@@ -19,7 +19,14 @@ import config from '../config'
 
 const configTop = config | configure.init
 
-Modal.setAppElement (configTop.get ('general.appElement'))
+const {
+  'general.appElement': appElement,
+  'general.appWrapperSelector': appWrapperSelector,
+} = configTop.gets (
+  'general.appElement',
+  'general.appWrapperSelector',
+)
+Modal.setAppElement (appElement)
 
 const styleOverlayBase = {
   backgroundColor: '',
@@ -35,8 +42,8 @@ const styleContentBase = {
   marginRight: '-50%',
   transform: 'translate(-50%, -50%)',
   padding: '0',
-  maxWidth: '60%',
   borderRadius: '10px',
+  width: '50%',
 }
 
 const ModalContentsS = styled.div`
@@ -70,9 +77,7 @@ const ModalContents2S = styled.div`
   padding: 30px;
   padding-left: 40px;
   button {
-    display: inline-block;
     min-width: 100px;
-    margin: 10px;
   }
   >.x__title {
     color: #fd60b5;
@@ -129,23 +134,36 @@ export default component (
     closeOnOverlayClick=false, showCloseButton=false,
     styleOverlay={},
     styleContent=isMobile ? { width: '100%', maxWidth: '100%', height: '100%'} : {},
-  }) => <Modal
-    isOpen={isOpen}
-    onRequestClose={onRequestClose}
-    shouldCloseOnOverlayClick={closeOnOverlayClick}
-    style={{
-      content: styleContentBase | merge (styleContent),
-      overlay: styleOverlayBase | merge (styleOverlay),
-    }}
-  >
-    <ModalContentsS>
-      <ModalContents2S>
-        {showCloseButton &&
-          <div className='x__close' onClick={onRequestClose}>
-            x
-          </div>}
-        {children}
-      </ModalContents2S>
-    </ModalContentsS>
-  </Modal>,
+  }) => {
+    const everythingElse = useMemo (
+      () => document.querySelector (appWrapperSelector),
+      [],
+    )
+    useEffect (() => {
+      if (!everythingElse) return
+      console.log ('everythingElse', everythingElse)
+      console.log ('isOpen', isOpen)
+      if (isOpen) everythingElse.classList.add ('x--dialog-open')
+      else everythingElse.classList.remove ('x--dialog-open')
+    }, [everythingElse, isOpen])
+    return <Modal
+      isOpen={isOpen}
+      onRequestClose={onRequestClose}
+      shouldCloseOnOverlayClick={closeOnOverlayClick}
+      style={{
+        content: styleContentBase | merge (styleContent),
+        overlay: styleOverlayBase | merge (styleOverlay),
+      }}
+    >
+      <ModalContentsS>
+        <ModalContents2S>
+          {showCloseButton &&
+            <div className='x__close' onClick={onRequestClose}>
+              x
+            </div>}
+          {children}
+        </ModalContents2S>
+      </ModalContentsS>
+    </Modal>
+  },
 )
