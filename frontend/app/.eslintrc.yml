@@ -11,6 +11,7 @@
     ecma-features:
       jsx: true
   rules:
+    # --- @todo can we ignore xxxDispatch for callback dependencies?
     no-unused-vars:
       - warn
       - varsIgnorePattern: pipe|compose|composeRight|logWith|tap|_.*|selectTop|selectVal|select|

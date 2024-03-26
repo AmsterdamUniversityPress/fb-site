@@ -77,8 +77,8 @@ export const lookupEitherOn = recurry (2) (
   ),
 )
 
-// --- @todo would be nicer to put f at the end.
-// --- @todo versions which take yes/no functions.
+// --- @future would be nicer to put f at the end.
+// --- @future versions which take yes/no functions.
 
 export const lookupOnOr = recurry (3) (
   (f) => (o) => (k) => lookupOn (o, k) | ifUndefined (f, id),

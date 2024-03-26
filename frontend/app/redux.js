@@ -8,7 +8,7 @@ import {
 import { combineReducers, createStore, applyMiddleware, compose as reduxCompose, } from 'redux'
 import createSagaMiddleware from 'redux-saga'
 
-// --- @todo
+// --- @future more elegant function
 export const conformsTo = (shape) => (o) => {
   for (const k in shape) {
     const p = shape [k]

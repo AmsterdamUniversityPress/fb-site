@@ -11,22 +11,13 @@ import { initSelectors, mapX, } from '../../../common'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'Pagination',
-  initialState | tap (logWith ('inii'))
+  initialState,
 )
 
 export const selectNumsPerPage = selectVal ('numsPerPage')
 export const selectPage = selectVal ('page')
 
 const selectNumPerPageIdx = selectVal ('numPerPageIdx')
-
-// --- @todo
-const selectLength = select (
-  'selectLength',
-  // [selectT],
-  [],
-  // length,
-  () => 1501,
-)
 
 export const selectNumsPerPageComponent = select (
   'numsPerPageComponent',
