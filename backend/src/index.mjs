@@ -315,17 +315,18 @@ const init = ({ port, }) => express ()
       ['email', ok],
     ],
     ({ res }, to) => {
-      const password = generatePassword (10, chars)
+      // const password = generatePassword (10, chars)
       // @todo no mail in send in this case, this info should be known to the admin-user
-      if (!updateUserPassword (to, hashPassword (password))) {
-        return res | sendStatusEmpty (500)
-      }
+      // if (!updateUserPassword (to, hashPassword (password))) {
+        // return res | sendStatusEmpty (500)
+      // }
       return emailTransporter.sendMail ({
         to,
         from: emailOpts.fromString,
         subject: 'Hallo van FB',
         text: 'welkom',
-        html: '<b>welkom, je nieuwe wachtwoord is ' + password +'</b>',
+        // html: '<b>welkom, je nieuwe wachtwoord is ' + password +'</b>',
+        html: '<b>welkom</b>',
       })
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
