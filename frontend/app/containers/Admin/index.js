@@ -43,8 +43,13 @@ import {
 import config from '../../config'
 
 const configTop = configure.init (config)
-const colorHighlight = configTop.get ('colors.highlightAlpha')
-const iconUpdate = configTop.get ('icons.update')
+const configIcons = configTop.focus ('icons')
+const {
+  add: iconAdd,
+  more: iconMore,
+  remove: iconRemove,
+  update: iconUpdate,
+} = configIcons.gets ('add', 'more', 'remove', 'update')
 
 const Spinner = spinner ('comet')
 
@@ -328,7 +333,7 @@ export default container (
             <div className='x__add-user'>
               <MenuItem
                 onClick={noop}
-                imgSrc={iconUpdate}
+                imgSrc={iconAdd}
                 text='Gebruiker toevoegen'
                 size='page'
               />
@@ -368,12 +373,16 @@ export default container (
               </div>
               <div className='col2 x__buttons'>
                 <div className='x__buttons-flex'>
-                  <Button onClick={() => onClickSendMail (email)}>
-                    welkomst e-mail opnieuw versturen
-                  </Button>
-                  <Button onClick={() => onClickRemove (email)}>
-                    gebruiker verwijderen
-                  </Button>
+                  <MenuItem
+                    onClick={() => onClickSendMail (email)}
+                    text='welkomst e-mail opnieuw versturen'
+                    imgSrc={iconUpdate}
+                  />
+                  <MenuItem
+                    onClick={() => onClickRemove (email)}
+                    text='gebruiker verwijderen'
+                    imgSrc={iconRemove}
+                  />
                 </div>
               </div>
               <div className='col3'>

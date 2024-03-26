@@ -220,7 +220,6 @@ const MenuItemS = styled.div`
     > img {
       margin-right: 13px;
       width: 18px;
-      height: 17px;
     }
     > .x__text {
       padding-bottom: 5px;
@@ -231,7 +230,6 @@ const MenuItemS = styled.div`
     > img {
       margin-right: 13px;
       width: 20px;
-      height: 19px;
     }
     > .x__text {
       padding-bottom: 5px;

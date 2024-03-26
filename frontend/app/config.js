@@ -9,18 +9,21 @@ import { logWith, } from 'alleycat-js/es/general'
 
 import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 
+import iconAdd from './images/icons/plus.svg'
+import iconAdmin from './images/icons/admin.svg'
 import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
+import iconMore from './images/icons/more-grey.svg'
+import iconRemove from './images/icons/trash.svg'
 import iconSearch from './images/icons/search.svg'
-import iconAdmin from './images/icons/admin.svg'
 import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
+import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoHelvetica from './images/fb-logo-helvetica.svg'
 import imageOilPaints from './images/oil-paints.jpg'
 import imageUitgave from './images/uitgave.svg'
-import iconUpdate from './images/icons/update.svg'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -75,9 +78,12 @@ export default {
     },
   },
   icons: {
+    add: iconAdd,
     admin: iconAdmin,
     login: iconLogin,
     logout: iconLogout,
+    more: iconMore,
+    remove: iconRemove,
     search: iconSearch,
     'show-password-hidden': iconShowPasswordHidden,
     'show-password-shown': iconShowPasswordShown,
