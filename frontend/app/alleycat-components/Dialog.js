@@ -35,7 +35,7 @@ const styleContentBase = {
   marginRight: '-50%',
   transform: 'translate(-50%, -50%)',
   padding: '0',
-  maxWidth: '40%',
+  maxWidth: '60%',
   borderRadius: '10px',
 }
 

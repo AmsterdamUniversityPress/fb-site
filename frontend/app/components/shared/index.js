@@ -172,7 +172,9 @@ export const AreYouSureDialog = ({
   isOpen, onRequestClose,
   closeOnOverlayClick=void 8,
   onYes, onNo,
-  contents='',
+  Contents=noop,
+  contentsProps={},
+  show=true,
   extraWarn=false,
 }) => <Dialog
   isOpen={isOpen}
@@ -180,9 +182,9 @@ export const AreYouSureDialog = ({
   closeOnOverlayClick={closeOnOverlayClick}
   isMobile={isMobile}
 >
-  <div className={clss ('x__contents', contents || 'u--display-none')}>
+  <div className={clss ('x__contents', show || 'u--display-none')}>
     {extraWarn && <div className='x__warning-sign'/>}
-    {contents}
+    <Contents {... contentsProps}/>
   </div>
   <div className='x__buttons'>
     <Button onClick={onYes}>Ja</Button>

@@ -36,7 +36,8 @@ import { Button, AreYouSureDialog, } from '../../components/shared'
 
 import { spinner, } from '../../alleycat-components'
 
-import { container, useWhy, keyDownListen, isNotEmptyString,
+import {
+  component, container, useWhy, keyDownListen, isNotEmptyString,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults, } from '../../common'
 import config from '../../config'
@@ -160,6 +161,37 @@ const AdminS = styled.div`
   }
 `
 
+const DialogContentsS = styled.div`
+  > p > .x__email {
+    border-bottom: 1px solid #111;
+    padding: 2px;
+  }
+`
+
+const ContentsRemoveDialog = component (
+  ['ContentsRemoveDialog'],
+  ({ emailToRemove, }) => <DialogContentsS>
+    <p>
+      Gebruiker <span className='x__email'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
+    </p>
+    <p>
+      Weet je zeker dat je wil doorgaan?
+    </p>
+  </DialogContentsS>,
+)
+
+const ContentsMailDialog = component (
+  ['ContentsMailDialog'],
+  ({ emailToSend, }) => <DialogContentsS>
+    <p>
+      Gebruiker <span className='x__email'>{emailToSend}</span> krijgt een mail met instructies voor het kiezen van een (nieuw) wachtwoord.
+    </p>
+    <p>
+      Weet je zeker dat je wil doorgaan?
+    </p>
+  </DialogContentsS>,
+)
+
 const dispatchTable = {
   sendWelcomeEmailDispatch: sendWelcomeEmail,
   usersFetchDispatch: usersFetch,
@@ -191,13 +223,13 @@ export default container (
 
     const [emailToRemove, setEmailToRemove] = useState (null)
     const [removeDialogOpen, setRemoveDialogOpen] = useState (false)
+    const [emailToSend, setEmailToSend] = useState (null)
+    const [sendMailDialogOpen, setSendMailDialogOpen] = useState (false)
     const [firstName, setFirstName] = useState ('')
     const [lastName, setLastName] = useState ('')
     const [email, setEmail] = useState ('')
     const [privileges, setPrivileges] = useState ([])
 
-    const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogOpen)
-    const openRemoveDialog = useCallbackConst (T >> setRemoveDialogOpen)
     const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email) || userAddPending
 
     const navigate = useNavigate ()
@@ -205,21 +237,34 @@ export default container (
     const onClickClose = useCallbackConst (() => {
       navigate ('/')
     })
-    const onClickRemoveCancel = useCallback (() => {
-      closeRemoveDialog ()
-    }, [userRemoveDispatch, emailToRemove])
+
+    // --- Dialogs
+
+    const openRemoveDialog = useCallbackConst (T >> setRemoveDialogOpen)
+    const closeRemoveDialog = useCallbackConst (F >> setRemoveDialogOpen)
+    const openSendMailDialog = useCallbackConst (T >> setSendMailDialogOpen)
+    const closeSendMailDialog = useCallbackConst (F >> setSendMailDialogOpen)
+
+    const onClickRemove = useCallbackConst ((email) => {
+      openRemoveDialog ()
+      setEmailToRemove (email)
+    })
     const onClickRemoveConfirm = useCallback (() => {
       userRemoveDispatch (emailToRemove)
       closeRemoveDialog ()
     }, [userRemoveDispatch, emailToRemove])
-    const onClickRemove = useCallback ((email) => {
-      openRemoveDialog ()
-      setEmailToRemove (email)
+    const onClickRemoveCancel = useCallbackConst (() => closeRemoveDialog ())
+    const onClickSendMail = useCallback ((email) => {
+      openSendMailDialog ()
+      setEmailToSend (email)
     })
-    const onClickResendMail = useCallback (
-      (email) => sendWelcomeEmailDispatch (email),
-      [sendWelcomeEmailDispatch],
-    )
+    const onClickSendMailConfirm = useCallback (() => {
+      closeSendMailDialog ()
+      sendWelcomeEmailDispatch (emailToSend)
+    }, [emailToSend, sendWelcomeEmailDispatch],)
+    const onClickSendMailCancel = useCallbackConst (() => closeSendMailDialog ())
+
+    // --- Add user
 
     const onChangeFirstName = useCallbackConst (
       (event) => setFirstName (event.target.value),
@@ -264,16 +309,6 @@ export default container (
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
     useSaga ({ saga, key: 'Admin', })
 
-    // @todo memoize?
-    const contentsRemoveDialog = (emailToRemove) => <>
-      <p>
-        Gebruiker <span className='x__email-to-remove'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
-      </p>
-      <p>
-        Weet je zeker dat je wil doorgaan?
-      </p>
-      </>
-
     return <AdminS>
       <div className='x__close' onClick={onClickClose}>
         <CloseIcon
@@ -301,7 +336,17 @@ export default container (
                 onRequestClose={closeRemoveDialog}
                 onYes={onClickRemoveConfirm}
                 onNo={onClickRemoveCancel}
-                contents={contentsRemoveDialog (emailToRemove)}
+                Contents={ContentsRemoveDialog}
+                contentsProps={{ emailToRemove, }}
+              />
+              <AreYouSureDialog
+                isMobile={isMobile}
+                isOpen={sendMailDialogOpen}
+                onRequestClose={closeSendMailDialog}
+                onYes={onClickSendMailConfirm}
+                onNo={onClickSendMailCancel}
+                Contents={ContentsMailDialog}
+                contentsProps={{ emailToSend, }}
               />
               <div className='col0 x__name'>
                 {firstName} {lastName}
@@ -311,7 +356,7 @@ export default container (
               </div>
               <div className='col2 x__buttons'>
                 <div className='x__buttons-flex'>
-                  <Button onClick={() => onClickResendMail (email)}>
+                  <Button onClick={() => onClickSendMail (email)}>
                     welkomst e-mail opnieuw versturen
                   </Button>
                   <Button onClick={() => onClickRemove (email)}>
