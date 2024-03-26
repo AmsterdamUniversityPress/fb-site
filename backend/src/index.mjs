@@ -24,7 +24,8 @@ import configure from 'alleycat-js/es/configure'
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
-import { init as initDb,
+import {
+  init as initDb,
   userAdd as dbUserAdd,
   userRemove as dbUserRemove,
   userGet as dbUserGet,
@@ -33,7 +34,6 @@ import { init as initDb,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
   // privilegeAdd as dbPrivilegeAdd,
-  // privilegeGet as dbPrivilegeGet,
   privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
 } from './db.mjs';
@@ -52,13 +52,14 @@ import {
 
 const configTop = config | configure.init
 
-const { authorizeByIP, email: emailOpts, serverPort, } = tryCatch (
+const { authorizeByIP, email: emailOpts, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'authorizeByIP',
     'email',
     'serverPort',
+    'users',
   ),
 )
 
@@ -109,11 +110,10 @@ const emailTransporter = nodemailer.createTransport ({
 })
 
 const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
-
-const authIP = authIPFactory.create ().init (authorizeByIP)
-
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
+
+const authIP = authIPFactory.create ().init (authorizeByIP)
 
 const foldDbResults = (onError, dbFuncName) => fold (
   onError,
@@ -141,7 +141,6 @@ const doDbCallDie = (dbFunc, vals) => doDbCall (
   vals,
 )
 
-// const getPrivilege = (email) => doDbCallDie (dbPrivilegeGet, [ email, ])
 // --- @throws
 const getLoggedIn = (email) => doDbCallDie (dbLoggedInGet, [ email, ])
 // --- @throws
@@ -187,17 +186,14 @@ const getUserinfoRequest = (req) => {
   return { name, contact, type: 'institution', }
 }
 
+// --- @throws
 const getPrivilegesForUser = (email) => email | ifNil (
   // --- null user means IP-based authentication.
   () => new Set (['user']),
-  lookupOnOrDie (
-    'getPrivilegesForUser (): invalid user: ' + email,
-  ) ({
-    'allen@alleycat.cc': new Set (['user']),
-    'arie@alleycat.cc': new Set (['user', 'admin-user']),
-  }),
+  () => new Set (doDbCallDie (dbPrivilegesGet, [email])),
 )
 
+// --- @throws
 const checkPrivileges = (email, privsNeed=null) => lets (
   () => getPrivilegesForUser (email),
   (privsGot) => privsNeed | ifOk (
@@ -347,5 +343,5 @@ const init = ({ port, }) => express ()
     String (port) | green | sprintf1 ('listening on port %s') | info
   })
 
-initDb (hashPassword)
+initDb (hashPassword, users)
 init ({ port: serverPort, })

@@ -116,8 +116,8 @@ const selectPrivilegesSet = select (
   (privileges) => new Set (privileges | fold (id, [])),
 )
 
-export const selectHasPrivilegeUserAdmin = select (
-  'hasPrivilegeUserAdmin',
+export const selectHasPrivilegeAdminUser = select (
+  'hasPrivilegeAdminUser',
   [selectPrivilegesSet],
-  (privs) => privs.has ('user-admin'),
+  (privs) => privs.has ('admin-user'),
 )

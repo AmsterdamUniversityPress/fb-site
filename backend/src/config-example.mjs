@@ -54,4 +54,15 @@ export const config = {
     },
     */
   ],
+  // --- list of users which will be added to the database using INSERT OR REPLACE on each startup, or `null`
+  users: [
+    {
+      email: 'xx@xx.xx',
+      password: 'xxx',
+      firstName: 'xx',
+      lastName: 'xx',
+      hasAdminUser: false,
+    },
+    // ...
+  ],
 }

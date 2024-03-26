@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   tryCatch, id, die,
   whenPredicate, noop, multiply, lets,
-  map, ok,
+  map, ok, ifNil, compact,
 } from 'stick-js/es'
 
 import { dirname, } from 'path'
@@ -68,15 +68,20 @@ const createTables = [
   )`)
 ]
 
-const initTestData = (encryptPassword) => lets (
+const initTestData = (encryptPassword, users=null) => lets (
   () => encryptPassword,
   (encrypt) => doEither (
-    () => userAdd ('allen@alleycat.cc', 'allen', 'fishmaster', ['user'], encrypt ('appel')),
-    () => userAdd ('arie@alleycat.cc', 'arie', 'bombarie', ['user', 'user-admin'], encrypt ('peer')),
-    // () => privilegeAdd ('sjdfjsdfjsdfj@alleycat.cc', 'user'),
-    // () => privilegeAdd ('expired@alleycat.cc', 'user'),
-    // () => privilegeAdd ('arie@alleycat.cc', 'admin-user'),
-    // () => privilegeAdd ('allen@alleycat.cc', 'user'),
+    () => Right (null),
+    ... users | ifNil (
+      () => [],
+      map (({ email, password, firstName, lastName, hasAdminUser, }) => {
+        return () => userAdd (
+          email, firstName, lastName,
+          compact (['user', hasAdminUser && 'admin-user']),
+          encrypt (password),
+        )
+      }),
+    ),
   ),
 )
 
@@ -84,16 +89,14 @@ let sqliteApi
 
 const initialiseSchema = () => sqliteApi.runs (createTables)
 
-const initialiseTestData = (encryptPassword) => initTestData (encryptPassword)
-
-export const init = (encryptPassword) => {
+export const init = (encryptPassword, users=null) => {
   info ('opening db file at', dbPath | yellow)
   mkdirIfNeeded (dirname (dbPath))
   sqliteApi = getApi (dbPath, {})
   initialiseSchema () | foldWhenLeft (
     decorateRejection ("Couldn't initialise schema: ") >> die,
   )
-  initialiseTestData (encryptPassword) | foldWhenLeft (
+  initTestData (encryptPassword, users) | foldWhenLeft (
     decorateRejection ("Couldn't initialise test data: ") >> die,
   )
 }

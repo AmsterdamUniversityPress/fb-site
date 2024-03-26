@@ -30,7 +30,7 @@ import {
   selectGetFirstName, selectGetLastName, selectGetEmail,
   selectGetContactEmail, selectGetInstitutionName,
   selectGetUserType,
-  selectHasPrivilegeUserAdmin,
+  selectHasPrivilegeAdminUser,
 } from '../App/store/app/selectors'
 import {
   selectFondsen,
@@ -221,9 +221,9 @@ const User = container (
     },
     {
       getUserType: selectGetUserType,
-      hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
+      hasPrivilegeAdminUser: selectHasPrivilegeAdminUser,
     }],
-  ({ getUserType, hasPrivilegeUserAdmin, logOutDispatch, }) => {
+  ({ getUserType, hasPrivilegeAdminUser, logOutDispatch, }) => {
     const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
@@ -271,7 +271,7 @@ const User = container (
                 <img src={iconUpdate}/>
                 <span className='x__text'>wachtwoord veranderen</span>
               </MenuItem>
-              {hasPrivilegeUserAdmin && <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
+              {hasPrivilegeAdminUser && <MenuItem className='x__item x__admin' onClick={onClickAdmin}>
                 <img src={iconAdmin}/>
                 <span className='x__text'>gebruikers beheren</span>
               </MenuItem>}
@@ -934,11 +934,11 @@ const Contents = container (
 export default container (
   ['Main', {}, {
     institutionLoggedIn: selectInstitutionLoggedIn,
-    hasPrivilegeUserAdmin: selectHasPrivilegeUserAdmin,
+    hasPrivilegeAdminUser: selectHasPrivilegeAdminUser,
     userLoggedIn: selectUserLoggedIn,
   }],
   (props) => {
-    const { isMobile, page, hasPrivilegeUserAdmin, institutionLoggedIn, userLoggedIn, } = props
+    const { isMobile, page, hasPrivilegeAdminUser, institutionLoggedIn, userLoggedIn, } = props
     const navigate = useNavigate ()
 
     useWhy ('Main', props)
@@ -957,7 +957,7 @@ export default container (
     useEffect (() => {
       if (not (isLoggedIn)) return navigate ('/login')
       if (isUserLoggedIn && page === 'login') return navigate ('/')
-      if (not (hasPrivilegeUserAdmin) && page === '/user-admin') return navigate ('/')
+      if (not (hasPrivilegeAdminUser) && page === '/user-admin') return navigate ('/')
     }, [isLoggedIn, isUserLoggedIn, page, navigate])
 
     if (not (isLoggedIn) && page !== 'login') return
