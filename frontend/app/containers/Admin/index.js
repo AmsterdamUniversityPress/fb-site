@@ -319,6 +319,24 @@ export default container (
     useSaga ({ saga, key: 'Admin', })
 
     return <AdminS>
+      <AreYouSureDialog
+        isMobile={isMobile}
+        isOpen={removeDialogOpen}
+        onRequestClose={closeRemoveDialog}
+        onYes={onClickRemoveConfirm}
+        onNo={onClickRemoveCancel}
+        Contents={ContentsRemoveDialog}
+        contentsProps={{ emailToRemove, }}
+      />
+      <AreYouSureDialog
+        isMobile={isMobile}
+        isOpen={sendMailDialogOpen}
+        onRequestClose={closeSendMailDialog}
+        onYes={onClickSendMailConfirm}
+        onNo={onClickSendMailCancel}
+        Contents={ContentsMailDialog}
+        contentsProps={{ emailToSend, }}
+      />
       <div className='x__close' onClick={onClickClose}>
         <CloseIcon
           height={25}
@@ -347,24 +365,6 @@ export default container (
             <div className='col2 x__header'/>
             <div className='col3 x__header'/>
             {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
-              <AreYouSureDialog
-                isMobile={isMobile}
-                isOpen={removeDialogOpen}
-                onRequestClose={closeRemoveDialog}
-                onYes={onClickRemoveConfirm}
-                onNo={onClickRemoveCancel}
-                Contents={ContentsRemoveDialog}
-                contentsProps={{ emailToRemove, }}
-              />
-              <AreYouSureDialog
-                isMobile={isMobile}
-                isOpen={sendMailDialogOpen}
-                onRequestClose={closeSendMailDialog}
-                onYes={onClickSendMailConfirm}
-                onNo={onClickSendMailCancel}
-                Contents={ContentsMailDialog}
-                contentsProps={{ emailToSend, }}
-              />
               <div className='col0 x__name'>
                 {firstName} {lastName}
               </div>
