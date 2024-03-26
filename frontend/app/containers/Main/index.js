@@ -336,13 +336,13 @@ const LogoS = styled.div`
   }
 `
 
-const Logo = () => <LogoS>
-  <Link to='/'>
+const Logo = () => <Link to='/'>
+  <LogoS>
     <div className='x__item x__link'>
       <img src={imageLogo}/>
     </div>
-  </Link>
-</LogoS>
+  </LogoS>
+</Link>
 
 const MainS = styled.div`
   background: url(${imageBackground});
