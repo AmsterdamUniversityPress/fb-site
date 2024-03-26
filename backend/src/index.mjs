@@ -149,21 +149,22 @@ const addLoggedIn = (email) => doDbCallDie (dbLoggedInAdd, [ email, ])
 const removeLoggedIn = (email) => doDbCallDie (dbLoggedInRemove, [ email, ])
 const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, pw])
 
-// --- must return { password, userinfo, }, where userinfo is an arbitrary
-// structure which will be made available to the frontend, or `null`
-// --- @todo update description
+// --- must return { password, reqData, userinfo, }.
 const getUserinfoLoginSync = (email) => {
   const info = doDbCallDie (dbUserGet, [email])
   const privileges = doDbCallDie (dbPrivilegesGet, [email])
   const { firstName, lastName, password, } = info
   return {
     password,
-    // --- a value which will be merged in to `req` and made available to
-    // middleware and routing functions.
+    // --- `reqData` is an arbitrary object which will be merged in to `req`
+    // and made available to middleware and routing functions.
     // --- for example, to mimic the default passport behavior of setting
     // `req.user`, set this to `{ user: someValue, }`
     // --- use `null` or empty object to not set anything.
     reqData: null,
+    // --- `userinfo` is an arbitrary object which will be sent in the
+    // response body of the /hello and /login routes, and will also be
+    // merged into `req` for each request in the same way as `reqData`.
     userinfo: {
       type: 'user',
       privileges,
