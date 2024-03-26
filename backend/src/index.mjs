@@ -43,7 +43,13 @@ import {
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
 } from './util.mjs'
-import { getAndValidateQuery, getAndValidateBodyParams, } from './util-express.mjs'
+import {
+  getAndValidateQuery,
+  getAndValidateBodyParams,
+  getAndValidateRequestParams,
+  basicStringValidator,
+  basicValidator,
+} from './util-express.mjs'
 
 import {
   authFactory,
@@ -274,8 +280,8 @@ const init = ({ port, }) => express ()
   | use (cors (corsOptions))
   | useAuthMiddleware
   | secureGet (privsUser) ('/fondsen', getAndValidateQuery ([
-      ['beginIdx', isNonNegativeInt, Number],
-      ['number', isPositiveInt, Number],
+      basicValidator ('beginIdx', isNonNegativeInt, Number),
+      basicValidator ('number', isPositiveInt, Number),
     ],
     ({ res }, beginIdx, number) => res | sendStatus (200, {
       metadata: { totalAvailable: data.length, },
@@ -283,7 +289,7 @@ const init = ({ port, }) => express ()
     }),
   ))
   | secureGet (privsUser) ('/fonds', getAndValidateQuery ([
-      ['uuid', ok],
+      basicStringValidator ('uuid'),
     ],
     ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
@@ -305,13 +311,13 @@ const init = ({ port, }) => express ()
     }
     return res | sendStatus (200, null)
   })
-  | secureDelete (privsAdminUser) ('/user-admin/:email', (req, res) => {
-    const email = req.params.email
-    // const email = 'arie@alleycat.cc'
-    console.log ('email', email)
+  | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
+    basicStringValidator ('email'),
+  ],
+  ({ res, }, email) => {
     doDbCallDie (dbUserRemove, [email])
     return res | sendStatus (200, null)
-  })
+  }))
   | securePut (privsAdminUser) ('/user-admin/', (req, res) => {
     // @todo where to get the (new) password from?
     const password = "boom"
@@ -320,7 +326,7 @@ const init = ({ port, }) => express ()
     return res | sendStatus (200, null)
   })
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
-      ['email', ok],
+      basicStringValidator ('email'),
     ],
     ({ res }, to) => {
       // const password = generatePassword (10, chars)
