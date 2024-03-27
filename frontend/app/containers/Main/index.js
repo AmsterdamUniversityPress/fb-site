@@ -736,7 +736,7 @@ const UserPage = container (
         </div>
         <div className='x__grid'>
           <div className='x__label x__password'>
-            oud wachtwoord
+            huidig wachtwoord
           </div>
           <div className='x__input x__password-input'>
             <input

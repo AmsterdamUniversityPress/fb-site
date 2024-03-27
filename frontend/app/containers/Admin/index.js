@@ -31,7 +31,7 @@ import {
 } from './selectors'
 
 import {
-  sendWelcomeEmail, userAdd, userAddStart, userRemove, usersFetch,
+  sendWelcomeEmail, userAdd, userAddStart, userRemove, userRemoveStart, usersFetch,
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -275,6 +275,7 @@ const dispatchTable = {
   usersFetchDispatch: usersFetch,
   userAddStartDispatch: userAddStart,
   userRemoveDispatch: userRemove,
+  userRemoveStartDispatch: userRemoveStart,
 }
 
 const selectorTable = {
@@ -294,6 +295,7 @@ export default container (
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
       userAddStartDispatch,
+      userRemoveStartDispatch,
       userRemovePendingUsers,
       userRemoveSuccess,
       emailRequestPending,
@@ -358,8 +360,12 @@ export default container (
     }, [usersFetchDispatch])
 
     useEffect (() => {
-      if (userRemoveSuccess) toastInfo ('Het verwijderen van de gebruiker is geslaagd.')
+      if (userRemoveSuccess) {
+        toastInfo ('Het verwijderen van de gebruiker is geslaagd.')
+        userRemoveStartDispatch ()
+      }
     }, [userRemoveSuccess])
+
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
     useSaga ({ saga, key: 'Admin', })

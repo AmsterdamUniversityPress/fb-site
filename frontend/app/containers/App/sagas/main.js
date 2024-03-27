@@ -203,7 +203,7 @@ function *s_passwordUpdateCompleted (rcomplete) {
   rcomplete | cata ({
     // error is dealt with in s_passwordUpdate
     RequestCompleteError: (_e) => {},
-    RequestCompleteSuccess: (_) => toastInfo ("Password successfully updated")
+    RequestCompleteSuccess: (_) => toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
   })
 }
 
