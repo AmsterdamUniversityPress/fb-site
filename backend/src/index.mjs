@@ -172,8 +172,10 @@ const getUserinfoLoginSync = (email) => {
     // --- use `null` or empty object to not set anything.
     reqData: null,
     // --- `userinfo` is an arbitrary object which will be sent in the
-    // response body of the /hello and /login routes, and will also be
-    // merged into `req` for each request in the same way as `reqData`.
+    // response body of the /hello and /login routes.
+    // --- also, on each request we merge an object
+    //     { user: { username, userinfo, }}
+    // into `req`, in the same way as with `reqData`.
     userinfo: {
       type: 'user',
       privileges,

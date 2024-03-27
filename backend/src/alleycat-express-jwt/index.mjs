@@ -115,10 +115,10 @@ const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, nu
       () => {
         // --- logged in and authorized.
         // - merge `reqData` into `req` if provided
-        // - merge `{ userinfo, }` into `req`
+        // - merge `{ user: { username, userinfo, }}` into `req`
         // - do not do anything with sessions (the only thing we use cookies for is to store the JWT
         // itself, and that is done during the `login` middleware)
-        [reqData, { userinfo, }] | map (whenOk (mergeToM (req)))
+        [reqData, { user: { username, userinfo, }}] | map (whenOk (mergeToM (req)))
         return next (null)
       },
       () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), sendObject: true, }),
@@ -323,16 +323,16 @@ const init = ({
   )
 
   const useAuthMiddleware = composeManyRight (
-    // --- all routes with the passport 'jwt' middlreturns return 499 if either the JWT is missing
+    // --- all routes with the passport 'jwt' middleware return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
     getN (routeHello, [
       authMiddleware (authorizeDataDefault),
       (req, res) => {
-        const { userinfo, } = req
-        if (!userinfo) return res | sendStatus (serverErrorJSONCode, {
+        const { user, } = req
+        if (!user.userinfo) return res | sendStatus (serverErrorJSONCode, {
           imsg: routeHello + ': missing user info',
         })
-        return res | send ({ data: userinfo, })
+        return res | send ({ data: user.userinfo, })
       },
       customErrorHandler,
     ]),
