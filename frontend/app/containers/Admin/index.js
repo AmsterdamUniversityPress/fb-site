@@ -24,11 +24,12 @@ import {
   selectEmailRequestPending,
   selectUsers,
   selectUserAddPending,
+  selectUserAddSuccess,
   selectUserRemovePending,
 } from './selectors'
 
 import {
-  sendWelcomeEmail, userAdd, userRemove, usersFetch,
+  sendWelcomeEmail, userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -40,7 +41,8 @@ import { spinner, } from '../../alleycat-components'
 import {
   component, container, useWhy, keyDownListen, isNotEmptyString,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
-  requestResults, } from '../../common'
+  requestResults, toastInfo,
+} from '../../common'
 import config from '../../config'
 import Dialog from '../../alleycat-components/Dialog'
 
@@ -149,7 +151,10 @@ const AdminS = styled.div`
 `
 
 const DialogContentsS = styled.div`
-  > p {
+  > div {
+    line-height: 2.0em;
+  }
+  > p, > div {
     > .x__email {
       border-bottom: 1px solid #111;
       padding: 2px;
@@ -157,6 +162,9 @@ const DialogContentsS = styled.div`
     > button {
       margin-right: 20px;
     }
+  }
+  > .x__buttons {
+    margin-top: 10px;
   }
 `
 
@@ -185,8 +193,12 @@ const ContentsMailDialog = component (
 )
 
 const ContentsUserAdd = container (
-  ['UserAdd', { userAddDispatch: userAdd, }, {}],
-  ({ close, userAddDispatch, }) => {
+  [
+    'UserAdd',
+    { userAddDispatch: userAdd, },
+    { userAddPending: selectUserAddPending, userAddSuccess: selectUserAddSuccess, },
+  ],
+  ({ close, onSuccess, userAddDispatch, userAddSuccess, userAddPending, }) => {
     const [firstName, setFirstName] = useState ('')
     const [lastName, setLastName] = useState ('')
     const [email, setEmail] = useState ('')
@@ -221,26 +233,29 @@ const ContentsUserAdd = container (
       () => doUserAdd (),
       [doUserAdd]
     )
+    useEffect (() => {
+      if (userAddSuccess) onSuccess ()
+    }, [userAddSuccess])
 
     return <DialogContentsS>
-      <p>
+      <div>
         Voornaam <Input onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
-      </p>
-      <p>
+      </div>
+      <div>
         Achternaam <Input onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
-      </p>
-      <p>
+      </div>
+      <div>
         E-mailadres <Input onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
-      </p>
-      <p>
+      </div>
+      <div className='x__buttons'>
         <Button disabled={not (canSubmit)} onClick={onClickSubmit}>
           OK
         </Button>
         <Button onClick={close}>
           Annuleer
         </Button>
-      </p>
-
+        {userAddPending && <Spinner size={20}/>}
+      </div>
     </DialogContentsS>
   },
 )
@@ -248,6 +263,7 @@ const ContentsUserAdd = container (
 const dispatchTable = {
   sendWelcomeEmailDispatch: sendWelcomeEmail,
   usersFetchDispatch: usersFetch,
+  userAddStartDispatch: userAddStart,
   userRemoveDispatch: userRemove,
 }
 
@@ -265,6 +281,7 @@ export default container (
       userRemoveDispatch,
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
+      userAddStartDispatch,
       userRemovePending,
       emailRequestPending,
     } = props
@@ -304,7 +321,10 @@ export default container (
       closeRemoveDialog ()
     }, [userRemoveDispatch, emailToRemove])
     const onClickRemoveCancel = useCallbackConst (() => closeRemoveDialog ())
-    const onClickAddUser = useCallbackConst (() => openAddUserDialog ())
+    const onClickAddUser = useCallbackConst (() => {
+      userAddStartDispatch ()
+      openAddUserDialog ()
+    })
     const onClickSendMail = useCallback ((email) => {
       openSendMailDialog ()
       setEmailToSend (email)
@@ -314,6 +334,11 @@ export default container (
       sendWelcomeEmailDispatch (emailToSend)
     }, [emailToSend, sendWelcomeEmailDispatch],)
     const onClickSendMailCancel = useCallbackConst (() => closeSendMailDialog ())
+    const onUserAddSuccess = useCallbackConst (() => {
+      usersFetchDispatch ()
+      closeAddUserDialog ()
+      toastInfo ('Het toevoegen van de nieuwe gebruiker is geslaagd.')
+    })
 
     useEffect (() => {
       usersFetchDispatch ()
@@ -330,7 +355,7 @@ export default container (
         closeOnOverlayClick={true}
         isMobile={isMobile}
       >
-        <ContentsUserAdd close={closeAddUserDialog}/>
+        <ContentsUserAdd close={closeAddUserDialog} onSuccess={onUserAddSuccess}/>
       </Dialog>
       <AreYouSureDialog
         isMobile={isMobile}

@@ -29,13 +29,13 @@ export const _getAndValidate = recurry (6) (
       // --- allow nil (leave it to the validate function, which is required, to deal with)
       const paramVal = params [param]
       if (not (preValidate (paramVal))) {
-        res | sendStatus (499, { imsg: param | sprintf1 ('Invalid value for query param “%s”'), })
+        res | sendStatus (499, { umsg: param | sprintf1 ('Invalid value for field “%s”'), })
         abort ()
         return
       }
       const transformed = paramVal | transform
       if (not (validate (transformed))) {
-        res | sendStatus (499, { imsg: param | sprintf1 ('Invalid value for query param “%s”'), })
+        res | sendStatus (499, { umsg: param | sprintf1 ('Invalid value for field “%s”'), })
         abort ()
         return
       }

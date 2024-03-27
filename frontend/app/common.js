@@ -254,3 +254,11 @@ export const notContainedInV = compose2 (containedInV, not)
 export const keyDownListen = keyPressListen
 
 export const mapX = addIndex (map)
+
+// --- @todo alleycat-js
+export const requestIsInit = cata ({
+  RequestInit: T,
+  RequestLoading: F,
+  RequestError: F,
+  RequestResults: F,
+})

@@ -291,8 +291,7 @@ const init = ({ port, }) => express ()
   ))
   | secureGet (privsUser) ('/fonds', getAndValidateQuery ([
       basicStringValidator ('uuid'),
-    ],
-    ({ res }, uuid) => res | sendStatus (
+    ], ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
         (fonds) => [200, { results: fonds, }],
         () => [499, { umsg: 'No such uuid ' + uuid, }],
@@ -313,19 +312,21 @@ const init = ({ port, }) => express ()
     return res | sendStatus (200, null)
   })
   | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
-    basicEmailValidator ('email'),
-  ],
-  ({ res, }, email) => {
-    doDbCallDie (dbUserRemove, [email])
-    return res | sendStatus (200, null)
-  }))
-  | securePut (privsAdminUser) ('/user-admin/', (req, res) => {
-    // @todo where to get the (new) password from?
-    const password = "boom"
-    const { email, firstName, lastName, privileges, } = req.body.data
-    doDbCallDie (dbUserAdd, [email, firstName, lastName, privileges, password])
-    return res | sendStatus (200, null)
-  })
+      basicEmailValidator ('email'),
+    ], ({ res, }, email) => {
+      doDbCallDie (dbUserRemove, [email])
+      return res | sendStatus (200, null)
+    }),
+  )
+  | securePut (privsAdminUser) ('/user-admin/', getAndValidateBodyParams ([
+      basicEmailValidator ('email'),
+      basicStringValidator ('firstName'),
+      basicStringValidator ('lastName'),
+    ], ({ res, }, email, firstName, lastName) => {
+      doDbCallDie (dbUserAdd, [email, firstName, lastName, ['user'], null])
+      return res | sendStatus (200, null)
+    },
+  ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
     ],

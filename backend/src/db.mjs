@@ -53,7 +53,7 @@ const createTables = [
     email text unique not null,
     firstName text,
     lastName text,
-    password text not null
+    password text
   )`),
   S (`create table loggedIn (
     id integer primary key autoincrement,

@@ -94,8 +94,13 @@ export const userAdd = action (
 )
 
 export const userAddCompleted = action (
-  (rcomplete, firstName, lastName, email) => ({ rcomplete, firstName, lastName, email, }),
+  (rcomplete) => rcomplete,
   'userAddCompleted',
+)
+
+export const userAddStart = action (
+  () => {},
+  'userAddStart',
 )
 
 export const userRemove = action (

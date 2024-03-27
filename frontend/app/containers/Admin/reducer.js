@@ -1,10 +1,11 @@
 import {
   pipe, compose, composeRight,
-  assoc, update, recurry,
+  assoc, update, recurry, tap,
 } from 'stick-js/es'
 
 import { cata, Nothing, } from 'alleycat-js/es/bilby'
 import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alleycat-js/es/fetch'
+import { logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
@@ -13,6 +14,7 @@ import {
   usersFetchCompleted,
   userAdd,
   userAddCompleted,
+  userAddStart,
   userRemove,
   userRemoveCompleted,
 } from '../App/actions/main'
@@ -21,7 +23,9 @@ import { reducer, } from '../../common'
 
 export const initialState = {
   emailRequestPending: new Set (),
-  userAddPending: false,
+  // --- we just want to keep track of the state of the request and don't care what's inside
+  // RequestResults.
+  userAddRequest: RequestInit,
   userRemovePending: new Set (),
   users: RequestInit,
 }
@@ -41,10 +45,16 @@ const reducerTable = makeReducer (
     'emailRequestPending', setRemove (email),
   ),
   userAdd, (... _) => assoc (
-    'userAddPending', true,
+    'userAddRequest', RequestLoading (Nothing),
   ),
-  userAddCompleted, (... _ ) => assoc (
-    'userAddPending', false,
+  userAddCompleted, (rcomplete) => assoc (
+    'userAddRequest', rcomplete | tap (logWith ('hello')) |cata ({
+      RequestCompleteError: (_) => RequestError (null),
+      RequestCompleteSuccess: (_) => RequestResults (null),
+    }),
+  ),
+  userAddStart, (... _) => assoc (
+    'userAddRequest', RequestInit | tap (logWith ('stsrating')),
   ),
   userRemove, (email) => update (
     'userRemovePending', setAdd (email),
