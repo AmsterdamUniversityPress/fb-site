@@ -224,7 +224,6 @@ function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
 }
 
 function *s_userAdd ({ email, firstName, lastName, privileges }) {
-  console.log ('adding user', firstName, lastName, email, privileges)
   yield call (doApiCall, {
     url: '/api/user-admin',
     optsMerge: {

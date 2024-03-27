@@ -337,7 +337,7 @@ export default container (
     const onUserAddSuccess = useCallbackConst (() => {
       usersFetchDispatch ()
       closeAddUserDialog ()
-      toastInfo ('Het toevoegen van de nieuwe gebruiker is geslaagd.')
+      toastInfo ('Het toevoegen van de nieuwe gebruiker is geslaagd, en er is een e-mail met activatielink naar de gebruiker gestuurd.')
     })
 
     useEffect (() => {

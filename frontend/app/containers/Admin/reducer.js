@@ -48,13 +48,13 @@ const reducerTable = makeReducer (
     'userAddRequest', RequestLoading (Nothing),
   ),
   userAddCompleted, (rcomplete) => assoc (
-    'userAddRequest', rcomplete | tap (logWith ('hello')) |cata ({
+    'userAddRequest', rcomplete | cata ({
       RequestCompleteError: (_) => RequestError (null),
       RequestCompleteSuccess: (_) => RequestResults (null),
     }),
   ),
   userAddStart, (... _) => assoc (
-    'userAddRequest', RequestInit | tap (logWith ('stsrating')),
+    'userAddRequest', RequestInit,
   ),
   userRemove, (email) => update (
     'userRemovePending', setAdd (email),

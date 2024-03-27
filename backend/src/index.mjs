@@ -14,7 +14,7 @@ import express from 'express'
 
 import nodemailer from 'nodemailer'
 
-import { recover, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, } from 'alleycat-js/es/io';
 import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
@@ -156,10 +156,12 @@ const addLoggedIn = (email) => doDbCallDie (dbLoggedInAdd, [ email, ])
 const removeLoggedIn = (email) => doDbCallDie (dbLoggedInRemove, [ email, ])
 const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, pw])
 
-// --- must return { password, reqData, userinfo, }.
+// --- must return { password, reqData, userinfo, }, or `null`.
 const getUserinfoLoginSync = (email) => {
   const info = doDbCallDie (dbUserGet, [email])
+  if (nil (info)) return
   const privileges = doDbCallDie (dbPrivilegesGet, [email])
+  if (nil (privileges)) return
   const { firstName, lastName, password, } = info
   return {
     password,
@@ -275,6 +277,19 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 }
 
+const sendWelcomeEmail = (to) => {
+  return emailTransporter.sendMail ({
+    to,
+    from: emailOpts.fromString,
+    subject: 'Hallo van FB',
+    text: 'welkom',
+    html: '<b>welkom</b>',
+  })
+  | recover ((e) => {
+    rejectP << decorateRejection ('Unable to send welcome email: ', e)
+  })
+}
+
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
@@ -324,29 +339,25 @@ const init = ({ port, }) => express ()
       basicStringValidator ('lastName'),
     ], ({ res, }, email, firstName, lastName) => {
       doDbCallDie (dbUserAdd, [email, firstName, lastName, ['user'], null])
-      return res | sendStatus (200, null)
+      return sendWelcomeEmail (email)
+      | then ((_mailInfo) => res | sendStatus (200, null))
+      | recover ((e) => {
+        warn (decorateRejection ('Error with /user-admin: ', e))
+        res | sendStatus (599, {
+          // --- @todo this message is getting swallowed in the front end
+          umsg: 'User added but welcome email could not be sent',
+        })
+      })
     },
   ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
-      // const password = generatePassword (10, chars)
-      // @todo no mail in send in this case, this info should be known to the admin-user
-      // if (!updateUserPassword (to, hashPassword (password))) {
-        // return res | sendStatusEmpty (500)
-      // }
-      return emailTransporter.sendMail ({
-        to,
-        from: emailOpts.fromString,
-        subject: 'Hallo van FB',
-        text: 'welkom',
-        // html: '<b>welkom, je nieuwe wachtwoord is ' + password +'</b>',
-        html: '<b>welkom</b>',
-      })
+      return sendWelcomeEmail (to)
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
-        warn (decorateRejection ('Unable to send email: ', e))
+        warn (decorateRejection ('Error with /user/send-welcome-email: ', e))
         res | sendStatusEmpty (500)
       })
     },

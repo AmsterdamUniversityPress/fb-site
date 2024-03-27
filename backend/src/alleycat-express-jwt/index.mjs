@@ -188,7 +188,9 @@ const initPassportStrategies = ({
       () => done (null, false, { message: 'User not found', }),
       () => {
         const { password: passwordKnown, reqData=null, userinfo, } = results
-        if (!passwordKnown || !userinfo)
+        if (!passwordKnown)
+          return done (null, false, { message: 'This user is inactive or does not (yet) have a password', })
+        if (!userinfo)
           return done ('Invalid user object', false, { message: 'Internal error', })
         if (!checkPassword (passwordTry, passwordKnown))
           return done (null, false, { message: 'Wrong Password', })

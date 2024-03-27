@@ -181,7 +181,7 @@ export const toastInfoOptions = toastXOptions ('info')
 export const toastError = toastErrorOptions ({})
 export const toastWarn = toastWarnOptions ({})
 export const toastSuccess = toastSuccessOptions ({})
-export const toastInfo = toastInfoOptions ({})
+export const toastInfo = toastInfoOptions ({ autoClose: 20000, })
 
 export function saga (...args) {
   return _saga (sagaEffects, ...args)
