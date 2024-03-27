@@ -51,6 +51,7 @@ import {
   basicStringValidator,
   basicUUIDValidator,
   basicValidator,
+  basicStringListValidator,
 } from './util-express.mjs'
 
 import {
@@ -340,8 +341,9 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
       basicStringValidator ('firstName'),
       basicStringValidator ('lastName'),
-    ], ({ res, }, email, firstName, lastName) => {
-      doDbCallDie (dbUserAdd, [email, firstName, lastName, ['user'], null])
+      basicStringListValidator ('privileges')
+    ], ({ res, }, email, firstName, lastName, privileges) => {
+      doDbCallDie (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
       return sendWelcomeEmail (email)
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {

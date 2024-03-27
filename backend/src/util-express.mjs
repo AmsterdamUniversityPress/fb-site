@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   id, recurry, sprintf1,
-  againstAll, T, ok, not,
+  againstAll, allAgainst, T, ok, not,
 } from 'stick-js/es'
 
 import { sendStatus, } from 'alleycat-js/es/express'
@@ -68,6 +68,14 @@ export const basicStringValidator = (param, validate=T, transform=id, preValidat
   transform,
   preValidate,
 )
+
+export const basicStringListValidator = (param, validate=T, transform=id, preValidate=T) => [
+  param,
+  againstAll ([validate, allAgainst (trim >> isNonEmptyAlphaNumericString)]),
+  transform,
+  againstAll ([ok, preValidate]),
+]
+
 
 export const basicUUIDValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
   param,
