@@ -14,6 +14,9 @@ const isNonEmptyAlphaNumericString = (x) => ok (x.match (
   /^[\d\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+$/u,
 ))
 
+const isNonEmptyUUID = (x) => ok (x.match (
+  /^[0-9a-f-]+$/,
+))
 
 // --- from emailregex.com
 // --- control characters (\x01, \x02 etc.) seem weird and annoy the linter but are actually valid for some reason
@@ -62,6 +65,13 @@ export const basicValidator = (param, validate=T, transform=id, preValidate=T) =
 export const basicStringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
   param,
   againstAll ([validate, isNonEmptyAlphaNumericString]),
+  transform,
+  preValidate,
+)
+
+export const basicUUIDValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
+  param,
+  againstAll ([validate, isNonEmptyUUID]),
   transform,
   preValidate,
 )

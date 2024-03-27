@@ -49,6 +49,7 @@ import {
   getAndValidateRequestParams,
   basicEmailValidator,
   basicStringValidator,
+  basicUUIDValidator,
   basicValidator,
 } from './util-express.mjs'
 
@@ -307,7 +308,7 @@ const init = ({ port, }) => express ()
     }),
   ))
   | secureGet (privsUser) ('/fonds', getAndValidateQuery ([
-      basicStringValidator ('uuid'),
+      basicUUIDValidator ('uuid'),
     ], ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
         (fonds) => [200, { results: fonds, }],
