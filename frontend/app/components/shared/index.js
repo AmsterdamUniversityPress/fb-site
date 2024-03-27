@@ -161,6 +161,12 @@ const ButtonMS = styled (Button2)`
   flex: 1 0 auto;
 `
 
+const AreYouSureDialogS = styled.div`
+  > .x__buttons > button {
+    margin-right: 10px;
+  }
+`
+
 export const AreYouSureDialog = ({
   isMobile,
   isOpen, onRequestClose,
@@ -170,21 +176,25 @@ export const AreYouSureDialog = ({
   contentsProps={},
   show=true,
   extraWarn=false,
-}) => <Dialog
-  isOpen={isOpen}
-  onRequestClose={onRequestClose}
-  closeOnOverlayClick={closeOnOverlayClick}
-  isMobile={isMobile}
->
-  <div className={clss ('x__contents', show || 'u--display-none')}>
-    {extraWarn && <div className='x__warning-sign'/>}
-    <Contents {... contentsProps}/>
-  </div>
-  <div className='x__buttons'>
-    <Button onClick={onYes}>Ja</Button>
-    <Button onClick={onNo}>Nee</Button>
-  </div>
-</Dialog>
+}) => <>
+  <Dialog
+    isOpen={isOpen}
+    onRequestClose={onRequestClose}
+    closeOnOverlayClick={closeOnOverlayClick}
+    isMobile={isMobile}
+  >
+    <AreYouSureDialogS>
+      <div className={clss ('x__contents', show || 'u--display-none')}>
+        {extraWarn && <div className='x__warning-sign'/>}
+        <Contents {... contentsProps}/>
+      </div>
+      <div className='x__buttons'>
+        <Button onClick={onYes}>Ja</Button>
+        <Button onClick={onNo}>Nee</Button>
+      </div>
+    </AreYouSureDialogS>
+  </Dialog>
+</>
 
 export const ButtonM = ({ text, selected, disabled, greyed, onClick, width='100px', }) =>
   <ButtonMS

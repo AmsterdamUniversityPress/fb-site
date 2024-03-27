@@ -141,8 +141,6 @@ export default component (
     )
     useEffect (() => {
       if (!everythingElse) return
-      console.log ('everythingElse', everythingElse)
-      console.log ('isOpen', isOpen)
       if (isOpen) everythingElse.classList.add ('x--dialog-open')
       else everythingElse.classList.remove ('x--dialog-open')
     }, [everythingElse, isOpen])

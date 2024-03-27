@@ -10,7 +10,7 @@ import { keyPressListen, useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
-import { logWith, } from 'alleycat-js/es/general'
+import { logWith, trim, } from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, useReduxReducer, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -57,7 +57,7 @@ const Spinner = spinner ('comet')
 
 const AdminS = styled.div`
   min-height: 300px;
-  width: 80%;
+  width: 100%;
   min-width: 850px;
   margin: auto;
   margin-top: 100px;
@@ -126,6 +126,12 @@ const AdminS = styled.div`
           }
         }
       }
+      > .x__spinner {
+        > span {
+          margin-left: 50px;
+        }
+        min-width: 85px;
+      }
     }
   }
   .x__close {
@@ -143,9 +149,14 @@ const AdminS = styled.div`
 `
 
 const DialogContentsS = styled.div`
-  > p > .x__email {
-    border-bottom: 1px solid #111;
-    padding: 2px;
+  > p {
+    > .x__email {
+      border-bottom: 1px solid #111;
+      padding: 2px;
+    }
+    > button {
+      margin-right: 20px;
+    }
   }
 `
 
@@ -175,18 +186,18 @@ const ContentsMailDialog = component (
 
 const ContentsUserAdd = container (
   ['UserAdd', { userAddDispatch: userAdd, }, {}],
-  ({ userAddDispatch, }) => {
+  ({ close, userAddDispatch, }) => {
     const [firstName, setFirstName] = useState ('')
     const [lastName, setLastName] = useState ('')
     const [email, setEmail] = useState ('')
     const onChangeFirstName = useCallbackConst (
-      (event) => setFirstName (event.target.value),
+      (event) => setFirstName (event.target.value | trim),
     )
     const onChangeLastName = useCallbackConst (
-      (event) => setLastName (event.target.value),
+      (event) => setLastName (event.target.value | trim),
     )
     const onChangeEmail = useCallbackConst (
-      (event) => setEmail (event.target.value),
+      (event) => setEmail (event.target.value | trim),
     )
     const canSubmit = useMemo (
       () => [firstName, lastName, email] | allAgainst (isNotEmptyString),
@@ -213,17 +224,20 @@ const ContentsUserAdd = container (
 
     return <DialogContentsS>
       <p>
-        voornaam <Input onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
+        Voornaam <Input onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
       </p>
       <p>
-        achternaam <Input onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
+        Achternaam <Input onChange={onChangeLastName} onKeyDown={onKeyDownInput}/>
       </p>
       <p>
-        e-mailadres <Input onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
+        E-mailadres <Input onChange={onChangeEmail} onKeyDown={onKeyDownInput}/>
       </p>
       <p>
         <Button disabled={not (canSubmit)} onClick={onClickSubmit}>
-          toevoegen
+          OK
+        </Button>
+        <Button onClick={close}>
+          Annuleer
         </Button>
       </p>
 
@@ -241,7 +255,6 @@ const selectorTable = {
   users: selectUsers,
   emailRequestPending: selectEmailRequestPending,
   userRemovePending: selectUserRemovePending,
-  userAddPending: selectUserAddPending,
 }
 
 export default container (
@@ -252,7 +265,8 @@ export default container (
       userRemoveDispatch,
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
-      userRemovePending, userAddPending, emailRequestPending,
+      userRemovePending,
+      emailRequestPending,
     } = props
 
     // @todo get from Contents or something.
@@ -264,7 +278,7 @@ export default container (
     const [sendMailDialogIsOpen, setSendMailDialogIsOpen] = useState (false)
     const [addUserDialogIsOpen, setAddUserDialogIsOpen] = useState (false)
 
-    const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email) || userAddPending
+    const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email)
 
     const navigate = useNavigate ()
 
@@ -316,11 +330,12 @@ export default container (
         closeOnOverlayClick={true}
         isMobile={isMobile}
       >
-        <ContentsUserAdd/>
+        <ContentsUserAdd close={closeAddUserDialog}/>
       </Dialog>
       <AreYouSureDialog
         isMobile={isMobile}
         isOpen={removeDialogIsOpen}
+        closeOnOverlayClick={true}
         onRequestClose={closeRemoveDialog}
         onYes={onClickRemoveConfirm}
         onNo={onClickRemoveCancel}
@@ -330,6 +345,7 @@ export default container (
       <AreYouSureDialog
         isMobile={isMobile}
         isOpen={sendMailDialogIsOpen}
+        closeOnOverlayClick={true}
         onRequestClose={closeSendMailDialog}
         onYes={onClickSendMailConfirm}
         onNo={onClickSendMailCancel}
@@ -384,8 +400,10 @@ export default container (
                   />
                 </div>
               </div>
-              <div className='col3'>
-                {pending (email) && <Spinner size={20}/>}
+              <div className='col3 x__spinner'>
+                <span>
+                  {pending (email) && <Spinner size={20}/>}
+                </span>
               </div>
             </div>
             )}

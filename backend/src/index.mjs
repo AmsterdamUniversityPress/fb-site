@@ -47,6 +47,7 @@ import {
   getAndValidateQuery,
   getAndValidateBodyParams,
   getAndValidateRequestParams,
+  basicEmailValidator,
   basicStringValidator,
   basicValidator,
 } from './util-express.mjs'
@@ -283,7 +284,7 @@ const init = ({ port, }) => express ()
       basicValidator ('beginIdx', isNonNegativeInt, Number),
       basicValidator ('number', isPositiveInt, Number),
     ],
-    ({ res }, beginIdx, number) => res | sendStatus (200, {
+    ({ res, }, beginIdx, number) => res | sendStatus (200, {
       metadata: { totalAvailable: data.length, },
       results: data.slice (beginIdx, beginIdx + number),
     }),
@@ -312,7 +313,7 @@ const init = ({ port, }) => express ()
     return res | sendStatus (200, null)
   })
   | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
-    basicStringValidator ('email'),
+    basicEmailValidator ('email'),
   ],
   ({ res, }, email) => {
     doDbCallDie (dbUserRemove, [email])
@@ -326,7 +327,7 @@ const init = ({ port, }) => express ()
     return res | sendStatus (200, null)
   })
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
-      basicStringValidator ('email'),
+      basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
       // const password = generatePassword (10, chars)

@@ -14,6 +14,13 @@ const isNonEmptyAlphaNumericString = (x) => ok (x.match (
   /^[\d\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+$/u,
 ))
 
+
+// --- from emailregex.com
+// --- control characters (\x01, \x02 etc.) seem weird and annoy the linter but are actually valid for some reason
+const isValidEmail = (x) => ok (x.match (
+  /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/,
+))
+
 export const _getAndValidate = recurry (6) (
   (getParams) => (spec) => (cont) => (req) => (res) => (next) => {
     const params = getParams (req)
@@ -55,6 +62,13 @@ export const basicValidator = (param, validate=T, transform=id, preValidate=T) =
 export const basicStringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
   param,
   againstAll ([validate, isNonEmptyAlphaNumericString]),
+  transform,
+  preValidate,
+)
+
+export const basicEmailValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
+  param,
+  againstAll ([validate, isValidEmail]),
   transform,
   preValidate,
 )
