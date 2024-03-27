@@ -164,6 +164,12 @@ const DialogContentsS = styled.div`
     > button {
       margin-right: 20px;
     }
+    > .x__spinner {
+      vertical-align: middle;
+      position: relative;
+      top: 5px;
+      left: 15px;
+    }
   }
   > .x__buttons {
     margin-top: 10px;
@@ -256,7 +262,9 @@ const ContentsUserAdd = container (
         <Button onClick={close}>
           Annuleer
         </Button>
-        {userAddPending && <Spinner size={20}/>}
+        <span className='x__spinner'>
+          {userAddPending && <Spinner size={20}/>}
+        </span>
       </div>
     </DialogContentsS>
   },
