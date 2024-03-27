@@ -109,6 +109,6 @@ export const userRemove = action (
 )
 
 export const userRemoveCompleted = action (
-  (rcomplete, email) => ({ res: rcomplete, email, }),
+  (rcomplete, email) => ({ rcomplete, email, }),
   'userRemoveCompleted',
 )

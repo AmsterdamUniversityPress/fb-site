@@ -5,7 +5,7 @@ import {
 
 import { cata, Nothing, } from 'alleycat-js/es/bilby'
 import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alleycat-js/es/fetch'
-import { logWith, } from 'alleycat-js/es/general'
+import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
@@ -26,7 +26,9 @@ export const initialState = {
   // --- we just want to keep track of the state of the request and don't care what's inside
   // RequestResults.
   userAddRequest: RequestInit,
-  userRemovePending: new Set (),
+  userRemovePendingUsers: new Set (),
+  // --- ditto
+  userRemoveRequest: RequestInit,
   users: RequestInit,
 }
 
@@ -56,11 +58,16 @@ const reducerTable = makeReducer (
   userAddStart, (... _) => assoc (
     'userAddRequest', RequestInit,
   ),
-  userRemove, (email) => update (
-    'userRemovePending', setAdd (email),
+  userRemove, (email) => composeManyRight (
+    update ('userRemovePendingUsers', setAdd (email)),
+    assoc ('userRemoveRequest', RequestLoading (Nothing)),
   ),
-  userRemoveCompleted, ({ email, ... _ }) => update (
-    'userRemovePending', setRemove (email),
+  userRemoveCompleted, ({ rcomplete, email, }) => composeManyRight (
+    update ('userRemovePendingUsers', setRemove (email)),
+    assoc ('userRemoveRequest', rcomplete | cata ({
+      RequestCompleteError: (_) => RequestError (null),
+      RequestCompleteSuccess: (_) => RequestResults (null),
+    })),
   ),
   usersFetchCompleted, (rcomplete) => assoc (
     'users', rcomplete | cata ({

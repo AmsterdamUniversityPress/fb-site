@@ -26,6 +26,8 @@ import {
   selectUserAddPending,
   selectUserAddSuccess,
   selectUserRemovePending,
+  selectUserRemoveSuccess,
+  selectUserRemovePendingUsers,
 } from './selectors'
 
 import {
@@ -271,6 +273,8 @@ const selectorTable = {
   users: selectUsers,
   emailRequestPending: selectEmailRequestPending,
   userRemovePending: selectUserRemovePending,
+  userRemovePendingUsers: selectUserRemovePendingUsers,
+  userRemoveSuccess: selectUserRemoveSuccess,
 }
 
 export default container (
@@ -282,7 +286,8 @@ export default container (
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
       userAddStartDispatch,
-      userRemovePending,
+      userRemovePendingUsers,
+      userRemoveSuccess,
       emailRequestPending,
     } = props
 
@@ -295,7 +300,7 @@ export default container (
     const [sendMailDialogIsOpen, setSendMailDialogIsOpen] = useState (false)
     const [addUserDialogIsOpen, setAddUserDialogIsOpen] = useState (false)
 
-    const pending = (email) => emailRequestPending.has (email) || userRemovePending.has (email)
+    const pending = (email) => emailRequestPending.has (email) || userRemovePendingUsers.has (email)
 
     const navigate = useNavigate ()
 
@@ -344,6 +349,9 @@ export default container (
       usersFetchDispatch ()
     }, [usersFetchDispatch])
 
+    useEffect (() => {
+      if (userRemoveSuccess) toastInfo ('Het verwijderen van de gebruiker is geslaagd.')
+    }, [userRemoveSuccess])
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })
     useSaga ({ saga, key: 'Admin', })
