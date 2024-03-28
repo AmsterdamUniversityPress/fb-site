@@ -2,8 +2,8 @@ import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
   gt, againstAny, eq, die, map, reduce,
-  not, concatTo, recurry, ifOk, ifNil,
-  repeatF, dot1, join, appendM,
+  not, concatTo, recurry, ifOk, ifNil, noop,
+  repeatF, dot, dot1, dot2, join, appendM,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -17,7 +17,7 @@ import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
 
-import { recover, rejectP, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, startP, then, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
@@ -38,7 +38,6 @@ import {
   loggedInAdd as dbLoggedInAdd,
   loggedInRemove as dbLoggedInRemove,
   loggedInGet as dbLoggedInGet,
-  // privilegeAdd as dbPrivilegeAdd,
   privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
 } from './db.mjs';
@@ -59,6 +58,13 @@ import {
   basicValidator,
   basicStringListValidator,
 } from './util-express.mjs'
+import {
+  batch as redisBatch,
+  expire as redisExpire,
+  init as redisInit,
+  get as redisGet,
+  set as redisSet,
+} from './util-redis.mjs'
 
 import {
   authFactory,
@@ -67,13 +73,15 @@ import {
 
 const configTop = config | configure.init
 
-const { authorizeByIP, email: emailOpts, fbDomains, serverPort, users, } = tryCatch (
+const { activateTokenExpireSecs, authorizeByIP, email: emailOpts, fbDomains, redisURL, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
+    'activateTokenExpireSecs',
     'authorizeByIP',
     'email',
     'fbDomains',
+    'redisURL',
     'serverPort',
     'users',
   ),
@@ -305,21 +313,24 @@ const getWelcomeEmail = (link) => {
   )
 }
 
-const sendWelcomeEmail = (to) => {
+const sendWelcomeEmail = (email) => {
   const token = crypto.randomUUID ()
-  const userToken = base64encode (to + ':' + encrypt (token))
-  // --- @todo store token
-
+  const userToken = base64encode (email + ':' + encrypt (token))
   const link = 'https://' + fbDomain + '/user-activate?token=' + userToken
   const [text, html] = getWelcomeEmail (link)
 
-  return emailTransporter.sendMail ({
-    to,
+  return startP ()
+  | then (() => redisBatch (
+    () => redisSet (email, token),
+    () => redisExpire (email, activateTokenExpireSecs),
+  ))
+  | then (() => emailTransporter.sendMail ({
+    to: email,
     from: emailOpts.fromString,
     subject: 'Welkom bij FB Online',
     text,
     html,
-  })
+  }))
   | recover ((e) => {
     rejectP << decorateRejection ('Unable to send welcome email: ', e)
   })
@@ -424,10 +435,13 @@ const opt = yargs.argv
 if (opt._.length !== 0)
   yargs.showHelp (error)
 
+const initRedis = async () => redisInit (redisURL, 2000)
+| recover (error << decorateRejection ('Unable to connect to redis: '))
+
 dbInit (opt.forceInitDb)
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
 dbInitUsers (encrypt, users ?? [])
-
 init ({ port: serverPort, })
+await initRedis ()
