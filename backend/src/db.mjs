@@ -1,11 +1,12 @@
 import {
   pipe, compose, composeRight,
-  tryCatch, id, die,
-  whenPredicate, noop, multiply, lets,
-  map, ok, ifNil, compact,
+  tryCatch, id, die, not,
+  whenPredicate, noop, lets,
+  map, ok, compact,
 } from 'stick-js/es'
 
-import { dirname, } from 'path'
+import fs from 'node:fs'
+import { dirname, } from 'node:path'
 
 import { Left, Right, isLeft, fold, } from 'alleycat-js/es/bilby'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
@@ -68,48 +69,55 @@ const createTables = [
   )`)
 ]
 
-const initTestData = (encryptPassword, users=null) => lets (
-  () => encryptPassword,
-  (encrypt) => doEither (
-    () => Right (null),
-    ... users | ifNil (
-      () => [],
-      map (({ email, password, firstName, lastName, hasAdminUser, }) => {
-        return () => userAdd (
-          email, firstName, lastName,
-          compact (['user', hasAdminUser && 'admin-user']),
-          encrypt (password),
-        )
-      }),
-    ),
-  ),
-)
-
 let sqliteApi
 
 const initialiseSchema = () => sqliteApi.runs (createTables)
 
-export const init = (encryptPassword, users=null) => {
+// --- initializes the schema if it's a new database, or if `forceInit` is `true`
+export const init = (forceInit=false) => {
   info ('opening db file at', dbPath | yellow)
   mkdirIfNeeded (dirname (dbPath))
+  const force = forceInit || not (fs.existsSync (dbPath))
   sqliteApi = getApi (dbPath, {})
-  initialiseSchema () | foldWhenLeft (
+  if (force) initialiseSchema () | foldWhenLeft (
     decorateRejection ("Couldn't initialise schema: ") >> die,
-  )
-  initTestData (encryptPassword, users) | foldWhenLeft (
-    decorateRejection ("Couldn't initialise test data: ") >> die,
   )
 }
 
-export const userAdd = (email, firstName, lastName, privileges, password) => doEither (
-  () => sqliteApi.run (SB (
-    `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
-    [email, firstName, lastName, password]),
-  ),
-  ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
-    (priv) => SB (`insert into userPrivilege (userId, privilege) values (?, ?)`, [userId, priv]),
-  )),
+export const initUsers = (encryptPassword, users) => doEither (
+  () => Right (null),
+  ... users | map (({ email, password, firstName, lastName, hasAdminUser, }) => {
+    return () => userAdd (
+      email, firstName, lastName,
+      compact (['user', hasAdminUser && 'admin-user']),
+      encryptPassword (password),
+    )
+  }),
 )
+
+
+const _userAdd = ({ replace, vals: { email, firstName, lastName, privileges, password, }}) => lets (
+  () => replace ? 'insert or replace' : 'insert',
+  (insert) => doEither (
+    () => sqliteApi.run (SB (
+      insert + ` into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
+      [email, firstName, lastName, password]),
+    ),
+    ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
+      (priv) => SB (insert + ` into userPrivilege (userId, privilege) values (?, ?)`, [userId, priv]),
+    )),
+  ),
+)
+
+export const userAdd = (email, firstName, lastName, privileges, password) => _userAdd ({
+  replace: false,
+  vals: { email, firstName, lastName, privileges, password },
+})
+
+export const userAddOrReplace = (email, firstName, lastName, privileges, password) => _userAdd ({
+  replace: true,
+  vals: { email, firstName, lastName, privileges, password },
+})
 
 export const userRemove = (email) => doEitherWithTransaction (
   () => sqliteApi.getPluck (SB (

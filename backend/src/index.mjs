@@ -11,12 +11,13 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
+import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
 
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
-import { green, } from 'alleycat-js/es/io';
+import { error, green, } from 'alleycat-js/es/io'
 import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
@@ -25,7 +26,8 @@ import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import {
-  init as initDb,
+  init as dbInit,
+  initUsers as dbInitUsers,
   userAdd as dbUserAdd,
   userRemove as dbUserRemove,
   userGet as dbUserGet,
@@ -376,5 +378,33 @@ const init = ({ port, }) => express ()
     String (port) | green | sprintf1 ('listening on port %s') | info
   })
 
-initDb (hashPassword, users)
+
+const yargs = yargsMod
+  .usage ('Usage: node $0 [options]')
+  // .option ('d', {
+    // boolean: true,
+    // describe: 'Increase verbosity for debugging. Also print more stack traces.',
+  // })
+  .option ('force-init-db', {
+    boolean: true,
+    describe: 'Initialise the database: this will erase all data if it exists.',
+  })
+  .option ('init-users', {
+    boolean: true,
+    describe: 'Insert test data into the database (requires init-db)',
+  })
+  .strict ()
+  .help ('h')
+  .alias ('h', 'help')
+  .showHelpOnFail (false, 'Specify --help for available options')
+
+const opt = yargs.argv
+// --- showHelp also quits.
+if (opt._.length !== 0)
+  yargs.showHelp (error)
+
+dbInit (opt.forceInitDb)
+// --- @future separate script to manage users
+if (opt.initUsers) dbInitUsers (hashPassword, users)
+
 init ({ port: serverPort, })
