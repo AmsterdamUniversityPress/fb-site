@@ -24,7 +24,7 @@ import configure from 'alleycat-js/es/configure'
 import { keyPressListen, } from 'alleycat-js/es/dom'
 import { doApiCall as _doApiCall, requestCompleteFold, } from 'alleycat-js/es/fetch'
 import { getQueryParams, } from 'alleycat-js/es/general'
-import { all, allV, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
+import { all, allV, ifUndefined, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
@@ -260,3 +260,32 @@ export const whenRequestCompleteSuccess = recurry (2) (
     f, noop, noop,
   ),
 )
+
+export const lookupOn = recurry (2) (
+  o => k => o [k],
+)
+export const lookup = recurry (2) (
+  k => o => lookupOn (o, k),
+)
+export const lookupOnOr = recurry (3) (
+  (f) => (o) => (k) => lookupOn (o, k) | ifUndefined (f, id),
+)
+export const lookupOr = recurry (3) (
+  (f) => (k) => (o) => lookupOnOr (f, o, k),
+)
+export const lookupOnOrV = recurry (3) (
+  (x) => lookupOnOr (x | always),
+)
+export const lookupOrV = recurry (3) (
+  (x) => lookupOr (x | always),
+)
+export const lookupOrDie = recurry (3) (
+  (msg) => (k) => (o) => lookupOnOr (
+    () => die (msg),
+    o, k,
+  )
+)
+export const lookupOnOrDie = recurry (3) (
+  (msg) => (o) => (k) => lookupOrDie (msg, k, o),
+)
+
