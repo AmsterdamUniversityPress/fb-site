@@ -316,7 +316,7 @@ const getWelcomeEmail = (link) => {
 const sendWelcomeEmail = (email) => {
   const token = crypto.randomUUID ()
   const userToken = base64encode (email + ':' + encrypt (token))
-  const link = 'https://' + fbDomain + '/user-activate/' + userToken
+  const link = 'https://' + fbDomain + '/reset-password/' + userToken
   const [text, html] = getWelcomeEmail (link)
 
   return startP ()

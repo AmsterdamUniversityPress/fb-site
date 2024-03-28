@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue,
   map, path, condS, eq, guard, otherwise,
-  lets, id, die, tap, whenTrue,
+  lets, id, die, tap, whenTrue, invoke,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -51,7 +51,7 @@ import Pagination from '../../containers/shared/Pagination'
 
 import {
   component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy,
-  lookupOnOrDie,
+  lookupOn, lookupOnOrDie,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults,
 } from '../../common'
@@ -426,7 +426,7 @@ const LoginInner = container (
     getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
   }],
-  ({ logIn, getInstitutionName, getUserType, }) => {
+  ({ mode, logIn, getInstitutionName, getUserType, }) => {
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
@@ -449,31 +449,38 @@ const LoginInner = container (
     )
 
     const doLogIn = useCallback (
-      () => logIn (email, password),
+      () => invoke (mode | lookupOn ({
+        login: () => logIn (email, password),
+        'reset-password': () => alert ('todo'),
+      })),
       [email, password, logIn],
     )
 
-    const onClickLogIn = () => doLogIn ()
+    const onClickSubmit = useCallback (() => {
+      event.preventDefault ()
+      doLogIn ()
+    }, [doLogIn])
 
     const onKeyPressInput = useCallback (
       (event) => event | keyPressListen (
         () => {
           event.preventDefault ()
-          canLogIn && doLogIn ()
+          canSubmit && doLogIn ()
         },
         'Enter',
       ),
-      [doLogIn, canLogIn],
+      [doLogIn, canSubmit],
     )
 
     useEffect (() => {
-      // console.log ('inputEmailRef.current.value', inputEmailRef.current.value)
-      // console.log ('inputEmailRef.current', inputEmailRef.current)
-      setEmail (inputEmailRef.current.value)
+      if (mode === 'login') setEmail (inputEmailRef.current.value)
     }, [])
 
-    const canLogIn = useMemo (
-      () => [email, password] | allAgainst (isNotEmptyString),
+    const canSubmit = useMemo (
+      () => lets (
+        () => mode === 'login' ? [email, password] : [password],
+        (fields) => fields | allAgainst (isNotEmptyString),
+      ),
       [email, password],
     )
 
@@ -481,7 +488,7 @@ const LoginInner = container (
     // Make sure to use event.preventDefault so it doesn't submit
 
     return <LoginS>
-      {isLoggedInInstitution && <TextBoxS className='x__message'>
+      {mode === 'login' && isLoggedInInstitution && <TextBoxS className='x__message'>
         <p>
           Je bent ingelogd courtesy of {getInstitutionName ()}.
         </p>
@@ -491,18 +498,27 @@ const LoginInner = container (
       </TextBoxS>
       }
       <FormS>
+      {mode === 'reset-password' && <div className='x__choose-password'>
+        Kies een wachtwoord:
+      </div>}
         {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
         <div className='x__grid'>
-          <div className='x__label x__email'>
-            emailadres
-          </div>
-          <div className='x__input x__email-input'>
-            <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
-          </div>
+          {mode === 'login' && <>
+            <div className='x__label x__email'>
+              emailadres
+            </div>
+            <div className='x__input x__email-input'>
+              <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
+            </div>
+          </> || <>
+            <div/>
+            <div/>
           <div/>
-          <div className='x__label x__password'>
+          </>}
+          <div/>
+          {mode === 'login' && <div className='x__label x__password'>
             wachtwoord
-          </div>
+          </div>}
           <div className='x__input x__password-input'>
             <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
           </div>
@@ -511,7 +527,9 @@ const LoginInner = container (
           </div>
           <div/>
           <div>
-          <BigButton disabled={not (canLogIn)} onClick={onClickLogIn}>aanmelden</BigButton>
+          <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
+            {mode === 'login' ? 'aanmelden' : 'OK'}
+          </BigButton>
           </div>
         </div>
       </FormS>
@@ -522,9 +540,20 @@ const LoginInner = container (
 const Login = container ([
   'Login', { logInDispatch: logIn, }, {},
 ], ({ logInDispatch, }) => <FormWrapper>
-  <LoginInner logIn={logInDispatch}/>
+  <LoginInner mode='login' logIn={logInDispatch}/>
 </FormWrapper>
 )
+
+const UserActivateS = styled.div`
+`
+
+const UserActivate = ({ token, }) => {
+  return <UserActivateS>
+    <LoginInner
+      mode='reset-password'
+    />
+  </UserActivateS>
+}
 
 const SidebarS = styled.div`
   height: 100%;
@@ -882,7 +911,7 @@ const Contents = container (
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login/>],
       user: [true, () => <UserPage/>],
-      'user-activate': [false, () => <UserActivate token={params.token}/>],
+      'reset-password': [false, () => <UserActivate token={params.token}/>],
       'user-admin': [false, () => <Admin/>],
     })
 
