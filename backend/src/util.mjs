@@ -1,10 +1,10 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip,
+  map, spreadTo, lets, flip, invoke,
   sprintfN, id, T, recurry,
   ifOk, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
-  againstAll, gt, gte,
+  againstAll, gt, gte, dot1, join, repeatF,
 } from 'stick-js/es'
 
 import path from 'path'
@@ -191,3 +191,18 @@ export const eachAbort = recurry (2) (
     }
   }
 )
+
+// --- (Int, String) => String
+export const generateRandomString = invoke (() => {
+  const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const integers = "0123456789"
+  const exCharacters = "!@#$%^&*_-=+"
+  const chars = alpha + integers + exCharacters
+  return (length) => {
+    const generateChar = () => lets (
+      () => Math.floor (Math.random () * chars.length),
+      (n) => chars | dot1 ('charAt') (n)
+    )
+    return repeatF (generateChar, length) | join ('')
+  }
+})

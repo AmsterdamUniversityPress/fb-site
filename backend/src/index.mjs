@@ -1,10 +1,12 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, tryCatch, lets, id, nil, tap, ok,
-  gt, againstAny, eq, die,
+  sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
+  gt, againstAny, eq, die, map, reduce,
   not, concatTo, recurry, ifOk, ifNil,
-  repeatF, prop, dot1, join,
+  repeatF, dot1, join, appendM,
 } from 'stick-js/es'
+
+import crypto from 'node:crypto'
 
 import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
@@ -16,11 +18,12 @@ import yargsMod from 'yargs'
 import nodemailer from 'nodemailer'
 
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
+import { fold, } from 'alleycat-js/es/bilby'
+import configure from 'alleycat-js/es/configure'
 import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { error, green, } from 'alleycat-js/es/io'
 import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
-import { fold, } from 'alleycat-js/es/bilby'
-import configure from 'alleycat-js/es/configure'
+import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
@@ -41,6 +44,7 @@ import {
 } from './db.mjs';
 import { errorX, warn, } from './io.mjs'
 import {
+  base64encode,
   env, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
@@ -63,25 +67,26 @@ import {
 
 const configTop = config | configure.init
 
-const { authorizeByIP, email: emailOpts, serverPort, users, } = tryCatch (
+const { authorizeByIP, email: emailOpts, fbDomains, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'authorizeByIP',
     'email',
+    'fbDomains',
     'serverPort',
     'users',
   ),
 )
 
-const jwtSecret = lets (
-  () => ['must be longer than 25 characters', length >> gt (25)],
-  (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
-)
-
 const cookieSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
   (validate) => envOrConfig (configTop, 'cookieSecret', 'COOKIE_SECRET', validate),
+)
+
+const jwtSecret = lets (
+  () => ['must be longer than 25 characters', length >> gt (25)],
+  (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
 )
 
 const appEnv = lets (
@@ -91,21 +96,6 @@ const appEnv = lets (
   ],
   (validate) => env ('APP_ENV', validate),
 )
-
-// --- (Int, String) => String
-const generatePassword = (length, chars) => {
-  const generateChar = () => lets (
-    () => Math.floor (Math.random () * chars.length),
-    (n) => chars | dot1 ('charAt') (n)
-  )
-  return repeatF (generateChar, length) | join ('')
-}
-
-const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const integers = "0123456789"
-const exCharacters = "!@#$%^&*_-=+"
-const chars = alpha + integers + exCharacters
-
 
 const data = appEnv | lookupOnOrDie (
   'ierror appEnv',
@@ -120,7 +110,8 @@ const emailTransporter = nodemailer.createTransport ({
   ... emailOpts,
 })
 
-const hashPassword = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
+const encrypt = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
+
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
 
@@ -283,13 +274,51 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 }
 
+const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
+
+const getWelcomeEmail = (link) => {
+  const contents = [
+    'Welkom bij FB online ...',
+    [
+      'Ga naar deze URL om een wachtwoord te kiezen en je account te activeren:',
+      'Klik hier om een wachtwoord te kiezen en je account te activeren:',
+    ],
+    [
+      link,
+      [link] | sprintfN (`<a href='%s'>Account activeren</a>`),
+    ],
+  ]
+
+  return lets (
+    () => (x) => '<p>' + x + '</p>',
+    (toP) => contents | reduce (
+      ([text, html], x) => x | ifArray (
+        ([t, h]) => [text | appendM (t), html | appendM (toP (h))],
+        () => [text | appendM (x), html | appendM (toP (x))],
+      ),
+      [[], []],
+    ),
+    (_, [text, html]) => [
+      text | join ('\n\n'),
+      html | join ('\n'),
+    ],
+  )
+}
+
 const sendWelcomeEmail = (to) => {
+  const token = crypto.randomUUID ()
+  const userToken = base64encode (to + ':' + encrypt (token))
+  // --- @todo store token
+
+  const link = 'https://' + fbDomain + '/user-activate?token=' + userToken
+  const [text, html] = getWelcomeEmail (link)
+
   return emailTransporter.sendMail ({
     to,
     from: emailOpts.fromString,
-    subject: 'Hallo van FB',
-    text: 'welkom',
-    html: '<b>welkom</b>',
+    subject: 'Welkom bij FB Online',
+    text,
+    html,
   })
   | recover ((e) => {
     rejectP << decorateRejection ('Unable to send welcome email: ', e)
@@ -327,7 +356,7 @@ const init = ({ port, }) => express ()
         umsg: 'Invalid attempt: Wrong Password',
       })
     }
-    if (!updateUserPassword (email, hashPassword (newPassword))) {
+    if (!updateUserPassword (email, encrypt (newPassword))) {
       return res | sendStatusEmpty (500)
     }
     return res | sendStatus (200, null)
@@ -381,10 +410,6 @@ const init = ({ port, }) => express ()
 
 const yargs = yargsMod
   .usage ('Usage: node $0 [options]')
-  // .option ('d', {
-    // boolean: true,
-    // describe: 'Increase verbosity for debugging. Also print more stack traces.',
-  // })
   .option ('force-init-db', {
     boolean: true,
     describe: 'Initialise the database: this will erase all data if it exists.',
@@ -403,6 +428,6 @@ dbInit (opt.forceInitDb)
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
-dbInitUsers (hashPassword, users ?? [])
+dbInitUsers (encrypt, users ?? [])
 
 init ({ port: serverPort, })

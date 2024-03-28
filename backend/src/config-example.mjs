@@ -14,7 +14,10 @@ const dbPath = pathJoin (dbDir, 'main.db')
 
 export const config = {
   dbPath,
+
   cookieSecret: Nothing,
+  jwtSecret: Nothing,
+
   email: {
     host: 'smtp.mailserver.xx',
     // --- combination of port=587, secure=false and requireTLS=true should make it use SMARTTLS
@@ -27,7 +30,12 @@ export const config = {
     },
     fromString: '"Your Name" <xxx@yourdomain.xx>',
   },
-  jwtSecret: Nothing,
+  fbDomains: ({
+    dev: 'xxx',
+    tst: 'xxx',
+    acc: 'xxx',
+    prd: 'xxx',
+  }),
   serverPort: 4444,
   authorizeByIP: [
     /*
