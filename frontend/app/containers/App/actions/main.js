@@ -112,3 +112,13 @@ export const userRemoveCompleted = action (
   (rcomplete, email) => ({ rcomplete, email, }),
   'userRemoveCompleted',
 )
+
+export const resetPassword = action (
+  (password, token) => ({ password, token }),
+  'resetPassword',
+)
+
+export const resetPasswordCompleted = action (
+  (rcomplete) => rcomplete,
+  'resetPasswordCompleted',
+)

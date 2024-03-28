@@ -14,6 +14,10 @@ const isNonEmptyAlphaNumericString = (x) => ok (x.match (
   /^[\d\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+$/u,
 ))
 
+const isNonEmptyBase64String = (x) => ok (x.toLowerCase ().match (
+  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/,
+))
+
 const isNonEmptyUUID = (x) => ok (x.match (
   /^[0-9a-f-]+$/,
 ))
@@ -65,6 +69,13 @@ export const basicValidator = (param, validate=T, transform=id, preValidate=T) =
 export const basicStringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
   param,
   againstAll ([validate, isNonEmptyAlphaNumericString]),
+  transform,
+  preValidate,
+)
+
+export const basicBase64StringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
+  param,
+  againstAll ([validate, isNonEmptyBase64String]),
   transform,
   preValidate,
 )

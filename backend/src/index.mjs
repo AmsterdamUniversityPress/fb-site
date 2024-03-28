@@ -1,9 +1,10 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  gt, againstAny, eq, die, map, reduce,
+  gt, againstAny, eq, die, map, reduce, split,
   not, concatTo, recurry, ifOk, ifNil, noop,
   repeatF, dot, dot1, dot2, join, appendM,
+  anyAgainst, ifPredicate,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -20,10 +21,10 @@ import nodemailer from 'nodemailer'
 import { recover, rejectP, startP, then, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
-import { listen, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
+import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { error, green, } from 'alleycat-js/es/io'
 import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
-import { ifArray, } from 'alleycat-js/es/predicate'
+import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
@@ -40,10 +41,10 @@ import {
   loggedInGet as dbLoggedInGet,
   privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
-} from './db.mjs';
+} from './db.mjs'
 import { errorX, warn, } from './io.mjs'
 import {
-  base64encode,
+  base64decode, base64encode,
   env, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
@@ -52,6 +53,7 @@ import {
   getAndValidateQuery,
   getAndValidateBodyParams,
   getAndValidateRequestParams,
+  basicBase64StringValidator,
   basicEmailValidator,
   basicStringValidator,
   basicUUIDValidator,
@@ -122,6 +124,10 @@ const encrypt = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
+const matchesKnownPassword = recurry (2) (
+  (testPlain) => (knownHashed) => checkPassword (testPlain, knownHashed),
+)
+const ifMatchesKnownPassword = matchesKnownPassword >> ifPredicate
 
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
@@ -396,6 +402,33 @@ const init = ({ port, }) => express ()
         })
       })
     },
+  ))
+  | post ('/user/reset-password', getAndValidateBodyParams ([
+    basicStringValidator ('password'),
+    basicBase64StringValidator ('token'),
+  ],
+    ({ res }, password, token) => {
+      const userError = (imsg) => res | sendStatus (499, {
+        imsg,
+        umsg: 'Deze activatielink is verlopen of ongeldig',
+      })
+
+      const [email, activationToken, ... rest] = base64decode (token) | split (':')
+      if (any (
+        () => rest.length,
+        () => [email, activationToken] | anyAgainst (isEmptyString),
+      )) return userError ('Garbled token')
+      redisGet (email)
+      | then ((storedToken) => activationToken | ifMatchesKnownPassword (storedToken) (
+        () => {
+          info ('ja!')
+          // --- @todo do the db call
+          return res | sendStatus (200, null)
+        },
+        () => userError ('No match for token'),
+      ))
+      | recover (die << decorateRejection ('Error retrieving token from redis: '))
+    }
   ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
       basicEmailValidator ('email'),

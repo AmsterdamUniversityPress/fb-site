@@ -21,6 +21,7 @@ import {
   logOut,
   passwordUpdate,
   passwordUpdateDone,
+  resetPassword,
 } from '../App/actions/main'
 
 import {
@@ -422,11 +423,13 @@ const FormS = styled (TextBoxS) `
 `
 
 const LoginInner = container (
-  ['LoginInner', {}, {
+  ['LoginInner', {
+    resetPasswordDispatch: resetPassword,
+  }, {
     getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
   }],
-  ({ mode, logIn, getInstitutionName, getUserType, }) => {
+  ({ mode, logIn, resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
@@ -451,7 +454,7 @@ const LoginInner = container (
     const doLogIn = useCallback (
       () => invoke (mode | lookupOn ({
         login: () => logIn (email, password),
-        'reset-password': () => alert ('todo'),
+        'reset-password': () => resetPasswordDispatch (password, resetPasswordToken),
       })),
       [email, password, logIn],
     )
@@ -547,11 +550,9 @@ const Login = container ([
 const UserActivateS = styled.div`
 `
 
-const UserActivate = ({ token, }) => {
+const UserActivate = ({ token: resetPasswordToken, }) => {
   return <UserActivateS>
-    <LoginInner
-      mode='reset-password'
-    />
+    <LoginInner mode='reset-password' resetPasswordToken={resetPasswordToken}/>
   </UserActivateS>
 }
 
@@ -959,7 +960,7 @@ export default container (
       if (not (hasPrivilegeAdminUser) && page === '/user-admin') return navigate ('/')
     }, [isLoggedIn, isUserLoggedIn, page, navigate])
 
-    if (not (isLoggedIn) && page !== 'login') return
+    if (not (isLoggedIn) && page !== 'login' && page !== 'reset-password') return
 
     return <MainS tabIndex={-1}>
       <div className='x__contents'>

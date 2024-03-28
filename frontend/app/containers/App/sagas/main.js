@@ -23,6 +23,8 @@ import {
   loggedInInstitution as a_loggedInInstitution,
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
+  resetPassword as a_resetPassword,
+  resetPasswordCompleted as a_resetPasswordCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
   sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
   userRemove as a_userRemove,
@@ -277,6 +279,31 @@ function *s_setNumPerPageIdx () {
   yield call (s_fondsenRefresh)
 }
 
+function *s_resetPasswordCompleted (rcomplete) {
+  rcomplete | whenRequestCompleteSuccess (
+    () => {
+      // --- @todo toast doesn't show
+      toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
+      document.location = '/'
+    }
+  )
+}
+
+function *s_resetPassword ({ password, token, }) {
+  yield call (doApiCall, {
+    url: '/api/user/reset-password',
+    optsMerge: {
+      method: 'POST',
+      body: JSON.stringify ({
+        // --- @todo hash password before sending?
+        data: { password, token, },
+      }),
+    },
+    continuation: EffSaga (s_resetPasswordCompleted),
+    oops: toastError,
+  })
+}
+
 function *s_sendWelcomeEmail (email) {
   function *done (rcomplete) {
     yield put (a_sendWelcomeEmailCompleted (rcomplete, email))
@@ -312,6 +339,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
+    saga (takeLatest, a_resetPassword, s_resetPassword),
     saga (takeEvery, a_sendWelcomeEmail, s_sendWelcomeEmail),
     saga (takeLatest, a_sendWelcomeEmailCompleted, s_sendWelcomeEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
