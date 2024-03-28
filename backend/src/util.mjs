@@ -206,3 +206,15 @@ export const generateRandomString = invoke (() => {
     return repeatF (generateChar, length) | join ('')
   }
 })
+
+export const tryCatchP = recurry (3) (
+  (onGood) => (onBad) => async (f) => {
+    try {
+      const ret = await f ()
+      return onGood (ret)
+    }
+    catch (e) {
+      return onBad (e)
+    }
+  }
+)
