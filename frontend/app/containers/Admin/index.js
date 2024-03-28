@@ -26,12 +26,11 @@ import {
   selectUserAddPending,
   selectUserAddSuccess,
   selectUserRemovePending,
-  selectUserRemoveSuccess,
   selectUserRemovePendingUsers,
 } from './selectors'
 
 import {
-  sendWelcomeEmail, userAdd, userAddStart, userRemove, userRemoveStart, usersFetch,
+  sendWelcomeEmail, userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -275,7 +274,6 @@ const dispatchTable = {
   usersFetchDispatch: usersFetch,
   userAddStartDispatch: userAddStart,
   userRemoveDispatch: userRemove,
-  userRemoveStartDispatch: userRemoveStart,
 }
 
 const selectorTable = {
@@ -283,7 +281,6 @@ const selectorTable = {
   emailRequestPending: selectEmailRequestPending,
   userRemovePending: selectUserRemovePending,
   userRemovePendingUsers: selectUserRemovePendingUsers,
-  userRemoveSuccess: selectUserRemoveSuccess,
 }
 
 export default container (
@@ -295,9 +292,7 @@ export default container (
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
       userAddStartDispatch,
-      userRemoveStartDispatch,
       userRemovePendingUsers,
-      userRemoveSuccess,
       emailRequestPending,
     } = props
 
@@ -358,13 +353,6 @@ export default container (
     useEffect (() => {
       usersFetchDispatch ()
     }, [usersFetchDispatch])
-
-    useEffect (() => {
-      if (userRemoveSuccess) {
-        toastInfo ('Het verwijderen van de gebruiker is geslaagd.')
-        userRemoveStartDispatch ()
-      }
-    }, [userRemoveSuccess])
 
     useWhy ('Admin', props)
     useReduxReducer ({ createReducer, reducer, key: 'Admin', })

@@ -16,7 +16,6 @@ import {
   userAddCompleted,
   userAddStart,
   userRemove,
-  userRemoveStart,
   userRemoveCompleted,
 } from '../App/actions/main'
 
@@ -62,9 +61,6 @@ const reducerTable = makeReducer (
   userRemove, (email) => composeManyRight (
     update ('userRemovePendingUsers', setAdd (email)),
     assoc ('userRemoveRequest', RequestLoading (Nothing)),
-  ),
-  userRemoveStart, (... _) => assoc (
-    'userRemoveRequest', RequestInit,
   ),
   userRemoveCompleted, ({ rcomplete, email, }) => composeManyRight (
     update ('userRemovePendingUsers', setRemove (email)),

@@ -41,7 +41,7 @@ import {} from '../store/domain/selectors'
 
 import { selectNumPerPage, selectPage, } from '../../shared/Pagination/selectors'
 
-import { doApiCall, saga, toastError, toastInfo, } from '../../../common'
+import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -99,9 +99,9 @@ function *s_fondsenRefresh () {
   yield put (a_fondsenFetch (pageNum))
 }
 
-function *s_loginUserCompleted (res) {
+function *s_loginUserCompleted (rcomplete) {
   const onError = (msg) => error ('Error: loginCompleted:', msg)
-  const user = res | requestCompleteFold (
+  const user = rcomplete | requestCompleteFold (
     // --- ok
     (user) => user,
     // --- 4xx
@@ -113,9 +113,9 @@ function *s_loginUserCompleted (res) {
   if (user) yield call (s_fondsenRefresh)
 }
 
-function *s_helloCompleted (res, first=false) {
+function *s_helloCompleted (rcomplete, first=false) {
   const onError = (msg) => error ('Error: helloCompleted:', msg)
-  const user = res | requestCompleteFold (
+  const user = rcomplete | requestCompleteFold (
     (user) => user,
     // --- 401, i.e. not authorized
     (_umsg) => null,
@@ -188,9 +188,9 @@ function *s_logOutUser () {
   })
 }
 
-function *s_logoutUserCompleted (res) {
+function *s_logoutUserCompleted (rcomplete) {
   const onError = (msg) => error ('Error: logoutCompleted:', msg)
-  const ok = res | requestCompleteFold (
+  const ok = rcomplete | requestCompleteFold (
     () => true,
     (umsg) => (onError (umsg), false),
     () => (onError ('(no message)'), false),
@@ -237,8 +237,11 @@ function *s_userAdd ({ email, firstName, lastName, privileges }) {
   })
 }
 
-function *s_userRemoveCompleted (_rcomplete) {
+function *s_userRemoveCompleted ({ rcomplete, email: _email, }) {
   yield put (a_usersFetch ())
+  rcomplete | whenRequestCompleteSuccess (
+    () => toastInfo ('Het verwijderen van de gebruiker is geslaagd.'),
+  )
 }
 
 function *s_userRemove (email) {

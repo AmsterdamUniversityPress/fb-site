@@ -36,9 +36,4 @@ export const selectUserRemovePending = select (
   [selectUserRemoveRequest],
   (req) => req | requestIsPending,
 )
-export const selectUserRemoveSuccess = select (
-  'userRemoveSuccess',
-  [selectUserRemoveRequest],
-  (req) => req | requestIsResults,
-)
 export const selectUserRemovePendingUsers = selectVal ('userRemovePendingUsers')

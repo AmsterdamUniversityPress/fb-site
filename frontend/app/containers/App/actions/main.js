@@ -108,11 +108,6 @@ export const userRemove = action (
   'userRemove',
 )
 
-export const userRemoveStart = action (
-  () => {},
-  'userRemoveStart',
-)
-
 export const userRemoveCompleted = action (
   (rcomplete, email) => ({ rcomplete, email, }),
   'userRemoveCompleted',
