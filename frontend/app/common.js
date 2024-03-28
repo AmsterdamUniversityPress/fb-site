@@ -22,7 +22,7 @@ const sagaEffects = {
 import { cata, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { keyPressListen, } from 'alleycat-js/es/dom'
-import { doApiCall as _doApiCall, } from 'alleycat-js/es/fetch'
+import { doApiCall as _doApiCall, requestCompleteFold, } from 'alleycat-js/es/fetch'
 import { getQueryParams, } from 'alleycat-js/es/general'
 import { all, allV, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
@@ -254,3 +254,9 @@ export const notContainedInV = compose2 (containedInV, not)
 export const keyDownListen = keyPressListen
 
 export const mapX = addIndex (map)
+
+export const whenRequestCompleteSuccess = recurry (2) (
+  (f) => (rcomplete) => rcomplete | requestCompleteFold (
+    f, noop, noop,
+  ),
+)
