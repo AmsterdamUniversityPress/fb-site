@@ -66,7 +66,7 @@ const createTables = [
     userId int not null,
     privilege string not null,
     unique (userId, privilege)
-  )`)
+  )`),
 ]
 
 let sqliteApi
@@ -87,13 +87,15 @@ export const init = (forceInit=false) => {
 export const initUsers = (encryptPassword, users) => doEither (
   () => Right (null),
   ... users | map (({ email, password, firstName, lastName, hasAdminUser, }) => {
-    return () => userAdd (
+    return () => userAddOrReplace (
       email, firstName, lastName,
       compact (['user', hasAdminUser && 'admin-user']),
       encryptPassword (password),
     )
-  }),
-)
+  }))
+  | foldWhenLeft (
+    decorateRejection ("Couldn't initialise users: ") >> die,
+  )
 
 const _userAdd = ({ replace, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => replace ? 'insert or replace' : 'insert',
