@@ -7,13 +7,12 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, useNavigate, } from 'react-router-dom'
+import { Link, useNavigate, useParams, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, keyPressListen, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
-import { ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
@@ -50,7 +49,12 @@ import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 import Pagination from '../../containers/shared/Pagination'
 
-import { component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import {
+  component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy,
+  lookupOnOrDie,
+  mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
+  requestResults,
+} from '../../common'
 import config from '../../config'
 
 const configTop = configure.init (config)
@@ -872,14 +876,15 @@ const Contents = container (
   ['Contents', {}, {}],
   ({ page, }) => {
 
-    const [showSidebar, element] = page | condS ([
-      eq ('overview') | guard (() => [true, () => <FondsMain/>]),
-      eq ('detail') | guard (() => [false, () => <FondsDetail/>]),
-      eq ('login') | guard (() => [false, () => <Login/>]),
-      eq ('user') | guard (() => [true, () => <UserPage/>]),
-      eq ('user-admin') | guard (() => [false, () => <Admin/>]),
-      otherwise | guard (() => die ('Invalid page ' + page)),
-    ])
+    const params = useParams ()
+    const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
+      overview: [true, () => <FondsMain/>],
+      detail: [false, () => <FondsDetail/>],
+      login: [false, () => <Login/>],
+      user: [true, () => <UserPage/>],
+      'user-activate': [false, () => <UserActivate token={params.token}/>],
+      'user-admin': [false, () => <Admin/>],
+    })
 
     return <ContentsS>
       <div className={clss ('x__sidebar', showSidebar || 'x--hide')}>
@@ -902,7 +907,8 @@ export default container (
     userLoggedIn: selectUserLoggedIn,
   }],
   (props) => {
-    const { isMobile, page, hasPrivilegeAdminUser, institutionLoggedIn, userLoggedIn, } = props
+    const {passProps, page, hasPrivilegeAdminUser, institutionLoggedIn, userLoggedIn, } = props
+    const { isMobile, history, } = passProps
     const navigate = useNavigate ()
 
     useWhy ('Main', props)

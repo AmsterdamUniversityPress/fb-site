@@ -96,7 +96,7 @@ const selectorTable = {
   error: selectError,
 }
 
-const router = ({ passProps, }) => createBrowserRouter ([
+const router = (passProps) => createBrowserRouter ([
   { path: '/', element: <Main page='overview' passProps={passProps}/>},
   { path: '/detail/:uuid', element: <Main page='detail' passProps={passProps}/>},
   { path: '/login', element: <Main page='login' passProps={passProps}/>},
