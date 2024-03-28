@@ -15,6 +15,6 @@ info This is the dev backend server and must not be run in production.
 
 xport JWT_SECRET '82349((j1nzz;;sk__]1jjAAJSNk7ksjdfnNN<<N--++$$@'
 xport COOKIE_SECRET 'uI$&VNNmmxdv<><&FUM<MVXC__q-snnmsdf""@$$'
-xport APP_ENV tst
+xport APP_ENV dev
 
 cmd "$bindir"/run-backend "$@"

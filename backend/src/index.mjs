@@ -99,15 +99,15 @@ const jwtSecret = lets (
 
 const appEnv = lets (
   () => [
-    'must be tst|acc|prd',
-    againstAny ([eq ('tst'), eq ('acc'), eq ('prd')]),
+    'must be dev|tst|acc|prd',
+    againstAny ([eq ('dev'), eq ('tst'), eq ('acc'), eq ('prd')]),
   ],
   (validate) => env ('APP_ENV', validate),
 )
 
 const data = appEnv | lookupOnOrDie (
   'ierror appEnv',
-  { tst: dataTst, acc: dataAcc, prd: dataPrd, }
+  { dev: dataTst, tst: dataTst, acc: dataAcc, prd: dataPrd, }
 )
 
 const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
@@ -316,7 +316,7 @@ const getWelcomeEmail = (link) => {
 const sendWelcomeEmail = (email) => {
   const token = crypto.randomUUID ()
   const userToken = base64encode (email + ':' + encrypt (token))
-  const link = 'https://' + fbDomain + '/user-activate?token=' + userToken
+  const link = 'https://' + fbDomain + '/user-activate/' + userToken
   const [text, html] = getWelcomeEmail (link)
 
   return startP ()
