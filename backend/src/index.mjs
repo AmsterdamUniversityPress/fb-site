@@ -389,10 +389,6 @@ const yargs = yargsMod
     boolean: true,
     describe: 'Initialise the database: this will erase all data if it exists.',
   })
-  .option ('init-users', {
-    boolean: true,
-    describe: 'Insert test data into the database (requires init-db)',
-  })
   .strict ()
   .help ('h')
   .alias ('h', 'help')
@@ -405,6 +401,8 @@ if (opt._.length !== 0)
 
 dbInit (opt.forceInitDb)
 // --- @future separate script to manage users
-if (opt.initUsers) dbInitUsers (hashPassword, users)
+// --- set config key `users` to `null` or an empty list to not add default
+// users on startup
+dbInitUsers (hashPassword, users ?? [])
 
 init ({ port: serverPort, })

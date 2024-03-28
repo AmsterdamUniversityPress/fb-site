@@ -95,7 +95,6 @@ export const initUsers = (encryptPassword, users) => doEither (
   }),
 )
 
-
 const _userAdd = ({ replace, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => replace ? 'insert or replace' : 'insert',
   (insert) => doEither (
