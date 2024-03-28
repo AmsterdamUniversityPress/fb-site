@@ -186,7 +186,7 @@ export const loggedInRemove = (email) => doEither (
 // )
 
 export const usersGet = () => sqliteApi.all (
-  S ('select email, firstName, lastName from user'),
+  S ('select email, firstName, lastName, (case when password is null then 0 else 1 end) as isActive from user'),
 )
 
 export const privilegesGet = (email) => sqliteApi.allPluck (SB (

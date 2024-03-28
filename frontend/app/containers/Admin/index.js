@@ -10,6 +10,7 @@ import { keyPressListen, useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
+import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, useReduxReducer, } from 'alleycat-js/es/redux-hooks'
@@ -71,7 +72,8 @@ const AdminS = styled.div`
   font-size: 20px;
   > .x__main {
     display: grid;
-    grid-template-columns: [col0] auto [col1] auto [col2] 300px [col3] auto [col-end];
+    // grid-template-columns: [col0] auto [col1] auto [col2] 150px [col3] 300px [col4] auto [col-end];
+    grid-template-columns: [col0] auto [col1] auto [col2] 0px [col3] 300px [col4] auto [col-end];
     grid-auto-rows: 90px;
     > .x__add-user {
       grid-column: 1 / span col-end;
@@ -96,14 +98,16 @@ const AdminS = styled.div`
       > .col0 {
         border-left: 2px solid #00000022;
       }
-      > .col3 {
+      > .col4 {
         border-right: 2px solid #00000022;
         min-width: 32px;
       }
+      // > .col0, > .col1, > .col2 {
       > .col0, > .col1 {
         border-right: 1px solid #00000022;
       }
-      > .col0, > .col1, > .col2, .col3 {
+      // > .col0, > .col1, > .col2, .col3, .col4 {
+      > .col0, > .col1, .col3, .col4 {
         padding: 10px;
         border-bottom: 2px solid #00000022;
         display: flex;
@@ -113,9 +117,19 @@ const AdminS = styled.div`
           flex: 0 0 auto;
         }
       }
-      > .col0, > .col1 {
-      }
       > .x__name, .x__email {
+        &.x--not-active {
+          opacity: 0.6;
+        }
+      }
+      > .x__is-active {
+        justify-content: center;
+        > .x__yes {
+          color: green;
+        }
+        > .x__no {
+          color: #9c3939;
+        }
       }
       > .x__buttons {
         font-size: 16px;
@@ -412,16 +426,22 @@ export default container (
             <div className='col1 x__header'>
               E-mailadres
             </div>
-            <div className='col2 x__header'/>
+            <div className='col2 x__header'>
+              {/*Geactiveerd*/}
+            </div>
             <div className='col3 x__header'/>
-            {data | map (({ email, firstName, lastName, }) => <div className='data-row' key={email}>
-              <div className='col0 x__name'>
+            <div className='col4 x__header'/>
+            {data | map (({ email, firstName, lastName, isActive, }) => <div className='data-row' key={email}>
+              <div className={clss ('col0', 'x__name', isActive || 'x--not-active')}>
                 {firstName} {lastName}
               </div>
-              <div className='col1 x__email'>
+              <div className={clss ('col1', 'x__email', isActive || 'x--not-active')}>
                 {email}
               </div>
-              <div className='col2 x__buttons'>
+              <div className='col2 x__is-active'>
+                {/* isActive ? <span className='x__yes'>✔</span> : <span className='x__no'>✘</span> */}
+              </div>
+              <div className='col3 x__buttons'>
                 <div className='x__buttons-flex'>
                   <MenuItem
                     onClick={() => onClickSendMail (email)}
@@ -435,7 +455,7 @@ export default container (
                   />
                 </div>
               </div>
-              <div className='col3 x__spinner'>
+              <div className='col4 x__spinner'>
                 <span>
                   {pending (email) && <Spinner size={20}/>}
                 </span>
