@@ -97,26 +97,27 @@ export const initUsers = (encryptPassword, users) => doEither (
     decorateRejection ("Couldn't initialise users: ") >> die,
   )
 
-const _userAdd = ({ replace, vals: { email, firstName, lastName, privileges, password, }}) => lets (
-  () => replace ? 'insert or replace' : 'insert',
-  (insert) => doEither (
+const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges, password, }}) => lets (
+  () => allowExists ? ' on conflict do nothing' : '',
+  (upsertClause) => doEither (
     () => sqliteApi.run (SB (
-      insert + ` into user (email, firstName, lastName, password) values (?, ?, ?, ?)`,
-      [email, firstName, lastName, password]),
-    ),
-    ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
-      (priv) => SB (insert + ` into userPrivilege (userId, privilege) values (?, ?)`, [userId, priv]),
+      `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)` + upsertClause,
+      [email, firstName, lastName, password] ,
     )),
+    ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
+      (priv) => SB (`insert into userPrivilege (userId, privilege) values (?, ?)` + upsertClause,
+      [userId, priv]
+    ))),
   ),
 )
 
 export const userAdd = (email, firstName, lastName, privileges, password) => _userAdd ({
-  replace: false,
+  allowExists: false,
   vals: { email, firstName, lastName, privileges, password },
 })
 
 export const userAddOrReplace = (email, firstName, lastName, privileges, password) => _userAdd ({
-  replace: true,
+  allowExists: true,
   vals: { email, firstName, lastName, privileges, password },
 })
 
