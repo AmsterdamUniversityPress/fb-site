@@ -279,17 +279,20 @@ function *s_setNumPerPageIdx () {
   yield call (s_fondsenRefresh)
 }
 
-function *s_resetPasswordCompleted (rcomplete) {
+function *s_resetPasswordCompleted (rcomplete, navigate) {
+  console.log ('navigate', navigate)
   rcomplete | whenRequestCompleteSuccess (
     () => {
-      // --- @todo toast doesn't show
       toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
-      document.location = '/'
+      navigate ('/')
     }
   )
 }
 
-function *s_resetPassword ({ password, token, }) {
+function *s_resetPassword ({ password, token, navigate, }) {
+  function *done (rcomplete) {
+    yield call (s_resetPasswordCompleted, rcomplete, navigate)
+  }
   yield call (doApiCall, {
     url: '/api/user/reset-password',
     optsMerge: {
@@ -299,7 +302,7 @@ function *s_resetPassword ({ password, token, }) {
         data: { password, token, },
       }),
     },
-    continuation: EffSaga (s_resetPasswordCompleted),
+    continuation: EffSaga (done),
     oops: toastError,
   })
 }

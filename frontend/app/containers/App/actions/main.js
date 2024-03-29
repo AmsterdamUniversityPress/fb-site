@@ -114,7 +114,7 @@ export const userRemoveCompleted = action (
 )
 
 export const resetPassword = action (
-  (password, token) => ({ password, token }),
+  (password, token, navigate) => ({ password, token, navigate }),
   'resetPassword',
 )
 

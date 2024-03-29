@@ -430,6 +430,8 @@ const LoginInner = container (
     getInstitutionName: selectGetInstitutionName,
   }],
   ({ mode, logIn, resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
+    const navigate = useNavigate ()
+
     const [email, setEmail] = useState ('')
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
@@ -454,7 +456,7 @@ const LoginInner = container (
     const doLogIn = useCallback (
       () => invoke (mode | lookupOn ({
         login: () => logIn (email, password),
-        'reset-password': () => resetPasswordDispatch (password, resetPasswordToken),
+        'reset-password': () => resetPasswordDispatch (password, resetPasswordToken, navigate),
       })),
       [email, password, logIn],
     )
