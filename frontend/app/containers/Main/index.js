@@ -482,7 +482,12 @@ const UserPasswordForm = container (
     )
 
     useEffect (() => {
-      if (mode === 'login') setEmail (inputEmailRef.current.value)
+      if (mode === 'login') {
+        setEmail (inputEmailRef.current.value)
+        if (email === '') inputEmailRef.current.focus ()
+        else inputPasswordRef.current.focus ()
+      }
+      else inputPasswordRef.current.focus ()
     }, [])
 
     const canSubmit = useMemo (
