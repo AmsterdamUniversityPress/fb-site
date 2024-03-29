@@ -166,6 +166,12 @@ const AdminS = styled.div`
 `
 
 const DialogContentsS = styled.div`
+  > .x__title {
+    font-size: 20px;
+    border-bottom: 2px solid #00000022;
+    margin-bottom: 25px;
+    opacity: 0.8;
+  }
   > div {
     line-height: 2.0em;
   }
@@ -185,13 +191,16 @@ const DialogContentsS = styled.div`
     }
   }
   > .x__buttons {
-    margin-top: 10px;
+    margin-top: 30px;
   }
 `
 
 const ContentsRemoveDialog = component (
   ['ContentsRemoveDialog'],
   ({ emailToRemove, }) => <DialogContentsS>
+    <div className='x__title'>
+      Gebruiker verwijderen
+    </div>
     <p>
       Gebruiker <span className='x__email'>{emailToRemove}</span> wordt onherroepelijk verwijderd.
     </p>
@@ -204,6 +213,9 @@ const ContentsRemoveDialog = component (
 const ContentsMailDialog = component (
   ['ContentsMailDialog'],
   ({ emailToSend, }) => <DialogContentsS>
+    <div className='x__title'>
+      Welkomst e-mail opnieuw versturen
+    </div>
     <p>
       Gebruiker <span className='x__email'>{emailToSend}</span> krijgt een mail met instructies voor het kiezen van een (nieuw) wachtwoord.
     </p>
@@ -259,6 +271,9 @@ const ContentsUserAdd = container (
     }, [userAddSuccess])
 
     return <DialogContentsS>
+      <div className='x__title'>
+        Gebruiker toevoegen
+      </div>
       <div>
         Voornaam <Input onChange={onChangeFirstName} onKeyDown={onKeyDownInput}/>
       </div>
