@@ -343,9 +343,7 @@ const sendWelcomeEmail = (email) => {
     text,
     html,
   }))
-  | recover ((e) => {
-    rejectP << decorateRejection ('Unable to send welcome email: ', e)
-  })
+  | recover (rejectP << decorateRejection ('Unable to send welcome email: '))
 }
 
 const init = ({ port, }) => express ()
