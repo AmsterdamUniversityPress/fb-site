@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  not, allAgainst, noop, ifTrue,
+  not, allAgainst, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, die, tap, whenTrue, invoke,
 } from 'stick-js/es'
@@ -953,20 +953,27 @@ export default container (
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
 
-    const fold = requestResults ({
+    const collapse = requestResults ({
       onError: noop,
       onResults: id,
       onLoading: noop,
     })
 
-    const isInstitutionLoggedIn = institutionLoggedIn | fold
-    const isUserLoggedIn = userLoggedIn | fold
+    const isLoading = requestResults ({
+      onError: F,
+      onResults: F,
+      onLoading: T,
+    })
+
+    const isInstitutionLoggedIn = institutionLoggedIn | collapse
+    const isUserLoggedIn = userLoggedIn | collapse
     const isLoggedIn = isInstitutionLoggedIn || isUserLoggedIn
+    const isUserLoggedInPending = userLoggedIn | isLoading
 
     useEffect (() => {
-      if (not (isLoggedIn)) return navigate ('/login')
-      if (isUserLoggedIn && page === 'login') return navigate ('/')
-      if (not (hasPrivilegeAdminUser) && page === '/user-admin') return navigate ('/')
+      if (not (isLoggedIn) && not (isUserLoggedInPending)) navigate ('/login')
+      else if (isUserLoggedIn && page === 'login') navigate ('/')
+      else if (not (hasPrivilegeAdminUser) && page === '/user-admin') navigate ('/')
     }, [isLoggedIn, isUserLoggedIn, page, navigate])
 
     if (not (isLoggedIn) && page !== 'login' && page !== 'reset-password') return
