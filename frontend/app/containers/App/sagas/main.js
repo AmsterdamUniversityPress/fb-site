@@ -24,7 +24,6 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   resetPassword as a_resetPassword,
-  resetPasswordCompleted as a_resetPasswordCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
   sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
   userRemove as a_userRemove,
@@ -279,18 +278,18 @@ function *s_setNumPerPageIdx () {
   yield call (s_fondsenRefresh)
 }
 
-function *s_resetPasswordCompleted (rcomplete, navigate) {
+function *s_resetPasswordCompleted (rcomplete, email, navigate) {
   rcomplete | whenRequestCompleteSuccess (
     () => {
       toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
-      navigate ('/login')
+      navigate ('/login/' + email)
     }
   )
 }
 
-function *s_resetPassword ({ password, token, navigate, }) {
+function *s_resetPassword ({ email, password, token, navigate, }) {
   function *done (rcomplete) {
-    yield call (s_resetPasswordCompleted, rcomplete, navigate)
+    yield call (s_resetPasswordCompleted, rcomplete, email, navigate)
   }
   yield call (doApiCall, {
     url: '/api/user/reset-password',
@@ -298,7 +297,7 @@ function *s_resetPassword ({ password, token, navigate, }) {
       method: 'POST',
       body: JSON.stringify ({
         // --- @todo hash password before sending?
-        data: { password, token, },
+        data: { email, password, token, },
       }),
     },
     continuation: EffSaga (done),

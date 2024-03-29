@@ -321,8 +321,13 @@ const getWelcomeEmail = (link) => {
 
 const sendWelcomeEmail = (email) => {
   const token = crypto.randomUUID ()
-  const userToken = base64encode (email + ':' + encrypt (token))
-  const link = 'https://' + fbDomain + '/reset-password/' + userToken
+  const userToken = base64encode (encrypt (token))
+  const link = join ('/', [
+    'https://' + fbDomain,
+    'reset-password',
+    email,
+    userToken,
+  ])
   const [text, html] = getWelcomeEmail (link)
 
   return startP ()
@@ -404,27 +409,22 @@ const init = ({ port, }) => express ()
     },
   ))
   | post ('/user/reset-password', getAndValidateBodyParams ([
+    basicEmailValidator ('email'),
     basicStringValidator ('password'),
     basicBase64StringValidator ('token'),
   ],
-    ({ res }, password, token) => {
+    ({ res }, email, password, token) => {
       const userError = (imsg) => res | sendStatus (499, {
         imsg,
         umsg: 'Deze activatielink is verlopen of ongeldig',
       })
-
-      const [email, activationToken, ... rest] = base64decode (token) | split (':')
-      if (any (
-        () => rest.length,
-        () => [email, activationToken] | anyAgainst (isEmptyString),
-      )) return userError ('Garbled token')
+      const activationToken = base64decode (token)
       redisGet (email)
       | then ((storedToken) => activationToken | ifMatchesKnownPassword (storedToken) (
         () => {
           if (!updateUserPassword (email, encrypt (password))) {
             return res | sendStatusEmpty (500)
           }
-          // --- @todo do the db call
           return res | sendStatus (200, null)
         },
         () => userError ('No match for token'),

@@ -422,17 +422,21 @@ const FormS = styled (TextBoxS) `
   }
 `
 
-const LoginInner = container (
-  ['LoginInner', {
+const UserPasswordForm = container (
+  ['UserPasswordForm', {
     resetPasswordDispatch: resetPassword,
   }, {
     getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
   }],
-  ({ mode, logIn, resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
+  ({ mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
     const navigate = useNavigate ()
 
-    const [email, setEmail] = useState ('')
+    const [email, setEmail] = useState (emailProp)
+    useEffect (() => {
+      setEmail (emailProp)
+    }, [emailProp])
+
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
 
@@ -456,7 +460,7 @@ const LoginInner = container (
     const doLogIn = useCallback (
       () => invoke (mode | lookupOn ({
         login: () => logIn (email, password),
-        'reset-password': () => resetPasswordDispatch (password, resetPasswordToken, navigate),
+        'reset-password': () => resetPasswordDispatch (email, password, resetPasswordToken, navigate),
       })),
       [email, password, logIn],
     )
@@ -513,7 +517,7 @@ const LoginInner = container (
               emailadres
             </div>
             <div className='x__input x__email-input'>
-              <input type='text' autoComplete='username' onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
+              <input type='text' autoComplete='username' value={email} onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
             </div>
           </> || <>
             <div/>
@@ -544,19 +548,17 @@ const LoginInner = container (
 
 const Login = container ([
   'Login', { logInDispatch: logIn, }, {},
-], ({ logInDispatch, }) => <FormWrapper>
-  <LoginInner mode='login' logIn={logInDispatch}/>
+], ({ email='', logInDispatch, }) => <FormWrapper>
+  <UserPasswordForm mode='login' email={email} logIn={logInDispatch}/>
 </FormWrapper>
 )
 
 const UserActivateS = styled.div`
 `
 
-const UserActivate = ({ token: resetPasswordToken, }) => {
-  return <UserActivateS>
-    <LoginInner mode='reset-password' resetPasswordToken={resetPasswordToken}/>
-  </UserActivateS>
-}
+const UserActivate = ({ email, token: resetPasswordToken, }) => <UserActivateS>
+  <UserPasswordForm mode='reset-password' email={email} resetPasswordToken={resetPasswordToken}/>
+</UserActivateS>
 
 const SidebarS = styled.div`
   height: 100%;
@@ -912,9 +914,9 @@ const Contents = container (
     const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
-      login: [false, () => <Login/>],
+      login: [false, () => <Login email={params.email ?? ''}/>],
       user: [true, () => <UserPage/>],
-      'reset-password': [false, () => <UserActivate token={params.token}/>],
+      'reset-password': [false, () => <UserActivate email={params.email} token={params.token}/>],
       'user-admin': [false, () => <Admin/>],
     })
 

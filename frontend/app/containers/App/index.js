@@ -100,8 +100,9 @@ const router = (passProps) => createBrowserRouter ([
   { path: '/', element: <Main page='overview' passProps={passProps}/>},
   { path: '/detail/:uuid', element: <Main page='detail' passProps={passProps}/>},
   { path: '/login', element: <Main page='login' passProps={passProps}/>},
+  { path: '/login/:email', element: <Main page='login' passProps={passProps}/>},
   { path: '/user', element: <Main page='user' passProps={passProps}/>},
-  { path: '/reset-password/:token', element: <Main page='reset-password' passProps={passProps}/>},
+  { path: '/reset-password/:email/:token', element: <Main page='reset-password' passProps={passProps}/>},
   { path: '/user-admin', element: <Main page='user-admin' passProps={passProps}/>},
   { path: '*', element: <NotFoundPage/>},
 ])
