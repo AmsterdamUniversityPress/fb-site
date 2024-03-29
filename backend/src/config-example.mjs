@@ -35,8 +35,11 @@ export const config = {
     acc: 'xxx',
     prd: 'xxx',
   }),
-  // --- e.g.: redis://:' + encodeURIComponent ('your-password') + '@127.0.0.1:6379/0',
-  redisURL: 'redis://xxx',
+  redisURL: {
+    // --- e.g.: redis://:' + encodeURIComponent ('your-password') + '@127.0.0.1:6379/0',
+    tst: 'redis://xxx',
+    xxx: 'redis://xxx',
+  },
   serverPort: 4444,
   authorizeByIP: [
     /*

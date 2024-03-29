@@ -75,7 +75,16 @@ import {
 
 const configTop = config | configure.init
 
-const { activateTokenExpireSecs, authorizeByIP, email: emailOpts, fbDomains, redisURL, serverPort, users, } = tryCatch (
+const appEnv = lets (
+  () => [
+    'must be dev|tst|acc|prd',
+    againstAny ([eq ('dev'), eq ('tst'), eq ('acc'), eq ('prd')]),
+  ],
+  (validate) => env ('APP_ENV', validate),
+)
+
+const redisURLConfigKey = 'redisURL.' + appEnv
+const { activateTokenExpireSecs, authorizeByIP, email: emailOpts, fbDomains, [redisURLConfigKey]: redisURL, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
@@ -83,7 +92,7 @@ const { activateTokenExpireSecs, authorizeByIP, email: emailOpts, fbDomains, red
     'authorizeByIP',
     'email',
     'fbDomains',
-    'redisURL',
+    redisURLConfigKey,
     'serverPort',
     'users',
   ),
@@ -97,14 +106,6 @@ const cookieSecret = lets (
 const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
   (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
-)
-
-const appEnv = lets (
-  () => [
-    'must be dev|tst|acc|prd',
-    againstAny ([eq ('dev'), eq ('tst'), eq ('acc'), eq ('prd')]),
-  ],
-  (validate) => env ('APP_ENV', validate),
 )
 
 const data = appEnv | lookupOnOrDie (
