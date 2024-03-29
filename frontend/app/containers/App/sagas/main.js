@@ -280,11 +280,10 @@ function *s_setNumPerPageIdx () {
 }
 
 function *s_resetPasswordCompleted (rcomplete, navigate) {
-  console.log ('navigate', navigate)
   rcomplete | whenRequestCompleteSuccess (
     () => {
       toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
-      navigate ('/')
+      navigate ('/login')
     }
   )
 }

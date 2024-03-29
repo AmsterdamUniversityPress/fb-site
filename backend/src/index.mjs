@@ -370,7 +370,7 @@ const init = ({ port, }) => express ()
     const knownHashed = getUserPassword (email)
     if (!checkPassword (oldPassword, knownHashed)) {
       return res | sendStatus (499, {
-        umsg: 'Invalid attempt: Wrong Password',
+        umsg: 'Onjuist wachtwoord (huidig)',
       })
     }
     if (!updateUserPassword (email, encrypt (newPassword))) {
@@ -421,7 +421,9 @@ const init = ({ port, }) => express ()
       redisGet (email)
       | then ((storedToken) => activationToken | ifMatchesKnownPassword (storedToken) (
         () => {
-          info ('ja!')
+          if (!updateUserPassword (email, encrypt (password))) {
+            return res | sendStatusEmpty (500)
+          }
           // --- @todo do the db call
           return res | sendStatus (200, null)
         },
