@@ -973,8 +973,8 @@ export default container (
     useEffect (() => {
       if (not (isLoggedIn) && not (isUserLoggedInPending)) navigate ('/login')
       else if (isUserLoggedIn && page === 'login') navigate ('/')
-      else if (not (hasPrivilegeAdminUser) && page === '/user-admin') navigate ('/')
-    }, [isLoggedIn, isUserLoggedIn, page, navigate])
+      else if (not (hasPrivilegeAdminUser) && page === 'user-admin') navigate ('/')
+    }, [hasPrivilegeAdminUser, isLoggedIn, isUserLoggedInPending, isUserLoggedIn, page, navigate])
 
     if (not (isLoggedIn) && page !== 'login' && page !== 'reset-password') return
 
