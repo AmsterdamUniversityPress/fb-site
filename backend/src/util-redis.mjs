@@ -37,12 +37,18 @@ export const init = async (url, reconnectTimeoutMs) => {
   redisClient = await mkClientP (url, reconnectTimeoutMs)
 }
 
-export const set = (key, value) => redisClient.set (key, value)
-export const get = (key) => redisClient.get (key)
-export const expire = (key, secs, opt) => redisClient.expire (key, secs, opt)
-
 export const batch = (... fs) => letsP (... fs) | recover (
-  rejectP << decorateRejection ('Error with redis transaction: ')
+  rejectP << decorateRejection ('Error with redis pipeline: ')
+)
+
+export const get = (key) => redisClient.get (key)
+export const del = (key) => redisClient.del (key)
+export const expire = (key, secs, opt) => redisClient.expire (key, secs, opt)
+export const set = (key, value) => redisClient.set (key, value)
+export const getRemove = (key) => batch (
+  () => get (key),
+  () => del (key),
+  (value, _) => value,
 )
 
 // --- @experimental maybe something like

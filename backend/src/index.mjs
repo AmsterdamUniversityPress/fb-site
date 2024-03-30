@@ -44,7 +44,6 @@ import {
 } from './db.mjs'
 import { errorX, warn, } from './io.mjs'
 import {
-  base64decode, base64encode,
   env, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
@@ -65,6 +64,7 @@ import {
   expire as redisExpire,
   init as redisInit,
   get as redisGet,
+  getRemove as redisGetRemove,
   set as redisSet,
 } from './util-redis.mjs'
 
@@ -84,11 +84,12 @@ const appEnv = lets (
 )
 
 const redisURLConfigKey = 'redisURL.' + appEnv
-const { activateTokenExpireSecs, authorizeByIP, email: emailOpts, fbDomains, [redisURLConfigKey]: redisURL, serverPort, users, } = tryCatch (
+const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, email: emailOpts, fbDomains, [redisURLConfigKey]: redisURL, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'activateTokenExpireSecs',
+    'activateTokenLength',
     'authorizeByIP',
     'email',
     'fbDomains',
@@ -125,10 +126,10 @@ const encrypt = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 // --- (String, Buffer) => Boolean
 const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
-const matchesKnownPassword = recurry (2) (
+const passwordMatchesPlaintext = recurry (2) (
   (testPlain) => (knownHashed) => checkPassword (testPlain, knownHashed),
 )
-const ifMatchesKnownPassword = matchesKnownPassword >> ifPredicate
+const ifPasswordMatchesPlaintext = passwordMatchesPlaintext >> ifPredicate
 
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
@@ -164,7 +165,7 @@ const getLoggedIn = (email) => doDbCallDie (dbLoggedInGet, [ email, ])
 const addLoggedIn = (email) => doDbCallDie (dbLoggedInAdd, [ email, ])
 // --- @throws
 const removeLoggedIn = (email) => doDbCallDie (dbLoggedInRemove, [ email, ])
-const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, pw])
+const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, encrypt (pw)])
 
 // --- must return { password, reqData, userinfo, }, or `null`.
 const getUserinfoLoginSync = (email) => {
@@ -321,19 +322,20 @@ const getWelcomeEmail = (link) => {
 }
 
 const sendWelcomeEmail = (email) => {
-  const token = crypto.randomUUID ()
-  const userToken = base64encode (encrypt (token))
+  const token = crypto.randomBytes (activateTokenLength).base64Slice ()
+    // --- slash (%2F) can occur in base64 but causes Apache to give a 404,
+    // so for now we manually replace slash with a different character
+    // (@todo check AllowEncodedSlashes directive)
+    .replace (/\//g, 'A')
+  const tokenEncrypted = encrypt (token)
   const link = join ('/', [
-    'https://' + fbDomain,
-    'reset-password',
-    email,
-    userToken,
+    'https://' + fbDomain, 'reset-password', email, encodeURIComponent (token),
   ])
   const [text, html] = getWelcomeEmail (link)
 
   return startP ()
   | then (() => redisBatch (
-    () => redisSet (email, token),
+    () => redisSet (email, tokenEncrypted),
     () => redisExpire (email, activateTokenExpireSecs),
   ))
   | then (() => emailTransporter.sendMail ({
@@ -377,7 +379,7 @@ const init = ({ port, }) => express ()
         umsg: 'Onjuist wachtwoord (huidig)',
       })
     }
-    if (!updateUserPassword (email, encrypt (newPassword))) {
+    if (!updateUserPassword (email, newPassword)) {
       return res | sendStatusEmpty (500)
     }
     return res | sendStatus (200, null)
@@ -417,18 +419,22 @@ const init = ({ port, }) => express ()
         imsg,
         umsg: 'Deze activatielink is verlopen of ongeldig',
       })
-      const activationToken = base64decode (token)
-      redisGet (email)
-      | then ((storedToken) => activationToken | ifMatchesKnownPassword (storedToken) (
+      // --- usually we can just throw an exception using die, and express
+      // will send a response of 500, but during a promise chain that causes
+      // a crash.
+      const serverError = (imsg) => res | sendStatus (599, {
+        imsg,
+      })
+      redisGetRemove (email)
+      | then (ifPasswordMatchesPlaintext (token) (
         () => {
-          if (!updateUserPassword (email, encrypt (password))) {
-            return res | sendStatusEmpty (500)
-          }
+          if (!updateUserPassword (email, password))
+            return serverError ('Unable to update password')
           return res | sendStatus (200, null)
         },
         () => userError ('No match for token'),
       ))
-      | recover (die << decorateRejection ('Error retrieving token from redis: '))
+      | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
     }
   ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([

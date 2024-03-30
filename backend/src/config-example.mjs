@@ -14,6 +14,7 @@ const dbPath = pathJoin (dbDir, 'main.db')
 
 export const config = {
   activateTokenExpireSecs: 3 * 24 * 3600,
+  activateTokenLength: 32,
   dbPath,
   cookieSecret: Nothing,
   jwtSecret: Nothing,
