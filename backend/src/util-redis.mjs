@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
-  dot, dot1, dot2,
-  sprintfN,
+  dot, dot2,
+  sprintfN, list, join, recurry,
 } from 'stick-js/es'
 
 import { createClient, } from 'redis'
@@ -41,15 +41,25 @@ export const batch = (... fs) => letsP (... fs) | recover (
   rejectP << decorateRejection ('Error with redis pipeline: ')
 )
 
-export const get = (key) => redisClient.get (key)
 export const del = (key) => redisClient.del (key)
 export const expire = (key, secs, opt) => redisClient.expire (key, secs, opt)
-export const set = (key, value) => redisClient.set (key, value)
+export const get = (key) => redisClient.get (key)
+// --- e.g. `key ('activate', email)` -> 'activate:email', useful for storing various kinds of items
+// in the same redis database (we're just using 0 for now)
+export const key = list >> join (':')
+export const set = recurry (2) (
+  (key) => (value) => redisClient.set (key, value),
+)
+export const setExpire = recurry (3) (
+  (secs) => (key) => (value) => batch (
+    () => set (key, value),
+    () => expire (key, secs),
+  ) | recover (
+    rejectP << decorateRejection ('setExpire (): '),
+  ),
+)
 export const getRemove = (key) => batch (
   () => get (key),
   () => del (key),
   (value, _) => value,
 )
-
-// --- @experimental maybe something like
-// await redisSetExpire (10) ('abc', 'bdef')

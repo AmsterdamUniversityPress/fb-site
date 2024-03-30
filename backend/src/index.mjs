@@ -60,12 +60,10 @@ import {
   basicStringListValidator,
 } from './util-express.mjs'
 import {
-  batch as redisBatch,
-  expire as redisExpire,
   init as redisInit,
-  get as redisGet,
   getRemove as redisGetRemove,
-  set as redisSet,
+  key as redisKey,
+  setExpire as redisSetExpire,
 } from './util-redis.mjs'
 
 import {
@@ -334,10 +332,9 @@ const sendWelcomeEmail = (email) => {
   const [text, html] = getWelcomeEmail (link)
 
   return startP ()
-  | then (() => redisBatch (
-    () => redisSet (email, tokenEncrypted),
-    () => redisExpire (email, activateTokenExpireSecs),
-  ))
+  | then (() => redisSetExpire (activateTokenExpireSecs) (
+    redisKey ('activate', email), tokenEncrypted),
+  )
   | then (() => emailTransporter.sendMail ({
     to: email,
     from: emailOpts.fromString,
@@ -425,7 +422,7 @@ const init = ({ port, }) => express ()
       const serverError = (imsg) => res | sendStatus (599, {
         imsg,
       })
-      redisGetRemove (email)
+      redisGetRemove (redisKey ('activate', email))
       | then (ifPasswordMatchesPlaintext (token) (
         () => {
           if (!updateUserPassword (email, password))
