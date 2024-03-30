@@ -28,11 +28,12 @@ export { bufferEqualsConstantTime, hashPasswordScrypt, }
 // --- must return String or null
 const jwtFromSignedCookie = (req) => req.signedCookies.jwt ?? null
 
-const getCookieOptions = (secure=true) => ({
+const getCookieOptions = (secure=true, cookieMaxAgeMs) => ({
   secure,
   httpOnly: true,
   sameSite: true,
   signed: true,
+  maxAge: cookieMaxAgeMs,
 })
 
 const composeAuthMiddlewares = (middlewares) => {
@@ -260,6 +261,7 @@ const initPassportStrategies = ({
 const init = ({
   authorizeDataDefault=null,
   checkPassword,
+  cookieMaxAgeMs,
   getUserinfoLogin,
   getUserinfoRequest=always ({}),
   isAuthorized,
@@ -307,7 +309,7 @@ const init = ({
   // meaning that if for some reason /login and /logout are not both http or both https (during
   // development for example), the cookie won't get cleared and there may be bizarre results.
   const doCookie = (req) => lets (
-    () => getCookieOptions (req.secure),
+    () => getCookieOptions (req.secure, cookieMaxAgeMs),
     (cookieOptions) => ({
       clear: (res) => res.clearCookie ('jwt', cookieOptions),
       set: (jwt) => (res) => res.cookie ('jwt', jwt, cookieOptions),

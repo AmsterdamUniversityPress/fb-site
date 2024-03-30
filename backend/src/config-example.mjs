@@ -15,8 +15,9 @@ const dbPath = pathJoin (dbDir, 'main.db')
 export const config = {
   activateTokenExpireSecs: 3 * 24 * 3600,
   activateTokenLength: 32,
-  dbPath,
+  cookieMaxAgeMs: 10 * 1000,
   cookieSecret: Nothing,
+  dbPath,
   jwtSecret: Nothing,
   email: {
     host: 'smtp.mailserver.xx',

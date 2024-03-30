@@ -82,13 +82,14 @@ const appEnv = lets (
 )
 
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
-const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
+const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
     'activateTokenExpireSecs',
     'activateTokenLength',
     'authorizeByIP',
+    'cookieMaxAgeMs',
     'email',
     'fbDomains',
     getRedisURLConfigKey,
@@ -245,6 +246,7 @@ const checkPrivileges = (email, privsNeed=null) => lets (
 const alleycatAuth = authFactory.create ().init ({
   authorizeDataDefault: new Set (),
   checkPassword,
+  cookieMaxAgeMs,
   getUserinfoLogin,
   getUserinfoRequest,
   isAuthorized: async (email, req, privileges=null) => {
