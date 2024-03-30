@@ -61,7 +61,7 @@ import {
 } from './util-express.mjs'
 import {
   init as redisInit,
-  getRemove as redisGetRemove,
+  getFailRemove as redisGetFailRemove,
   key as redisKey,
   setExpire as redisSetExpire,
 } from './util-redis.mjs'
@@ -136,40 +136,45 @@ const foldDbResults = (onError, dbFuncName) => fold (
   id,
 )
 
-const doDbCall = recurry (3) (
+const _doDbCall = recurry (3) (
   (onError) => (dbFunc) => (vals) => dbFunc (...vals) | foldDbResults (onError, dbFunc.name),
 )
 
 const decorateDbError = (err, dbFuncName) => err | concatTo ('Error with ' + dbFuncName + ': ')
-const warnNull = (err, dbFuncName) => {
-  warn (decorateDbError (err, dbFuncName))
-  return null
-}
 
-const doDbCallWarnNull = (dbFunc, vals) => doDbCall (
-  (err) => warnNull (err, dbFunc.name),
-  dbFunc,
-  vals,
-)
-const doDbCallDie = (dbFunc, vals) => doDbCall (
+// const warnNull = (err, dbFuncName) => {
+  // warn (decorateDbError (err, dbFuncName))
+  // return null
+// }
+
+// const doDbCallWarnNull = (dbFunc, vals) => doDbCall (
+  // (err) => warnNull (err, dbFunc.name),
+  // dbFunc,
+  // vals,
+// )
+
+// --- @throws
+const doDbCall = (dbFunc, vals) => _doDbCall (
   (err) => die (decorateDbError (err, dbFunc.name)),
   dbFunc,
   vals,
 )
 
-// --- @throws
-const getLoggedIn = (email) => doDbCallDie (dbLoggedInGet, [ email, ])
-// --- @throws
-const addLoggedIn = (email) => doDbCallDie (dbLoggedInAdd, [ email, ])
-// --- @throws
-const removeLoggedIn = (email) => doDbCallDie (dbLoggedInRemove, [ email, ])
-const updateUserPassword = (email, pw) => doDbCallWarnNull (dbUserPasswordUpdate, [email, encrypt (pw)])
+// --- these all throw
+const getLoggedIn = (email) => doDbCall (dbLoggedInGet, [ email, ])
+const addLoggedIn = (email) => doDbCall (dbLoggedInAdd, [ email, ])
+const removeLoggedIn = (email) => doDbCall (dbLoggedInRemove, [ email, ])
+const updateUserPasswordSync = (email, pw) => doDbCall (
+  dbUserPasswordUpdate, [email, encrypt (pw)],
+)
+
+const updateUserPassword = async (email, pw) => updateUserPasswordSync (email, pw)
 
 // --- must return { password, reqData, userinfo, }, or `null`.
 const getUserinfoLoginSync = (email) => {
-  const info = doDbCallDie (dbUserGet, [email])
+  const info = doDbCall (dbUserGet, [email])
   if (nil (info)) return
-  const privileges = doDbCallDie (dbPrivilegesGet, [email])
+  const privileges = doDbCall (dbPrivilegesGet, [email])
   if (nil (privileges)) return
   const { firstName, lastName, password, } = info
   return {
@@ -218,7 +223,7 @@ const getUserinfoRequest = (req) => {
 const getPrivilegesForUser = (email) => email | ifNil (
   // --- null user means IP-based authentication.
   () => new Set (['user']),
-  () => new Set (doDbCallDie (dbPrivilegesGet, [email])),
+  () => new Set (doDbCall (dbPrivilegesGet, [email])),
 )
 
 // --- @throws
@@ -376,15 +381,16 @@ const init = ({ port, }) => express ()
         umsg: 'Onjuist wachtwoord (huidig)',
       })
     }
-    if (!updateUserPassword (email, newPassword)) {
-      return res | sendStatusEmpty (500)
-    }
+    decorateAndRethrow (
+      () => '/user: update password failed: ',
+      () => updateUserPasswordSync (email, newPassword),
+    )
     return res | sendStatus (200, null)
   })
   | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
       basicEmailValidator ('email'),
     ], ({ res, }, email) => {
-      doDbCallDie (dbUserRemove, [email])
+      doDbCall (dbUserRemove, [email])
       return res | sendStatus (200, null)
     }),
   )
@@ -394,7 +400,7 @@ const init = ({ port, }) => express ()
       basicStringValidator ('lastName'),
       basicStringListValidator ('privileges')
     ], ({ res, }, email, firstName, lastName, privileges) => {
-      doDbCallDie (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
+      doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
       return sendWelcomeEmail (email)
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
@@ -419,19 +425,19 @@ const init = ({ port, }) => express ()
       // --- usually we can just throw an exception using die, and express
       // will send a response of 500, but during a promise chain that causes
       // a crash.
-      const serverError = (imsg) => res | sendStatus (599, {
-        imsg,
-      })
-      redisGetRemove (redisKey ('activate', email))
+      const serverError = (msg) => {
+        warn (msg)
+        res | sendStatus (599, { imsg: 'Error with /user/reset-password', })
+      }
+      redisGetFailRemove (redisKey ('activate', email))
+      | recover (rejectP << decorateRejection ('Error retrieving/deleting token from redis: '))
       | then (ifPasswordMatchesPlaintext (token) (
-        () => {
-          if (!updateUserPassword (email, password))
-            return serverError ('Unable to update password')
-          return res | sendStatus (200, null)
-        },
+        () => updateUserPassword (email, password),
         () => userError ('No match for token'),
       ))
-      | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
+      | recover (rejectP << decorateRejection ('updateUserPassword () failed: '))
+      | then (() => res | sendStatus (200, null))
+      | recover (serverError)
     }
   ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
@@ -448,7 +454,7 @@ const init = ({ port, }) => express ()
   ))
   | secureGet (privsAdminUser) ('/users', (_req, res) => {
     // @todo kattenluik has a nice doCallResults function for this...
-    const users = doDbCallDie (dbUsersGet, [])
+    const users = doDbCall (dbUsersGet, [])
     return res | sendStatus (200, { users, })
   })
   | listen (port) (() => {

@@ -1,12 +1,12 @@
 import {
   pipe, compose, composeRight,
-  dot, dot2,
+  dot, dot2, ifOk,
   sprintfN, list, join, recurry,
 } from 'stick-js/es'
 
 import { createClient, } from 'redis'
 
-import { recover, rejectP, } from 'alleycat-js/es/async'
+import { recover, rejectP, resolveP, } from 'alleycat-js/es/async'
 import { decorateRejection, } from 'alleycat-js/es/general'
 import { warn, } from 'alleycat-js/es/io'
 import { letsP, } from 'alleycat-js/es/lets-promise'
@@ -58,8 +58,17 @@ export const setExpire = recurry (3) (
     rejectP << decorateRejection ('setExpire (): '),
   ),
 )
-export const getRemove = (key) => batch (
+export const _getRemove = (failOnNull, key) => batch (
   () => get (key),
+  (value) => value | ifOk (
+    () => resolveP (null),
+    () => {
+      if (failOnNull) return rejectP ([key] | sprintfN ('key ‘%s’ was null'))
+      resolveP (null)
+    },
+  ),
   () => del (key),
-  (value, _) => value,
+  (value, ... _) => value,
 )
+export const getRemove = (key) => _getRemove (false, key)
+export const getFailRemove = (key) => _getRemove (true, key)
