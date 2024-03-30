@@ -81,8 +81,8 @@ const appEnv = lets (
   (validate) => env ('APP_ENV', validate),
 )
 
-const redisURLConfigKey = 'redisURL.' + appEnv
-const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, email: emailOpts, fbDomains, [redisURLConfigKey]: redisURL, serverPort, users, } = tryCatch (
+const getRedisURLConfigKey = 'getRedisURL.' + appEnv
+const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
@@ -91,7 +91,7 @@ const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, email: emai
     'authorizeByIP',
     'email',
     'fbDomains',
-    redisURLConfigKey,
+    getRedisURLConfigKey,
     'serverPort',
     'users',
   ),
@@ -106,6 +106,13 @@ const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
   (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
 )
+
+const redisPassword = lets (
+  () => ['must be longer than 25 characters', length >> gt (25)],
+  (validate) => env ('REDIS_PASSWORD', validate),
+)
+
+const redisURL = getRedisURL (redisPassword)
 
 const data = appEnv | lookupOnOrDie (
   'ierror appEnv',

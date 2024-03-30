@@ -2,6 +2,7 @@ __data/*.json
 _site
 
 backend/src/config.mjs
+bin/run-backend-dev
 
 yarn.lock
 
