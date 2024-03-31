@@ -46,7 +46,8 @@ import { errorX, warn, } from './io.mjs'
 import {
   env, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
-  lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
+  lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
+  retryPDefaultMessage,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -410,7 +411,16 @@ const init = ({ port, }) => express ()
       basicStringListValidator ('privileges')
     ], ({ res, }, email, firstName, lastName, privileges) => {
       doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
-      return sendWelcomeEmail (email)
+      return retryPDefaultMessage (
+        'Unable to send email',
+        warn,
+        lookupOnOr (() => null, {
+          0: 100,
+          1: 500,
+          2: 1000,
+        }),
+        () => sendWelcomeEmail (email),
+      )
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
         warn (decorateRejection ('Error with /user-admin: ', e))

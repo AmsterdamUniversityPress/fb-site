@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, spreadTo, lets, flip, invoke,
-  sprintfN, id, T, recurry,
+  sprintf1, sprintfN, id, T, recurry,
   ifOk, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF,
@@ -10,8 +10,9 @@ import {
 import path from 'path'
 import { fileURLToPath, } from 'url'
 
+import { recover, then, } from 'alleycat-js/es/async'
 import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
-import { composeManyRight, decorateRejection, } from 'alleycat-js/es/general'
+import { composeManyRight, decorateRejection, setTimeoutOn, } from 'alleycat-js/es/general'
 import { ifUndefined, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
@@ -217,4 +218,40 @@ export const tryCatchP = recurry (3) (
       return onBad (e)
     }
   }
+)
+
+// --- rejects with the last rejection message
+export const retryP = recurry (3) (
+  (onRejectAttempt) => (timing) => (f) => new Promise ((res, rej) => {
+    const loop = (n) => {
+      f (n)
+      | then (res)
+      | recover ((e) => {
+        const timeout = timing (n)
+        onRejectAttempt (e, n, timeout)
+        timeout | ifOk (
+          setTimeoutOn (() => loop (n+1)),
+          () => rej (e),
+        )
+      })
+    }
+    loop (0)
+  }),
+)
+
+export const retryPDefaultMessage = recurry (4) (
+  (onRejectAttemptMsg) => (onRejectAttempt) => (timing) => (f) => retryP (
+    (e, n, timeout) => lets (
+      () => (n+1) | sprintf1 ('(attempt #%d)'),
+      () => timeout | ifOk (
+        sprintf1 ('retrying in %d milliseconds'),
+        () => 'giving up',
+      ),
+      (attempt, cont) => onRejectAttempt (e | decorateRejection (
+        [onRejectAttemptMsg, attempt + ',', cont + ': '] | join (' '),
+      )),
+    ),
+    timing,
+    f,
+  ),
 )
