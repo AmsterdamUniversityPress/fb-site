@@ -18,7 +18,7 @@ import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
 
-import { recover, rejectP, startP, then, } from 'alleycat-js/es/async'
+import { allP, recover, rejectP, startP, then, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
@@ -62,7 +62,8 @@ import {
 } from './util-express.mjs'
 import {
   init as redisInit,
-  getFailRemove as redisGetFailRemove,
+  del as redisDelete,
+  getFail as redisGetFail,
   key as redisKey,
   setExpire as redisSetExpire,
 } from './util-redis.mjs'
@@ -448,15 +449,19 @@ const init = ({ port, }) => express ()
         warn (msg)
         res | sendStatus (599, { imsg: 'Error with /user/reset-password', })
       }
-      redisGetFailRemove (redisKey ('activate', email))
-      | recover (rejectP << decorateRejection ('Error retrieving/deleting token from redis: '))
+      redisGetFail (redisKey ('activate', email))
       | then (ifPasswordMatchesPlaintext (token) (
-        () => updateUserPassword (email, password),
+        () => {
+          allP ([
+            updateUserPassword (email, password),
+            redisDelete (redisKey ('activate', email))
+          ])
+          | then (() => res | sendStatus (200, null))
+          | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
+        },
         () => userError ('No match for token'),
       ))
-      | recover (rejectP << decorateRejection ('updateUserPassword () failed: '))
-      | then (() => res | sendStatus (200, null))
-      | recover (serverError)
+      | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
     }
   ))
   | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([

@@ -58,7 +58,7 @@ export const setExpire = recurry (3) (
     rejectP << decorateRejection ('setExpire (): '),
   ),
 )
-export const _getRemove = (failOnNull, key) => batch (
+export const _getDelete = (failOnNull, doDelete, key) => batch (
   () => get (key),
   (value) => value | ifOk (
     () => resolveP (null),
@@ -67,8 +67,9 @@ export const _getRemove = (failOnNull, key) => batch (
       resolveP (null)
     },
   ),
-  () => del (key),
+  () => doDelete && del (key),
   (value, ... _) => value,
 )
-export const getRemove = (key) => _getRemove (false, key)
-export const getFailRemove = (key) => _getRemove (true, key)
+export const getDelete = (key) => _getDelete (false, true, key)
+export const getDeleteFail = (key) => _getDelete (true, true, key)
+export const getFail = (key) => _getDelete (true, false, key)
