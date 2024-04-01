@@ -72,6 +72,10 @@ export default {
     appWrapperSelector: '[class*=AppWrapper]',
     alwaysMobile: false,
     helloInterval: 60000,
+    // --- note, these must match settings in the backend for this to make sense
+    minimumPasswordScore: 4,
+    enforcePasswordStrength: true,
+    // ---
   },
   font: {
     main: {

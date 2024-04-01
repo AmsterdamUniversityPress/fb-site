@@ -2,17 +2,20 @@ import {
   pipe, compose, composeRight,
   not, allAgainst, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
-  lets, id, die, tap, whenTrue, invoke,
+  lets, id, die, tap, whenTrue, invoke, prop, gte,
+  lt, lte, gt,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import { Link, useNavigate, useParams, } from 'react-router-dom'
 import styled from 'styled-components'
+import zxcvbn from 'zxcvbn'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, keyPressListen, } from 'alleycat-js/es/dom'
-import { logWith, } from 'alleycat-js/es/general'
+import { logWith, max, } from 'alleycat-js/es/general'
+import { all, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
@@ -59,19 +62,24 @@ import {
 import config from '../../config'
 
 const configTop = configure.init (config)
-const iconLogin = configTop.get ('icons.login')
-const iconLogout = configTop.get ('icons.logout')
-const iconUpdate = configTop.get ('icons.update')
-const iconAdmin = configTop.get('icons.admin')
-const iconShowPasswordHidden = configTop.get ('icons.show-password-hidden')
-const iconShowPasswordShown = configTop.get ('icons.show-password-shown')
-const iconUser = configTop.get ('icons.user')
-const imageHoutenFrame = configTop.get ('images.fonds')
-const imageLogo = configTop.get ('images.logo')
-const imageBackground = configTop.get ('images.background')
-// const imageUitgave = configTop.get ('images.uitgave')
+const configGeneral = configTop.focus ('general')
+const configIcons = configTop.focus ('icons')
+const configImages = configTop.focus ('images')
 
-const imageFonds = imageHoutenFrame
+const iconLogin = configIcons.get ('login')
+const iconLogout = configIcons.get ('logout')
+const iconUpdate = configIcons.get ('update')
+const iconAdmin = configIcons.get('admin')
+const iconShowPasswordHidden = configIcons.get ('show-password-hidden')
+const iconShowPasswordShown = configIcons.get ('show-password-shown')
+const iconUser = configIcons.get ('user')
+
+const imageFonds = configImages.get ('fonds')
+const imageLogo = configImages.get ('logo')
+const imageBackground = configImages.get ('background')
+
+const minimumPasswordScore = configGeneral.get ('minimumPasswordScore')
+const enforcePasswordStrength = configGeneral.get ('enforcePasswordStrength')
 
 const configColors = configTop.focus ('colors')
 const colors = configColors.gets (
@@ -409,7 +417,7 @@ const FormS = styled (TextBoxS) `
       border: 1px solid #999999;
       padding: 10px;
     }
-    .x__label, .x__icon {
+    > .x__label, .x__icon {
       display: inline-block;
       position: relative;
       top: 50%;
@@ -419,6 +427,10 @@ const FormS = styled (TextBoxS) `
     .x__input {
       background: white;
     }
+    > .x__pw-strength {
+      grid-column-start: 1;
+      grid-column-end: 3;
+    }
     // --- @todo this should probably be .x__text
     x__text {
       width: 400px;
@@ -426,6 +438,59 @@ const FormS = styled (TextBoxS) `
     }
   }
 `
+
+const PasswordStrengthS = styled.div`
+  font-size: 15px;
+  color: #9c3939;
+  text-align: center;
+  margin-bottom: 10px;
+  > * {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  > .x__label {
+    font-size: 18px;
+    margin-right: 10px;
+  }
+  > .x__bar {
+    width: 200px;
+    height: 30px;
+    margin: auto;
+    border: 3px solid black;
+    border-radius: 500px;
+    position: relative;
+    overflow-x: hidden;
+    > .x__bar-bar {
+      position: absolute;
+      // --- @future use maximumScore (this assumes max score is 4)
+      ${prop ('flup') >> condS ([
+        eq (1) | guard (() => 'background: green;'),
+        gt (0.5) | guard (() => 'background: yellow;'),
+        gt (0.25) | guard (() => 'background: orange;'),
+        otherwise | guard (() => 'background: red;'),
+      ])}
+      width: 100%;
+      height: 100%;
+      left: calc(-200px + 200px*${prop ('flup')});
+      transition: left 0.3s;
+    }
+  }
+`
+
+// --- 4 is max of zxcvbn
+const PasswordStrength = ({ show=true, className, score, minimumScore, maximumScore=4, }) => {
+  return <PasswordStrengthS
+    className={clss (show || 'u--hide', className)}
+    flup={score / minimumScore}
+  >
+    <div className='x__label'>
+      wachtwoordsterkte
+    </div>
+    <div className='x__bar'>
+      <div className='x__bar-bar'/>
+    </div>
+  </PasswordStrengthS>
+}
 
 const UserPasswordForm = container (
   ['UserPasswordForm', {
@@ -495,12 +560,27 @@ const UserPasswordForm = container (
       else inputPasswordRef.current.focus ()
     }, [])
 
+    const passwordScore = useMemo (
+      () => zxcvbn (password).score,
+      [password],
+    )
+    const passwordIsStrongEnough = useMemo (
+      () => enforcePasswordStrength ? (passwordScore >= minimumPasswordScore) : true,
+      [enforcePasswordStrength, passwordScore, minimumPasswordScore],
+    )
+    const passwordIsNotEmpty = useMemo (
+      () => password | isNotEmptyString,
+      [password],
+    )
     const canSubmit = useMemo (
       () => lets (
-        () => mode === 'login' ? [email, password] : [password],
-        (fields) => fields | allAgainst (isNotEmptyString),
+        () => mode === 'login',
+        ifTrue (
+          () => isNotEmptyString (email),
+          () => passwordIsStrongEnough,
+        ),
       ),
-      [email, password],
+      [mode, passwordIsStrongEnough, email],
     )
 
     // --- the outer element is a form, which is there to silence a chromium warning, but doesn't really do anything.
@@ -545,10 +625,21 @@ const UserPasswordForm = container (
             <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
           </div>
           <div/>
+
+          {enforcePasswordStrength && mode !== 'login' && <div className='x__pw-strength'>
+            <PasswordStrength
+              show={passwordIsNotEmpty}
+              score={passwordScore}
+              minimumScore={minimumPasswordScore}
+            />
+          </div>}
+          <div/>
+          <div/>
+
           <div>
-          <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
-            {mode === 'login' ? 'aanmelden' : 'OK'}
-          </BigButton>
+            <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
+              {mode === 'login' ? 'aanmelden' : 'OK'}
+            </BigButton>
           </div>
         </div>
       </FormS>
@@ -754,18 +845,34 @@ const UserPage = container (
       keyDownListen (
         () => {
           event.preventDefault ()
-          canUpdatePassword && doPasswordUpdate ()
+          canSubmitPassword && doPasswordUpdate ()
         },
         'Enter',
       ),
-      [doPasswordUpdate, canUpdatePassword],
+      [doPasswordUpdate, canSubmitPassword],
     )
 
     const onClickPasswordUpdate = () => doPasswordUpdate ()
 
-    const canUpdatePassword = useMemo (
-      () => [oldPassword, newPassword] | allAgainst (isNotEmptyString),
-      [oldPassword, newPassword],
+    const passwordScore = useMemo (
+      () => zxcvbn (newPassword).score,
+      [newPassword],
+    )
+    const passwordIsStrongEnough = useMemo (
+      () => enforcePasswordStrength ? (passwordScore >= minimumPasswordScore) : true,
+      [enforcePasswordStrength, passwordScore, minimumPasswordScore],
+    )
+    const newPasswordIsNotEmpty = useMemo (
+      () => newPassword | isNotEmptyString,
+      [newPassword],
+    )
+    const canSubmitPassword = useMemo (
+      () => all (
+        () => newPasswordIsNotEmpty,
+        () => oldPassword | isNotEmptyString,
+        () => passwordIsStrongEnough,
+      ),
+      [newPasswordIsNotEmpty, oldPassword, passwordIsStrongEnough],
     )
 
     const onClickClose = useCallbackConst (() => {
@@ -808,10 +915,17 @@ const UserPage = container (
               onKeyDown={onKeyDownInput}
               ref={inputNewPasswordRef}/>
           </div>
+          {enforcePasswordStrength && <div className='x__pw-strength'>
+            <PasswordStrength
+              show={newPasswordIsNotEmpty}
+              score={passwordScore}
+              minimumScore={minimumPasswordScore}
+            />
+          </div>}
           <div/>
           <div/>
           <div>
-            <BigButton disabled={not (canUpdatePassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
+            <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
           </div>
         </div>
       </FormS>
@@ -898,7 +1012,7 @@ const ContentsS = styled.div`
     position: relative;
     flex: 0 0 300px;
     left: 0;
-    transition: left 0.3s;
+    transition: left 0.1s;
     &.x--hide {
       left: -300px;
     }
