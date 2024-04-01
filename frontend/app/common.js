@@ -181,7 +181,17 @@ export const toastInfoOptions = toastXOptions ('info')
 export const toastError = toastErrorOptions ({})
 export const toastWarn = toastWarnOptions ({})
 export const toastSuccess = toastSuccessOptions ({})
-export const toastInfo = toastInfoOptions ({ autoClose: 20000, })
+
+import { cssTransition as toastCssTransition, } from 'react-toastify'
+const ToastTransition = toastCssTransition ({
+  enter: 'toast--bounce-in-right',
+  exit: 'toast--smooth',
+})
+
+export const toastInfo = toastInfoOptions ({
+  autoClose: 20000,
+  transition: ToastTransition,
+})
 
 export function saga (...args) {
   return _saga (sagaEffects, ...args)
