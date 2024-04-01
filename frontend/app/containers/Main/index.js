@@ -47,8 +47,8 @@ import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
-import {} from '../../alleycat-components'
-import { BigButton, MenuItem, } from '../../components/shared'
+import Dialog from '../../alleycat-components/Dialog'
+import { BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 import Pagination from '../../containers/shared/Pagination'
@@ -492,6 +492,22 @@ const PasswordStrength = ({ show=true, className, score, minimumScore, maximumSc
   </PasswordStrengthS>
 }
 
+const ContentsForgotPasswordDialog = () => <DialogContentsS>
+  <div className='x__title'>
+    Wachtwoord vergeten
+  </div>
+  <p>
+    Vul je e-mailadres in en klik op het knopje.
+  </p>
+  <p>
+    Als je een account bij ons hebt dan krijg je binnen enkele ogenblikken een e-mail met instructies voor het kiezen van een nieuw wachtwoord.
+  </p>
+  <Input type='text'/>
+  <BigButton>
+    OK
+  </BigButton>
+</DialogContentsS>
+
 const UserPasswordForm = container (
   ['UserPasswordForm', {
     resetPasswordDispatch: resetPassword,
@@ -499,7 +515,7 @@ const UserPasswordForm = container (
     getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
   }],
-  ({ mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
+  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
     const navigate = useNavigate ()
 
     const [email, setEmail] = useState (emailProp)
@@ -509,6 +525,7 @@ const UserPasswordForm = container (
 
     const [password, setPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
+    const [forgotPasswordDialogIsOpen, setForgotPasswordDialogIsOpen] = useState (false)
 
     const inputEmailRef = useRef (null)
     const inputPasswordRef = useRef (null)
@@ -551,6 +568,10 @@ const UserPasswordForm = container (
       [doLogIn, canSubmit],
     )
 
+    const closeForgotPasswordDialog = useCallbackConst (
+      () => setForgotPasswordDialogIsOpen (false),
+    )
+
     useEffect (() => {
       if (mode === 'login') {
         setEmail (inputEmailRef.current.value)
@@ -582,11 +603,22 @@ const UserPasswordForm = container (
       ),
       [mode, passwordIsStrongEnough, email],
     )
+    const onClickForgotPassword = useCallbackConst (
+      () => setForgotPasswordDialogIsOpen (true),
+    )
 
     // --- the outer element is a form, which is there to silence a chromium warning, but doesn't really do anything.
     // Make sure to use event.preventDefault so it doesn't submit
 
     return <LoginS>
+      <Dialog
+        isMobile={isMobile}
+        isOpen={forgotPasswordDialogIsOpen}
+        closeOnOverlayClick={true}
+        onRequestClose={closeForgotPasswordDialog}
+      >
+        <ContentsForgotPasswordDialog/>
+      </Dialog>
       {mode === 'login' && isLoggedInInstitution && <TextBoxS className='x__message'>
         <p>
           Je bent ingelogd courtesy of {getInstitutionName ()}.
@@ -626,21 +658,36 @@ const UserPasswordForm = container (
           </div>
           <div/>
 
-          {enforcePasswordStrength && mode !== 'login' && <div className='x__pw-strength'>
-            <PasswordStrength
-              show={passwordIsNotEmpty}
-              score={passwordScore}
-              minimumScore={minimumPasswordScore}
-            />
-          </div>}
-          <div/>
-          <div/>
+          {enforcePasswordStrength && mode !== 'login' && <>
+            <div className='span-cols'>
+              <PasswordStrength
+                show={passwordIsNotEmpty}
+                score={passwordScore}
+                minimumScore={minimumPasswordScore}
+              />
+            </div>
+            <div/>
+            <div/>
+          </>}
 
           <div>
             <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
               {mode === 'login' ? 'aanmelden' : 'OK'}
             </BigButton>
           </div>
+
+          {false && mode === 'login' && <>
+            <div className='x__forgot-password span-cols'>
+              <MenuItem
+                onClick={onClickForgotPassword}
+                imgSrc={null}
+                text='Ik ben mijn wachtwoord vergeten'
+              />
+            </div>
+            <div/>
+            <div/>
+          </>}
+
         </div>
       </FormS>
     </LoginS>
@@ -649,8 +696,8 @@ const UserPasswordForm = container (
 
 const Login = container ([
   'Login', { logInDispatch: logIn, }, {},
-], ({ email='', logInDispatch, }) => <FormWrapper>
-  <UserPasswordForm mode='login' email={email} logIn={logInDispatch}/>
+], ({ isMobile, email='', logInDispatch, }) => <FormWrapper>
+  <UserPasswordForm isMobile={isMobile} mode='login' email={email} logIn={logInDispatch}/>
 </FormWrapper>
 )
 
@@ -1032,13 +1079,12 @@ const ContentsS = styled.div`
 
 const Contents = container (
   ['Contents', {}, {}],
-  ({ page, }) => {
-
+  ({ isMobile, page, }) => {
     const params = useParams ()
     const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
-      login: [false, () => <Login email={params.email ?? ''}/>],
+      login: [false, () => <Login isMobile={isMobile} email={params.email ?? ''}/>],
       user: [true, () => <UserPage/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token}/>],
       'user-admin': [false, () => <Admin/>],
@@ -1102,7 +1148,7 @@ export default container (
         <div className='x__header'>
           <Header isLoggedIn={isLoggedIn}/>
         </div>
-        {true && <Contents page={page}/>}
+        {true && <Contents isMobile={isMobile} page={page}/>}
       </div>
     </MainS>
   },
