@@ -427,7 +427,7 @@ const FormS = styled (TextBoxS) `
     .x__input {
       background: white;
     }
-    > .x__pw-strength {
+    > .span-cols {
       grid-column-start: 1;
       grid-column-end: 3;
     }
@@ -915,7 +915,7 @@ const UserPage = container (
               onKeyDown={onKeyDownInput}
               ref={inputNewPasswordRef}/>
           </div>
-          {enforcePasswordStrength && <div className='x__pw-strength'>
+          {enforcePasswordStrength && <div className='span-cols'>
             <PasswordStrength
               show={newPasswordIsNotEmpty}
               score={passwordScore}

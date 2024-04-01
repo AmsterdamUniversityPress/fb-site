@@ -262,3 +262,36 @@ export const MenuItem = ({
     )}
   </span>
 </MenuItemS>
+
+// --- @todo ugly -- this expects the contents to have a specific layout which is only clear after
+// looking at how it's used.
+export const DialogContentsS = styled.div`
+  > .x__title {
+    font-size: 20px;
+    border-bottom: 2px solid #00000022;
+    margin-bottom: 25px;
+    opacity: 0.8;
+  }
+  > div {
+    line-height: 2.0em;
+  }
+  > p, > div {
+    > .x__email {
+      border-bottom: 1px solid #111;
+      padding: 2px;
+    }
+    > button {
+      margin-right: 20px;
+    }
+    // --- @todo this is too specific.
+    > .x__spinner {
+      vertical-align: middle;
+      position: relative;
+      top: 5px;
+      left: 15px;
+    }
+  }
+  > .x__buttons {
+    margin-top: 30px;
+  }
+`

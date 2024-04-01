@@ -35,7 +35,7 @@ import {
 } from '../App/actions/main'
 
 import CloseIcon from '../../components/svg/CloseIcon'
-import { AreYouSureDialog, BigButton, Button, MenuItem, } from '../../components/shared'
+import { AreYouSureDialog, Button, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
 import { spinner, } from '../../alleycat-components'
@@ -162,36 +162,6 @@ const AdminS = styled.div`
     * {
       margin: auto;
     }
-  }
-`
-
-const DialogContentsS = styled.div`
-  > .x__title {
-    font-size: 20px;
-    border-bottom: 2px solid #00000022;
-    margin-bottom: 25px;
-    opacity: 0.8;
-  }
-  > div {
-    line-height: 2.0em;
-  }
-  > p, > div {
-    > .x__email {
-      border-bottom: 1px solid #111;
-      padding: 2px;
-    }
-    > button {
-      margin-right: 20px;
-    }
-    > .x__spinner {
-      vertical-align: middle;
-      position: relative;
-      top: 5px;
-      left: 15px;
-    }
-  }
-  > .x__buttons {
-    margin-top: 30px;
   }
 `
 
