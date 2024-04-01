@@ -11,7 +11,7 @@ import {
 // --- for spinner
 import React from 'react'
 
-import { Bounce as ToastBounce, toast, } from 'react-toastify'
+import { cssTransition as toastCssTransition, toast, } from 'react-toastify'
 import { call as sagaCall, all as sagaAll, put as sagaPut, } from 'redux-saga/effects'
 const sagaEffects = {
   call: sagaCall,
@@ -161,12 +161,17 @@ export const container = 'debug.render' | configTop.get | containerTell
 export const reducer = 'debug.reducers' | configTop.get | reducerTell
 export const initSelectors = 'debug.selectors' | configTop.get | initSelectorsTell
 
+const ToastTransition = toastCssTransition ({
+  enter: 'toast--bounce-in-right',
+  exit: 'toast--smooth',
+})
+
 const toastXOptions = recurry (3) (
   // --- msg can be nil (for example if there's a user error with no umsg), in which case the toast won't show at all.
   (f) => (opts) => (msg) => lets (
     () => msg ?? 'Oops! Something went wrong',
     (msg_) => toast [f] (msg_, opts | mergeToM ({
-      transition: ToastBounce,
+      transition: ToastTransition,
       autoClose: 5000,
       closeOnClick: true,
     })),
@@ -182,15 +187,8 @@ export const toastError = toastErrorOptions ({})
 export const toastWarn = toastWarnOptions ({})
 export const toastSuccess = toastSuccessOptions ({})
 
-import { cssTransition as toastCssTransition, } from 'react-toastify'
-const ToastTransition = toastCssTransition ({
-  enter: 'toast--bounce-in-right',
-  exit: 'toast--smooth',
-})
-
 export const toastInfo = toastInfoOptions ({
   autoClose: 20000,
-  transition: ToastTransition,
 })
 
 export function saga (...args) {
