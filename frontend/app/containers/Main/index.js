@@ -355,7 +355,10 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
 </IconShowPasswordS>
 
 const LoginS = styled.form`
-  .x__message {
+  > .x__form {
+    margin-top: 70px;
+  }
+  > .x__message {
     margin-bottom: 40px;
   }
 `
@@ -370,6 +373,8 @@ const TextBoxS = styled.div`
   font-size: 20px;
   width: 80%;
   max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 `
 
 const FormWrapper = styled.div`
@@ -511,7 +516,7 @@ const UserPasswordForm = container (
         </p>
       </TextBoxS>
       }
-      <FormS>
+      <FormS className='x__form'>
       {mode === 'reset-password' && <div className='x__choose-password'>
         Kies een wachtwoord:
       </div>}
