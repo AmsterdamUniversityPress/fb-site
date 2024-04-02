@@ -85,13 +85,25 @@ export const sendWelcomeEmail = action (
   'sendWelcomeEmail',
 )
 
-export const sendWelcomeEmailCompleted = action (
-  (rcomplete, email) => ({ rcomplete, email, }),
-  'sendWelcomeEmailCompleted',
+export const sendWelcomeWelcomeEmail = action (
+  (email) => sendWelcomeEmail (email, 'welcome'),
+  'sendWelcomeWelcomeEmail',
 )
 
-export const sendWelcomeWelcomeEmail = (email) => sendWelcomeEmail (email, 'welcome')
-export const sendWelcomeResetEmail = (email) => sendWelcomeEmail (email, 'reset')
+export const sendWelcomeWelcomeEmailCompleted = action (
+  (rcomplete, email) => ({ rcomplete, email, }),
+  'sendWelcomeWelcomeEmailCompleted',
+)
+
+export const sendWelcomeResetEmail = action (
+  (email) => sendWelcomeEmail (email, 'reset'),
+  'sendWelcomeResetEmail',
+)
+
+export const sendWelcomeResetEmailCompleted = action (
+  (rcomplete, email) => ({ rcomplete, email, }),
+  'sendWelcomeResetEmailCompleted',
+)
 
 export const userAdd = action (
   ( email, firstName, lastName, privileges ) => ({ email, firstName, lastName, privileges, }),

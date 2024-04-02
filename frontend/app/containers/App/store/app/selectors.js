@@ -19,6 +19,7 @@ const { select, selectTop, selectVal, } = initSelectors (
 // --- returns Request which wraps (user | null)
 const selectUserUser = selectVal ('userUser')
 const selectUserInstitution = selectVal ('userInstitution')
+export const selectEmailRequestPending = selectVal ('emailRequestPending')
 
 // --- returns Request which wraps (true | false)
 export const selectUserLoggedIn = select (

@@ -18,6 +18,7 @@ import {
 import { reducer, } from '../../../../common'
 
 export const initialState = {
+  emailRequestPending: false,
   userUser: RequestInit,
   userInstitution: RequestInit,
   // --- @todo make consistent (Maybe vs. RequestResults)
@@ -51,6 +52,12 @@ const reducerTable = makeReducer (
     userUser: RequestInit,
     userPrivileges: Nothing,
   }),
+  sendWelcomeResetEmail, (_email) => assoc (
+    'emailRequestPending', true,
+  ),
+  sendWelcomeResetEmailCompleted, ({ ... _ }) => assoc (
+    'emailRequestPending', false,
+  ),
 )
 
 export default reducer ('app', initialState, reducerTable)
