@@ -649,6 +649,8 @@ const UserPasswordForm = container (
     const onClickForgotPassword = useCallbackConst (
       () => setForgotPasswordDialogIsOpen (true),
     )
+    const choosePassword = mode === 'reset-password' || mode === 'init-password'
+    const choosePasswordNew = mode === 'reset-password' ? 'nieuw ' : ''
 
     // --- the outer element is a form, which is there to silence a chromium warning, but doesn't really do anything.
     // Make sure to use event.preventDefault so it doesn't submit
@@ -672,8 +674,8 @@ const UserPasswordForm = container (
       </TextBoxS>
       }
       <FormS className='x__form'>
-      {mode === 'reset-password' && <div className='x__choose-password'>
-        Kies een wachtwoord:
+      {choosePassword && <div className='x__choose-password'>
+        Kies een {choosePasswordNew}wachtwoord
       </div>}
         {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
         <div className='x__grid'>
@@ -747,8 +749,8 @@ const Login = container ([
 const UserActivateS = styled.div`
 `
 
-const UserActivate = ({ email, token: resetPasswordToken, }) => <UserActivateS>
-  <UserPasswordForm mode='reset-password' email={email} resetPasswordToken={resetPasswordToken}/>
+const UserActivate = ({ email, mode, token: resetPasswordToken, }) => <UserActivateS>
+  <UserPasswordForm mode={mode} email={email} resetPasswordToken={resetPasswordToken}/>
 </UserActivateS>
 
 const SidebarS = styled.div`
@@ -1129,7 +1131,8 @@ const Contents = container (
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email ?? ''}/>],
       user: [true, () => <UserPage/>],
-      'reset-password': [false, () => <UserActivate email={params.email} token={params.token}/>],
+      'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
+      'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
       'user-admin': [false, () => <Admin/>],
     })
 
@@ -1178,13 +1181,15 @@ export default container (
     const isLoggedIn = isInstitutionLoggedIn || isUserLoggedIn
     const isUserLoggedInPending = userLoggedIn | isLoading
 
+    const pageIsChoosePassword = page === 'reset-password' || page === 'init-password'
+
     useEffect (() => {
-      if (not (isLoggedIn) && not (isUserLoggedInPending) && page !== 'reset-password' && page !== 'login') navigate ('/login')
+      if (not (isLoggedIn) && not (isUserLoggedInPending) && not (pageIsChoosePassword) && page !== 'login') navigate ('/login')
       else if (isUserLoggedIn && page === 'login') navigate ('/')
       else if (not (hasPrivilegeAdminUser) && page === 'user-admin') navigate ('/')
     }, [hasPrivilegeAdminUser, isLoggedIn, isUserLoggedInPending, isUserLoggedIn, page, navigate])
 
-    if (not (isLoggedIn) && page !== 'login' && page !== 'reset-password') return
+    if (not (isLoggedIn) && page !== 'login' && not (pageIsChoosePassword)) return
 
     return <MainS tabIndex={-1}>
       <div className='x__contents'>

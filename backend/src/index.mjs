@@ -309,7 +309,27 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
-const getWelcomeEmail = (link) => {
+const reduceEmail = (contents) => lets (
+  () => (x) => '<p>' + x + '</p>',
+  (toP) => contents | reduce (
+    ([text, html], x) => x | ifArray (
+      ([t, h]) => [text | appendM (t), html | appendM (toP (h))],
+      () => [text | appendM (x), html | appendM (toP (x))],
+    ),
+    [[], []],
+  ),
+  (_, [text, html]) => [
+    text | join ('\n\n'),
+    html | join ('\n'),
+  ],
+)
+
+const getWelcomeOrResetLink = (stub, email, token) => join ('/', [
+  'https://' + fbDomain, stub, email, encodeURIComponent (token),
+])
+
+const getWelcomeEmail = (email, token) => {
+  const link = getWelcomeOrResetLink ('init-password', email, token)
   const contents = [
     'Welkom bij FB online ...',
     [
@@ -321,45 +341,57 @@ const getWelcomeEmail = (link) => {
       [link] | sprintfN (`<a href='%s'>Account activeren</a>`),
     ],
   ]
-
-  return lets (
-    () => (x) => '<p>' + x + '</p>',
-    (toP) => contents | reduce (
-      ([text, html], x) => x | ifArray (
-        ([t, h]) => [text | appendM (t), html | appendM (toP (h))],
-        () => [text | appendM (x), html | appendM (toP (x))],
-      ),
-      [[], []],
-    ),
-    (_, [text, html]) => [
-      text | join ('\n\n'),
-      html | join ('\n'),
-    ],
-  )
+  return [
+    'Welkom bij FB Online!',
+    ... reduceEmail (contents),
+  ]
 }
 
-const sendWelcomeEmail = (email) => {
+const getResetEmail = (email, token) => {
+  const link = getWelcomeOrResetLink ('reset-password', email, token)
+  const contents = [
+    'Wachtwoord reset ...',
+    'Je krijgt deze e-mail omdat je op “wachtwoord vergeten” hebt geklikt. Als jij dit niet hebt gedaan kun je dit bericht negeren',
+    [
+      'Ga naar deze URL om een nieuw wachtwoord te kiezen:',
+      'Klik hier om een wachtwoord te kiezen:',
+    ],
+    [
+      link,
+      [link] | sprintfN (`<a href='%s'>Nieuw wachtwoord kiezen</a>`),
+    ],
+  ]
+  return [
+    'Wachtwoord reset',
+    ... reduceEmail (contents)
+  ]
+}
+
+const sendWelcomeOrResetEmail = (email, type) => {
   const token = crypto.randomBytes (activateTokenLength).base64Slice ()
     // --- slash (%2F) can occur in base64 but causes Apache to give a 404,
     // so for now we manually replace slash with a different character
     // (@todo check AllowEncodedSlashes directive)
     .replace (/\//g, 'A')
   const tokenEncrypted = encrypt (token)
-  const link = join ('/', [
-    'https://' + fbDomain, 'reset-password', email, encodeURIComponent (token),
-  ])
-  const [text, html] = getWelcomeEmail (link)
+  const [subject, text, html] = type | lookupOnOrDie (
+    'sendWelcomeOrResetEmail(): Invalid type: ' + type,
+    {
+      welcome: getWelcomeEmail (email, token),
+      reset: getResetEmail (email, token),
+    },
+  )
 
   return startP ()
   | then (() => redisSetExpire (activateTokenExpireSecs) (
     redisKey ('activate', email), tokenEncrypted),
   )
   | then (() => emailTransporter.sendMail ({
-    to: email,
-    from: emailOpts.fromString,
-    subject: 'Welkom bij FB Online',
+    subject,
     text,
     html,
+    to: email,
+    from: emailOpts.fromString,
   }))
   | recover (rejectP << decorateRejection ('Unable to send welcome email: '))
 }
@@ -430,7 +462,7 @@ const init = ({ port, }) => express ()
           1: 500,
           2: 1000,
         }),
-        () => sendWelcomeEmail (email),
+        () => sendWelcomeOrResetEmail (email, 'welcome'),
       )
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
@@ -478,10 +510,24 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
-      return sendWelcomeEmail (to)
+      // --- @todo retry
+      return sendWelcomeOrResetEmail (to, 'welcome')
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
         warn (decorateRejection ('Error with /user/send-welcome-email: ', e))
+        res | sendStatusEmpty (500)
+      })
+    },
+  ))
+  | post ('/user/send-reset-email', getAndValidateBodyParams ([
+      basicEmailValidator ('email'),
+    ],
+    ({ res }, to) => {
+      // --- @todo retry
+      return sendWelcomeOrResetEmail (to, 'reset')
+      | then ((_mailInfo) => res | sendStatus (200, null))
+      | recover ((e) => {
+        warn (decorateRejection ('Error with /user/reset-welcome-email: ', e))
         res | sendStatusEmpty (500)
       })
     },
