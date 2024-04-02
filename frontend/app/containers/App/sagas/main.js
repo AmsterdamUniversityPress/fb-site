@@ -24,8 +24,10 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   resetPassword as a_resetPassword,
-  sendWelcomeEmail as a_sendWelcomeEmail,
-  sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
+  sendWelcomeWelcomeEmail as a_sendWelcomeWelcomeEmail,
+  sendWelcomeResetEmail as a_sendWelcomeResetEmail,
+  sendWelcomeWelcomeEmailCompleted as a_sendWelcomeWelcomeEmailCompleted,
+  sendWelcomeResetEmailCompleted as a_sendWelcomeResetEmailCompleted,
   userRemove as a_userRemove,
   userRemoveCompleted as a_userRemoveCompleted,
   userAdd as a_userAdd,
@@ -304,16 +306,16 @@ function *s_resetPassword ({ email, password, token, navigate, }) {
   })
 }
 
-function *s_sendWelcomeEmail ({ email, type, }) {
-  const url = type | lookupOnOrDie (
+function *sendWelcomeEmail (email, type) {
+  const [url, action] = type | lookupOnOrDie (
     's_sendWelcomeEmail (): Invalid type ' + type,
     {
-      welcome: '/api/user/send-welcome-email',
-      reset: '/api/user/send-reset-email',
+      welcome: ['/api/user/send-welcome-email', a_sendWelcomeWelcomeEmailCompleted],
+      reset: ['/api/user/send-reset-email', a_sendWelcomeResetEmailCompleted],
     },
   )
   function *done (rcomplete) {
-    yield put (a_sendWelcomeEmailCompleted (rcomplete, email, type))
+    yield put (action (rcomplete, email))
   }
   yield call (doApiCall, {
     url,
@@ -328,14 +330,32 @@ function *s_sendWelcomeEmail ({ email, type, }) {
   })
 }
 
-function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
+function *s_sendWelcomeWelcomeEmail (email) {
+  yield call (sendWelcomeEmail, email, 'welcome')
+}
+
+function *s_sendWelcomeResetEmail (email) {
+  yield call (sendWelcomeEmail, email, 'reset')
+}
+
+function *s_sendWelcomeWelcomeEmailCompleted ({ rcomplete, email, }) {
   const ok = rcomplete | requestCompleteFold (
     // --- ok
     () => true,
     (umsg) => (error (umsg), false),
     () => false,
   )
-  if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email)
+  if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email + '.')
+}
+
+function *s_sendWelcomeResetEmailCompleted ({ rcomplete, email, type, }) {
+  const ok = rcomplete | requestCompleteFold (
+    // --- ok
+    () => true,
+    (umsg) => (error (umsg), false),
+    () => false,
+  )
+  if (ok) toastInfo ('We hebben een e-mail met instructies naar ' + email + ' gestuurd.')
 }
 
 export default function *sagaRoot () {
@@ -348,8 +368,10 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_resetPassword, s_resetPassword),
-    saga (takeEvery, a_sendWelcomeEmail, s_sendWelcomeEmail),
-    saga (takeLatest, a_sendWelcomeEmailCompleted, s_sendWelcomeEmailCompleted),
+    saga (takeEvery, a_sendWelcomeWelcomeEmail, s_sendWelcomeWelcomeEmail),
+    saga (takeLatest, a_sendWelcomeResetEmail, s_sendWelcomeResetEmail),
+    saga (takeLatest, a_sendWelcomeWelcomeEmailCompleted, s_sendWelcomeWelcomeEmailCompleted),
+    saga (takeLatest, a_sendWelcomeResetEmailCompleted, s_sendWelcomeResetEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
     saga (takeLatest, a_userRemove, s_userRemove),
     saga (takeLatest, a_userRemoveCompleted, s_userRemoveCompleted),

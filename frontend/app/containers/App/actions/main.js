@@ -79,14 +79,8 @@ export const usersFetchCompleted = action (
   'usersFetchCompleted',
 )
 
-export const sendWelcomeEmail = action (
-  // --- type = 'welcome' | 'reset'
-  (email, type) => ({ email, type, }),
-  'sendWelcomeEmail',
-)
-
 export const sendWelcomeWelcomeEmail = action (
-  (email) => sendWelcomeEmail (email, 'welcome'),
+  (email) => email,
   'sendWelcomeWelcomeEmail',
 )
 
@@ -96,7 +90,7 @@ export const sendWelcomeWelcomeEmailCompleted = action (
 )
 
 export const sendWelcomeResetEmail = action (
-  (email) => sendWelcomeEmail (email, 'reset'),
+  (email) => email,
   'sendWelcomeResetEmail',
 )
 

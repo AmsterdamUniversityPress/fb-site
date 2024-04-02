@@ -25,9 +25,11 @@ import {
   passwordUpdate,
   passwordUpdateDone,
   resetPassword,
+  sendWelcomeResetEmail,
 } from '../App/actions/main'
 
 import {
+  selectEmailRequestPending,
   selectInstitutionLoggedIn,
   selectUserLoggedIn,
   selectGetFirstName, selectGetLastName, selectGetEmail,
@@ -47,6 +49,7 @@ import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
+import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import { BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
@@ -87,6 +90,8 @@ const colors = configColors.gets (
   'highlight2Alpha', 'highlight2Alpha',
   'highlight3Alpha', 'highlight3Alpha',
 )
+
+const Spinner = spinner ('comet')
 
 const UserS = styled.div`
   width: 50px;
@@ -492,21 +497,58 @@ const PasswordStrength = ({ show=true, className, score, minimumScore, maximumSc
   </PasswordStrengthS>
 }
 
-const ContentsForgotPasswordDialog = () => <DialogContentsS>
-  <div className='x__title'>
-    Wachtwoord vergeten
-  </div>
-  <p>
-    Vul je e-mailadres in en klik op het knopje.
-  </p>
-  <p>
-    Als je een account bij ons hebt dan krijg je binnen enkele ogenblikken een e-mail met instructies voor het kiezen van een nieuw wachtwoord.
-  </p>
-  <Input type='text'/>
-  <BigButton>
-    OK
-  </BigButton>
-</DialogContentsS>
+const ContentsForgotPasswordDialog = container (
+  ['ContentsForgotPasswordDialog', { sendWelcomeResetEmailDispatch: sendWelcomeResetEmail, }, { emailRequestPending: selectEmailRequestPending, }],
+  ({ sendWelcomeResetEmailDispatch, emailRequestPending, }) => {
+    const [email, setEmail] = useState ('')
+    const canSubmit = useMemo (
+      () => email | isNotEmptyString,
+      [email],
+    )
+    const onChangeEmail = useCallbackConst (
+      (event) => setEmail (event.target.value),
+    )
+    const submit = useCallback (
+      () => sendWelcomeResetEmailDispatch (email),
+      [email],
+    )
+    const onKeyDownInput = useCallback (
+      keyDownListen (
+        () => {
+          event.preventDefault ()
+          canSubmit && submit ()
+        },
+        'Enter',
+      ),
+      [canSubmit, submit],
+    )
+    return <DialogContentsS>
+      <div className='x__title'>
+        Wachtwoord vergeten
+      </div>
+      <p>
+        Vul je e-mailadres in en klik op het knopje.
+      </p>
+      <p>
+        Als je een account bij ons hebt dan krijg je binnen enkele ogenblikken een e-mail met instructies voor het kiezen van een nieuw wachtwoord.
+      </p>
+      <div style={{ display: 'inline-block', }}>
+        <span style={{ marginRight: '25px', }}>
+          e-mailadres
+        </span>
+        <Input type='text' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} width='300px'/>
+        <span style={{ marginLeft: '15px', }} className='x__spinner'>
+          {emailRequestPending && <Spinner size={20}/>}
+        </span>
+      </div>
+      <div style={{ marginTop: '15px', }}>
+        <BigButton disabled={not (canSubmit)} onClick={submit}>
+          OK
+        </BigButton>
+      </div>
+    </DialogContentsS>
+  }
+)
 
 const UserPasswordForm = container (
   ['UserPasswordForm', {
@@ -557,6 +599,7 @@ const UserPasswordForm = container (
       doLogIn ()
     }, [doLogIn])
 
+    // --- @todo make key down
     const onKeyPressInput = useCallback (
       (event) => event | keyPressListen (
         () => {
@@ -676,7 +719,7 @@ const UserPasswordForm = container (
             </BigButton>
           </div>
 
-          {false && mode === 'login' && <>
+          {mode === 'login' && <>
             <div className='x__forgot-password span-cols'>
               <MenuItem
                 onClick={onClickForgotPassword}

@@ -13,6 +13,8 @@ import {
   logIn,
   loginUserCompleted,
   loggedOutUser,
+  sendWelcomeResetEmail,
+  sendWelcomeResetEmailCompleted,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
