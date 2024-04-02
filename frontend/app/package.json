@@ -34,8 +34,7 @@
     "sanitize.css": "4.1.0",
     "stick-js": "^0.5.3",
     "styled-components": "^4.4.0",
-    "whatwg-fetch": "2.0.4",
-    "zxcvbn": "^4.4.2"
+    "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.2",
