@@ -48,6 +48,7 @@ const InputS = styled.input`
 
 const InputWrapperS = styled.div`
   position: relative;
+  display: inline-block;
   >.x__icon {
     position: absolute;
     top: 50%;
