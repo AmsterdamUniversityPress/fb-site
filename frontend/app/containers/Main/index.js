@@ -30,6 +30,7 @@ import {
 
 import {
   selectEmailRequestPending,
+  selectEmailRequestSuccess,
   selectInstitutionLoggedIn,
   selectUserLoggedIn,
   selectGetFirstName, selectGetLastName, selectGetEmail,
@@ -498,7 +499,11 @@ const PasswordStrength = ({ show=true, className, score, minimumScore, maximumSc
 }
 
 const ContentsForgotPasswordDialog = container (
-  ['ContentsForgotPasswordDialog', { sendWelcomeResetEmailDispatch: sendWelcomeResetEmail, }, { emailRequestPending: selectEmailRequestPending, }],
+  [
+    'ContentsForgotPasswordDialog',
+    { sendWelcomeResetEmailDispatch: sendWelcomeResetEmail, },
+    { emailRequestPending: selectEmailRequestPending, },
+  ],
   ({ sendWelcomeResetEmailDispatch, emailRequestPending, }) => {
     const [email, setEmail] = useState ('')
     const canSubmit = useMemo (
@@ -556,8 +561,9 @@ const UserPasswordForm = container (
   }, {
     getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
+    emailRequestSuccess: selectEmailRequestSuccess,
   }],
-  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, }) => {
+  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, emailRequestSuccess, }) => {
     const navigate = useNavigate ()
 
     const [email, setEmail] = useState (emailProp)
@@ -614,6 +620,8 @@ const UserPasswordForm = container (
     const closeForgotPasswordDialog = useCallbackConst (
       () => setForgotPasswordDialogIsOpen (false),
     )
+
+    useEffect (() => setForgotPasswordDialogIsOpen (false), [emailRequestSuccess])
 
     useEffect (() => {
       if (mode === 'login') {

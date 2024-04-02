@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  assoc, ifOk, tap, merge,
+  assoc, ifOk, tap, merge, id,
 } from 'stick-js/es'
 
 import { cata, Just, Nothing, } from 'alleycat-js/es/bilby'
@@ -19,8 +19,11 @@ import {
 
 import { reducer, } from '../../../../common'
 
+const unique = () => Symbol ()
+
 export const initialState = {
   emailRequestPending: false,
+  emailRequestSuccess: unique (),
   userUser: RequestInit,
   userInstitution: RequestInit,
   // --- @todo make consistent (Maybe vs. RequestResults)
@@ -57,8 +60,12 @@ const reducerTable = makeReducer (
   sendWelcomeResetEmail, (_email) => assoc (
     'emailRequestPending', true,
   ),
-  sendWelcomeResetEmailCompleted, ({ ... _ }) => assoc (
-    'emailRequestPending', false,
+  sendWelcomeResetEmailCompleted, ({ rcomplete, ... _ }) => composeRight (
+    assoc ('emailRequestPending', false),
+    rcomplete | cata ({
+      RequestCompleteError: (_) => id,
+      RequestCompleteSuccess: (_) => assoc ('emailRequestSuccess', unique ()),
+    })
   ),
 )
 
