@@ -4,7 +4,7 @@ import {
   gt, againstAny, eq, die, map, reduce, split,
   not, concatTo, recurry, ifOk, ifNil, noop,
   repeatF, dot, dot1, dot2, join, appendM,
-  anyAgainst, ifPredicate,
+  anyAgainst, ifPredicate, whenOk,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -53,8 +53,10 @@ import {
   getAndValidateQuery,
   getAndValidateBodyParams,
   getAndValidateRequestParams,
+  basicAlphaNumericStringValidator,
   basicBase64StringValidator,
   basicEmailValidator,
+  basicPasswordValidator,
   basicStringValidator,
   basicUUIDValidator,
   basicValidator,
@@ -84,7 +86,7 @@ const appEnv = lets (
 )
 
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
-const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
+const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, minimumPasswordScore, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
@@ -95,6 +97,7 @@ const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAg
     'email',
     'fbDomains',
     getRedisURLConfigKey,
+    'minimumPasswordScore',
     'serverPort',
     'users',
   ),
@@ -213,7 +216,7 @@ const getUserinfoLoginSync = (email) => {
 const getUserinfoLogin = async (email) => getUserinfoLoginSync (email)
 
 const getUserPassword = (email) => getUserinfoLoginSync (email)
-  | (({ password, ... _ }) => password)
+  | whenOk (({ password, ... _ }) => password)
 
 const getUserinfoRequest = (req) => {
   const info = authIP.getInfo (req)
@@ -384,20 +387,27 @@ const init = ({ port, }) => express ()
       ),
     ),
   ))
-  | securePatch (privsUser) ('/user', (req, res) => {
-    const { email, oldPassword, newPassword } = req.body.data
-    const knownHashed = getUserPassword (email)
-    if (!checkPassword (oldPassword, knownHashed)) {
-      return res | sendStatus (499, {
-        umsg: 'Onjuist wachtwoord (huidig)',
+  | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
+      basicEmailValidator ('email'),
+      basicStringValidator ('oldPassword'),
+      basicPasswordValidator (minimumPasswordScore) ('newPassword'),
+    ], ({ res }, email, oldPassword, newPassword) => {
+      const knownHashed = getUserPassword (email)
+      if (nil (knownHashed)) return res | sendStatus (499, {
+        umsg: 'Ongeldige gebruiker',
       })
-    }
-    decorateAndRethrow (
-      () => '/user: update password failed: ',
-      () => updateUserPasswordSync (email, newPassword),
-    )
-    return res | sendStatus (200, null)
-  })
+      if (!checkPassword (oldPassword, knownHashed)) {
+        return res | sendStatus (499, {
+          umsg: 'Onjuist wachtwoord (huidig)',
+        })
+      }
+      decorateAndRethrow (
+        () => '/user: update password failed: ',
+        () => updateUserPasswordSync (email, newPassword),
+      )
+      return res | sendStatus (200, null)
+    },
+  ))
   | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
       basicEmailValidator ('email'),
     ], ({ res, }, email) => {
@@ -407,8 +417,8 @@ const init = ({ port, }) => express ()
   )
   | securePut (privsAdminUser) ('/user-admin/', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
-      basicStringValidator ('firstName'),
-      basicStringValidator ('lastName'),
+      basicAlphaNumericStringValidator ('firstName'),
+      basicAlphaNumericStringValidator ('lastName'),
       basicStringListValidator ('privileges')
     ], ({ res, }, email, firstName, lastName, privileges) => {
       doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
@@ -434,7 +444,7 @@ const init = ({ port, }) => express ()
   ))
   | post ('/user/reset-password', getAndValidateBodyParams ([
     basicEmailValidator ('email'),
-    basicStringValidator ('password'),
+    basicPasswordValidator ('password'),
     basicBase64StringValidator ('token'),
   ],
     ({ res }, email, password, token) => {

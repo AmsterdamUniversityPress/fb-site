@@ -42,6 +42,7 @@ export const config = {
     tst: (password) => 'redis://xxx',
     xxx: (password) => 'redis://xxx',
   },
+  minimumPasswordScore: 4,
   serverPort: 4444,
   authorizeByIP: [
     /*
