@@ -444,7 +444,7 @@ const init = ({ port, }) => express ()
   ))
   | post ('/user/reset-password', getAndValidateBodyParams ([
     basicEmailValidator ('email'),
-    basicPasswordValidator ('password'),
+    basicPasswordValidator (minimumPasswordScore) ('password'),
     basicBase64StringValidator ('token'),
   ],
     ({ res }, email, password, token) => {
