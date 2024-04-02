@@ -4,7 +4,7 @@ import {
 } from 'stick-js/es'
 
 import { cata, Just, Nothing, } from 'alleycat-js/es/bilby'
-import { RequestInit, RequestLoading, RequestResults, } from 'alleycat-js/es/fetch'
+import { RequestInit, RequestError, RequestLoading, RequestResults, } from 'alleycat-js/es/fetch'
 import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
@@ -38,7 +38,7 @@ const reducerTable = makeReducer (
     const [user, privileges] = rcomplete | cata ({
       RequestCompleteError: (e) => [RequestError (e), Nothing],
       RequestCompleteSuccess: (user) => user | ifOk (
-        () => [RequestResults (user), Just (user.userPrivileges)],
+        () => [RequestResults (user), Just (user.privileges)],
         () => [RequestInit, Nothing],
       ),
     })
