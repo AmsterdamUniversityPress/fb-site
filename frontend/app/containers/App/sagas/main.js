@@ -42,7 +42,7 @@ import {} from '../store/domain/selectors'
 
 import { selectNumPerPage, selectPage, } from '../../shared/Pagination/selectors'
 
-import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
+import { doApiCall, lookupOnOrDie, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -304,12 +304,19 @@ function *s_resetPassword ({ email, password, token, navigate, }) {
   })
 }
 
-function *s_sendWelcomeEmail (email) {
+function *s_sendWelcomeEmail ({ email, type, }) {
+  const url = type | lookupOnOrDie (
+    's_sendWelcomeEmail (): Invalid type ' + type,
+    {
+      welcome: '/api/user/send-welcome-email',
+      reset: '/api/user/send-reset-email',
+    },
+  )
   function *done (rcomplete) {
-    yield put (a_sendWelcomeEmailCompleted (rcomplete, email))
+    yield put (a_sendWelcomeEmailCompleted (rcomplete, email, type))
   }
   yield call (doApiCall, {
-    url: '/api/user/send-welcome-email',
+    url,
     optsMerge: {
       method: 'POST',
       body: JSON.stringify ({

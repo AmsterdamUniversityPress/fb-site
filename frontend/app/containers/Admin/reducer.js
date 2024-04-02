@@ -40,7 +40,7 @@ const setAdd = recurry (2) (
 )
 
 const reducerTable = makeReducer (
-  sendWelcomeEmail, (email) => update (
+  sendWelcomeEmail, (email, _type) => update (
     'emailRequestPending', setAdd (email),
   ),
   sendWelcomeEmailCompleted, ({ email, ... _ }) => update (

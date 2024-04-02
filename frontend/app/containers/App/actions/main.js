@@ -80,7 +80,8 @@ export const usersFetchCompleted = action (
 )
 
 export const sendWelcomeEmail = action (
-  (email) => email,
+  // --- type = 'welcome' | 'reset'
+  (email, type) => ({ email, type, }),
   'sendWelcomeEmail',
 )
 
@@ -88,6 +89,9 @@ export const sendWelcomeEmailCompleted = action (
   (rcomplete, email) => ({ rcomplete, email, }),
   'sendWelcomeEmailCompleted',
 )
+
+export const sendWelcomeWelcomeEmail = (email) => sendWelcomeEmail (email, 'welcome')
+export const sendWelcomeResetEmail = (email) => sendWelcomeEmail (email, 'reset')
 
 export const userAdd = action (
   ( email, firstName, lastName, privileges ) => ({ email, firstName, lastName, privileges, }),
