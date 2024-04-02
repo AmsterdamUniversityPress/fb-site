@@ -102,16 +102,16 @@ function *s_fondsenRefresh () {
 
 function *s_loginUserCompleted (rcomplete) {
   const onError = (msg) => error ('Error: loginCompleted:', msg)
-  const user = rcomplete | requestCompleteFold (
+  const success = rcomplete | requestCompleteFold (
     // --- ok
-    (user) => user,
+    (_user) => true,
     // --- 4xx
-    (umsg) => (onError (umsg), null),
+    (umsg) => (onError (umsg), false),
     // --- 5xx
-    () => (onError ('(no message)'), null),
+    () => (onError ('(no message)'), false),
   )
-  yield put (a_loginUserCompleted (user))
-  if (user) yield call (s_fondsenRefresh)
+  // yield put (a_userLoggedIn (user))
+  if (success) yield call (s_fondsenRefresh)
 }
 
 function *s_helloCompleted (rcomplete, first=false) {
@@ -127,10 +127,9 @@ function *s_helloCompleted (rcomplete, first=false) {
   if (ok (user)) {
     if (first) yield call (s_fondsenRefresh)
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
-    else if (user.type === 'user') yield put (a_loginUserCompleted (user))
+    else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
   }
-  else yield put (a_loginUserCompleted (null))
 }
 
 function *s_hello (first=false) {
@@ -169,7 +168,7 @@ function *s_logInUser ({ email, password, }) {
       }),
     },
     resultsModify: map (prop ('data')),
-    continuation: EffSaga (s_loginUserCompleted),
+    continuation: EffAction (a_loginUserCompleted),
     imsgDecorate: 'Error logging in',
     // --- if we get 4xx and we have umsg, will show oops bubble with umsg;
     // --- if we get 5xx, show oops with 'Oops, something went wrong!'
@@ -337,6 +336,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logInUser),
+    saga (takeLatest, a_loginUserCompleted, s_loginUserCompleted),
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),

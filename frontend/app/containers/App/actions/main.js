@@ -32,7 +32,7 @@ export const loggedInInstitution = action (
 )
 
 export const loginUserCompleted = action (
-  (user) => user,
+  (rcomplete) => rcomplete,
   'loginUserCompleted',
 )
 
@@ -41,6 +41,7 @@ export const loggedOutUser = action (
   'loggedOutUser',
 )
 
+// --- @todo change name to logInUser?
 export const logIn = action (
   (email, password) => ({ email, password, }),
   'logIn',
