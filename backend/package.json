@@ -16,6 +16,7 @@
   "dependencies": {
     "@babel/plugin-syntax-import-attributes": "^7.23.3",
     "@babel/runtime": "^7.23.9",
+    "@elastic/elasticsearch": "^8.13.0",
     "alleycat-express-jwt": "^0.1.2",
     "alleycat-js": "^0.4.18",
     "bcrypt": "^5.1.1",
