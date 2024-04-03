@@ -118,6 +118,12 @@ const redisPassword = lets (
   (validate) => env ('REDIS_PASSWORD', validate),
 )
 
+// @todo validation
+const elasticURL = lets (
+  () => ['must be a url (?)', () => true],
+  (validate) => env ('ELASTIC_URL', validate),
+)
+
 const redisURL = getRedisURL (redisPassword)
 
 const data = appEnv | lookupOnOrDie (
