@@ -22,8 +22,8 @@ import { allP, recover, rejectP, startP, then, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
-import { error, green, } from 'alleycat-js/es/io'
-import { decorateRejection, info, length, logWith, } from 'alleycat-js/es/general'
+import { green, error, info, } from 'alleycat-js/es/io'
+import { decorateRejection, length, logWith, } from 'alleycat-js/es/general'
 import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
@@ -558,8 +558,9 @@ const opt = yargs.argv
 if (opt._.length !== 0)
   yargs.showHelp (error)
 
-const initRedis = async () => redisInit (redisURL, 2000)
-| recover (error << decorateRejection ('Unable to connect to redis: '))
+const initRedis = async () => redisInit (redisURL, 1000)
+| recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
+
 
 dbInit (opt.forceInitDb)
 // --- @future separate script to manage users

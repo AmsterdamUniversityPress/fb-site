@@ -8,7 +8,7 @@ import { createClient, } from 'redis'
 
 import { recover, rejectP, resolveP, } from 'alleycat-js/es/async'
 import { decorateRejection, } from 'alleycat-js/es/general'
-import { warn, } from 'alleycat-js/es/io'
+import { info, warn, } from 'alleycat-js/es/io'
 import { letsP, } from 'alleycat-js/es/lets-promise'
 
 let redisClient
@@ -21,9 +21,9 @@ const conn = (url, reconnectTimeoutMs) => createClient ({
   socket: {
     reconnectStrategy: (_retries, cause) => {
       warn ([reconnectTimeoutMs, cause] | sprintfN (
-        `Redis client disconnected or can't establish connection, retrying in %s seconds, reason: %s`,
+        `Redis client disconnected or can't establish connection, retrying in %s milliseconds, reason: %s`,
       ))
-      return reconnectTimeoutMs * 1000
+      return reconnectTimeoutMs
     }
   }
 })
@@ -35,6 +35,10 @@ const mkClientP = async (url, reconnectTimeoutMs) => conn (url, reconnectTimeout
 // --- e.g. url: 'redis://:the-password/127.0.0.1:6379/0'
 export const init = async (url, reconnectTimeoutMs) => {
   redisClient = await mkClientP (url, reconnectTimeoutMs)
+  // --- if the connection gets broken at some later point, reconnect
+  // strategy will try and reconnect, and in the meantime, calls will
+  // hang.
+  info ('Connection to redis established')
 }
 
 export const batch = (... fs) => letsP (... fs) | recover (
