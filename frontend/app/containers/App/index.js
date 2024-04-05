@@ -156,7 +156,7 @@ export default container (
       isMobile | whenTrueV ('x--mobile'),
     )
 
-    if (process.env.APP_ENV | notContainedInV (['tst', 'acc', 'prd']))
+    if (process.env.APP_ENV | notContainedInV (['dev', 'tst', 'acc', 'prd']))
       return 'Missing/invalid APP_ENV'
 
     return error | ifTrue (
