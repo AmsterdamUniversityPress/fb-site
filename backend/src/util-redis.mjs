@@ -38,7 +38,7 @@ export const init = async (url, reconnectTimeoutMs) => {
   // --- if the connection gets broken at some later point, reconnect
   // strategy will try and reconnect, and in the meantime, calls will
   // hang.
-  info ('Connection to redis established')
+  info ('connection to redis established')
 }
 
 export const batch = (... fs) => letsP (... fs) | recover (
