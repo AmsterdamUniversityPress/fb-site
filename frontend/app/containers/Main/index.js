@@ -593,8 +593,11 @@ const UserPasswordForm = container (
     )
 
     const doLogIn = useCallback (
-      () => invoke (mode | lookupOn ({
+      () => invoke (mode | lookupOnOrDie ('doLogIn: invalid mode ' + mode, {
         login: () => logIn (email, password),
+        // --- these both do the same thing from here on out so we just call the action
+        // resetPassword
+        'init-password': () => resetPasswordDispatch (email, password, resetPasswordToken, navigate),
         'reset-password': () => resetPasswordDispatch (email, password, resetPasswordToken, navigate),
       })),
       [email, password, logIn],
