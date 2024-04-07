@@ -77,72 +77,20 @@ function *callForever (delayMs, f, ... args) {
   yield call (callForever, delayMs, f, ... args)
 }
 
-function *s_appMounted () {
-  yield call (s_hello, true)
-  yield delay (helloInterval)
-  yield callForever (helloInterval, s_helloWrapper)
-}
-
-function *s_fondsenFetch (pageNum) {
-  const pageLength = yield select (selectNumPerPage)
-  const beginIdx = pageNum * pageLength
-  const url = mkURL ()
-  url.pathname = '/api/fondsen'
-  url.searchParams.append ('beginIdx', beginIdx)
-  url.searchParams.append ('number', pageLength)
-  yield call (doApiCall, {
-    url,
-    continuation: EffAction (a_fondsenFetchCompleted),
-    oops: toastError,
-  })
-}
-
-function *s_fondsenRefresh () {
+function *fondsenRefresh () {
   const pageNum = yield select (selectPage)
   yield put (a_fondsenFetch (pageNum))
 }
 
-function *s_loginUserCompleted (rcomplete) {
-  const onError = (msg) => error ('Error: loginCompleted:', msg)
-  const success = rcomplete | requestCompleteFold (
-    // --- ok
-    (_user) => true,
-    // --- 4xx
-    (umsg) => (onError (umsg), false),
-    // --- 5xx
-    () => (onError ('(no message)'), false),
-  )
-  // yield put (a_userLoggedIn (user))
-  if (success) yield call (s_fondsenRefresh)
-}
-
-function *s_helloCompleted (rcomplete, first=false) {
-  const onError = (msg) => error ('Error: helloCompleted:', msg)
-  const user = rcomplete | requestCompleteFold (
-    (user) => user,
-    // --- 401, i.e. not authorized
-    (_umsg) => null,
-    // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
-    () => (onError ('(no message)'), null),
-  )
-  // --- @todo some of this is repeated from s_loginUserCompleted
-  if (ok (user)) {
-    if (first) yield call (s_fondsenRefresh)
-    if (user.type === 'institution') yield put (a_loggedInInstitution (user))
-    else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
-    else error ('Unexpected user type ' + user.type)
-  }
-}
-
-function *s_hello (first=false) {
-  function *s_complete (res) {
-    yield call (s_helloCompleted, res, first)
+function *hello (first=false) {
+  function *done (res) {
+    yield call (helloCompleted, res, first)
   }
   yield call (doApiCall, {
     // url: '/api/hello',
     url: getIPDisableAuthorizeURL ('/api/hello'),
     resultsModify: map (prop ('data')),
-    continuation: EffSaga (s_complete),
+    continuation: EffSaga (done),
     request: requestJSONStdOpts ({
       // --- @todo make consistent
       noParse: againstAny ([
@@ -153,44 +101,30 @@ function *s_hello (first=false) {
   })
 }
 
-function *s_helloWrapper () {
+function *helloCompleted (rcomplete, first=false) {
+  const onError = (msg) => error ('Error: helloCompleted:', msg)
+  const user = rcomplete | requestCompleteFold (
+    (user) => user,
+    // --- 401, i.e. not authorized
+    (_umsg) => null,
+    // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
+    () => (onError ('(no message)'), null),
+  )
+  // --- @todo some of this is repeated from s_loginUserCompleted
+  if (ok (user)) {
+    if (first) yield call (fondsenRefresh)
+    if (user.type === 'institution') yield put (a_loggedInInstitution (user))
+    else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
+    else error ('Unexpected user type ' + user.type)
+  }
+}
+
+function *helloWrapper () {
   const loggedIn = yield select (selectLoggedInDefaultFalse)
-  if (loggedIn) yield call (s_hello, false)
+  if (loggedIn) yield call (hello, false)
 }
 
-function *s_logInUser ({ email, password, }) {
-  yield call (doApiCall, {
-    url: '/api/login',
-    optsMerge: {
-      method: 'post',
-      body: JSON.stringify ({
-        email,
-        // --- @todo hash password before sending?
-        password,
-      }),
-    },
-    resultsModify: map (prop ('data')),
-    continuation: EffAction (a_loginUserCompleted),
-    imsgDecorate: 'Error logging in',
-    // --- if we get 4xx and we have umsg, will show oops bubble with umsg;
-    // --- if we get 5xx, show oops with 'Oops, something went wrong!'
-    oops: toastError,
-  })
-}
-
-function *s_logOutUser () {
-  yield call (doApiCall, {
-    url: '/api/logout',
-    optsMerge: {
-      method: 'POST',
-    },
-    continuation: EffSaga (s_logoutUserCompleted),
-    imsgDecorate: 'Error logging out',
-    oops: toastError,
-  })
-}
-
-function *s_logoutUserCompleted (rcomplete) {
+function *logoutUserCompleted (rcomplete) {
   const onError = (msg) => error ('Error: logoutCompleted:', msg)
   const ok = rcomplete | requestCompleteFold (
     () => true,
@@ -198,112 +132,7 @@ function *s_logoutUserCompleted (rcomplete) {
     () => (onError ('(no message)'), false),
   )
   if (ok) yield put (a_loggedOutUser ())
-  yield call (s_hello, false)
-}
-
-function *s_passwordUpdateCompleted (rcomplete) {
-  rcomplete | cata ({
-    // error is dealt with in s_passwordUpdate
-    RequestCompleteError: (_e) => {},
-    RequestCompleteSuccess: (_) => toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
-  })
-}
-
-function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
-  yield call (doApiCall, {
-    url: '/api/user',
-    optsMerge: {
-      method: 'PATCH',
-      body: JSON.stringify ({
-        // --- @todo hash password before sending?
-        data: { email, oldPassword, newPassword, },
-      }),
-    },
-    continuation: EffAction (a_passwordUpdateCompleted),
-    imsgDecorate: 'Error password update',
-    oops: toastError,
-  })
-}
-
-function *s_userAdd ({ email, firstName, lastName, privileges }) {
-  yield call (doApiCall, {
-    url: '/api/user-admin',
-    optsMerge: {
-      method: 'PUT',
-      body: JSON.stringify ({
-        data: { email, firstName, lastName, privileges }
-      })
-    },
-    continuation: EffAction (a_userAddCompleted),
-    oops: toastError,
-  })
-}
-
-function *s_userRemoveCompleted ({ rcomplete, email: _email, }) {
-  yield put (a_usersFetch ())
-  rcomplete | whenRequestCompleteSuccess (
-    () => toastInfo ('Het verwijderen van de gebruiker is geslaagd.'),
-  )
-}
-
-function *s_userRemove (email) {
-  function *done (rcomplete) {
-    yield put (a_userRemoveCompleted (rcomplete, email))
-  }
-  yield call (doApiCall, {
-    url: '/api/user-admin/' + email,
-    optsMerge: {
-      method: 'DELETE',
-    },
-    continuation: EffSaga (done),
-    oops: toastError,
-  })
-}
-
-function *s_usersFetch () {
-  yield call (doApiCall, {
-    url: '/api/users',
-    continuation: EffAction (a_usersFetchCompleted),
-    resultsModify: map (prop ('users')),
-    imsgDecorate: 'Error fetching users',
-    oops: toastError,
-  })
-}
-
-function *s_setPage () {
-  yield call (s_fondsenRefresh)
-}
-
-function *s_setNumPerPageIdx () {
-  yield put (a_setPage (0))
-  yield call (s_fondsenRefresh)
-}
-
-function *s_resetPasswordCompleted (rcomplete, email, navigate) {
-  rcomplete | whenRequestCompleteSuccess (
-    () => {
-      toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
-      navigate ('/login/' + email)
-    }
-  )
-}
-
-function *s_resetPassword ({ email, password, token, navigate, }) {
-  function *done (rcomplete) {
-    yield call (s_resetPasswordCompleted, rcomplete, email, navigate)
-  }
-  yield call (doApiCall, {
-    url: '/api/user/reset-password',
-    optsMerge: {
-      method: 'POST',
-      body: JSON.stringify ({
-        // --- @todo hash password before sending?
-        data: { email, password, token, },
-      }),
-    },
-    continuation: EffSaga (done),
-    oops: toastError,
-  })
+  yield call (hello, false)
 }
 
 function *sendWelcomeEmail (email, type) {
@@ -330,22 +159,127 @@ function *sendWelcomeEmail (email, type) {
   })
 }
 
-function *s_sendWelcomeWelcomeEmail (email) {
-  yield call (sendWelcomeEmail, email, 'welcome')
+function *s_appMounted () {
+  yield call (hello, true)
+  yield delay (helloInterval)
+  yield callForever (helloInterval, helloWrapper)
+}
+
+function *s_fondsenFetch (pageNum) {
+  const pageLength = yield select (selectNumPerPage)
+  const beginIdx = pageNum * pageLength
+  const url = mkURL ()
+  url.pathname = '/api/fondsen'
+  url.searchParams.append ('beginIdx', beginIdx)
+  url.searchParams.append ('number', pageLength)
+  yield call (doApiCall, {
+    url,
+    continuation: EffAction (a_fondsenFetchCompleted),
+    oops: toastError,
+  })
+}
+
+function *s_logInUser ({ email, password, }) {
+  yield call (doApiCall, {
+    url: '/api/login',
+    optsMerge: {
+      method: 'post',
+      body: JSON.stringify ({
+        email,
+        // --- @todo hash password before sending?
+        password,
+      }),
+    },
+    resultsModify: map (prop ('data')),
+    continuation: EffAction (a_loginUserCompleted),
+    imsgDecorate: 'Error logging in',
+    // --- if we get 4xx and we have umsg, will show oops bubble with umsg;
+    // --- if we get 5xx, show oops with 'Oops, something went wrong!'
+    oops: toastError,
+  })
+}
+
+function *s_loginUserCompleted (rcomplete) {
+  const onError = (msg) => error ('Error: loginCompleted:', msg)
+  const success = rcomplete | requestCompleteFold (
+    // --- ok
+    (_user) => true,
+    // --- 4xx
+    (umsg) => (onError (umsg), false),
+    // --- 5xx
+    () => (onError ('(no message)'), false),
+  )
+  // yield put (a_userLoggedIn (user))
+  if (success) yield call (fondsenRefresh)
+}
+
+function *s_logOutUser () {
+  yield call (doApiCall, {
+    url: '/api/logout',
+    optsMerge: {
+      method: 'POST',
+    },
+    continuation: EffSaga (logoutUserCompleted),
+    imsgDecorate: 'Error logging out',
+    oops: toastError,
+  })
+}
+
+function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
+  yield call (doApiCall, {
+    url: '/api/user',
+    optsMerge: {
+      method: 'PATCH',
+      body: JSON.stringify ({
+        // --- @todo hash password before sending?
+        data: { email, oldPassword, newPassword, },
+      }),
+    },
+    continuation: EffAction (a_passwordUpdateCompleted),
+    imsgDecorate: 'Error password update',
+    oops: toastError,
+  })
+}
+
+function *s_passwordUpdateCompleted (rcomplete) {
+  rcomplete | cata ({
+    // error is dealt with in s_passwordUpdate
+    RequestCompleteError: (_e) => {},
+    RequestCompleteSuccess: (_) => toastInfo (
+      'Je nieuwe wachtwoord is succesvol opgeslagen.',
+    )
+  })
+}
+
+function *s_resetPassword ({ email, password, token, navigate, }) {
+  function *done (rcomplete) {
+    yield call (s_resetPasswordCompleted, rcomplete, email, navigate)
+  }
+  yield call (doApiCall, {
+    url: '/api/user/reset-password',
+    optsMerge: {
+      method: 'POST',
+      body: JSON.stringify ({
+        // --- @todo hash password before sending?
+        data: { email, password, token, },
+      }),
+    },
+    continuation: EffSaga (done),
+    oops: toastError,
+  })
+}
+
+function *s_resetPasswordCompleted (rcomplete, email, navigate) {
+  rcomplete | whenRequestCompleteSuccess (
+    () => {
+      toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
+      navigate ('/login/' + email)
+    },
+  )
 }
 
 function *s_sendWelcomeResetEmail (email) {
   yield call (sendWelcomeEmail, email, 'reset')
-}
-
-function *s_sendWelcomeWelcomeEmailCompleted ({ rcomplete, email, }) {
-  const ok = rcomplete | requestCompleteFold (
-    // --- ok
-    () => true,
-    (umsg) => (error (umsg), false),
-    () => false,
-  )
-  if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email + '.')
 }
 
 function *s_sendWelcomeResetEmailCompleted ({ rcomplete, email, type, }) {
@@ -358,6 +292,74 @@ function *s_sendWelcomeResetEmailCompleted ({ rcomplete, email, type, }) {
   if (ok) toastInfo ('We hebben een e-mail met instructies naar ' + email + ' gestuurd.')
 }
 
+function *s_sendWelcomeWelcomeEmail (email) {
+  yield call (sendWelcomeEmail, email, 'welcome')
+}
+
+function *s_sendWelcomeWelcomeEmailCompleted ({ rcomplete, email, }) {
+  const ok = rcomplete | requestCompleteFold (
+    // --- ok
+    () => true,
+    (umsg) => (error (umsg), false),
+    () => false,
+  )
+  if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email + '.')
+}
+
+function *s_setNumPerPageIdx () {
+  yield put (a_setPage (0))
+  yield call (fondsenRefresh)
+}
+
+function *s_setPage () {
+  yield call (fondsenRefresh)
+}
+
+function *s_userAdd ({ email, firstName, lastName, privileges }) {
+  yield call (doApiCall, {
+    url: '/api/user-admin',
+    optsMerge: {
+      method: 'PUT',
+      body: JSON.stringify ({
+        data: { email, firstName, lastName, privileges }
+      })
+    },
+    continuation: EffAction (a_userAddCompleted),
+    oops: toastError,
+  })
+}
+
+function *s_userRemove (email) {
+  function *done (rcomplete) {
+    yield put (a_userRemoveCompleted (rcomplete, email))
+  }
+  yield call (doApiCall, {
+    url: '/api/user-admin/' + email,
+    optsMerge: {
+      method: 'DELETE',
+    },
+    continuation: EffSaga (done),
+    oops: toastError,
+  })
+}
+
+function *s_userRemoveCompleted ({ rcomplete, email: _email, }) {
+  yield put (a_usersFetch ())
+  rcomplete | whenRequestCompleteSuccess (
+    () => toastInfo ('Het verwijderen van de gebruiker is geslaagd.'),
+  )
+}
+
+function *s_usersFetch () {
+  yield call (doApiCall, {
+    url: '/api/users',
+    continuation: EffAction (a_usersFetchCompleted),
+    resultsModify: map (prop ('users')),
+    imsgDecorate: 'Error fetching users',
+    oops: toastError,
+  })
+}
+
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
@@ -368,10 +370,10 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_resetPassword, s_resetPassword),
-    saga (takeEvery, a_sendWelcomeWelcomeEmail, s_sendWelcomeWelcomeEmail),
     saga (takeLatest, a_sendWelcomeResetEmail, s_sendWelcomeResetEmail),
-    saga (takeLatest, a_sendWelcomeWelcomeEmailCompleted, s_sendWelcomeWelcomeEmailCompleted),
     saga (takeLatest, a_sendWelcomeResetEmailCompleted, s_sendWelcomeResetEmailCompleted),
+    saga (takeEvery,  a_sendWelcomeWelcomeEmail, s_sendWelcomeWelcomeEmail),
+    saga (takeLatest, a_sendWelcomeWelcomeEmailCompleted, s_sendWelcomeWelcomeEmailCompleted),
     saga (takeLatest, a_usersFetch, s_usersFetch),
     saga (takeLatest, a_userRemove, s_userRemove),
     saga (takeLatest, a_userRemoveCompleted, s_userRemoveCompleted),
