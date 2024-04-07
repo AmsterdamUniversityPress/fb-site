@@ -103,6 +103,9 @@ const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAg
   ),
 )
 
+// --- `envOrConfig` here, because this is where we create cookieSecret and
+// jwtSecret, and config is useful for development.
+
 const cookieSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
   (validate) => envOrConfig (configTop, 'cookieSecret', 'COOKIE_SECRET', validate),
@@ -112,6 +115,9 @@ const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
   (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
 )
+
+// --- `env` and not `envOrConfig`, because this is a system password which
+// is set elsewhere, and config would unnecessarily expose it.
 
 const redisPassword = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
@@ -150,33 +156,10 @@ const ifPasswordMatchesPlaintext = passwordMatchesPlaintext >> ifPredicate
 
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
-const foldDbResults = (onError, dbFuncName) => fold (
-  onError,
-  id,
-)
-
-const _doDbCall = recurry (3) (
-  (onError) => (dbFunc) => (vals) => dbFunc (...vals) | foldDbResults (onError, dbFunc.name),
-)
-
-const decorateDbError = (err, dbFuncName) => err | concatTo ('Error with ' + dbFuncName + ': ')
-
-// const warnNull = (err, dbFuncName) => {
-  // warn (decorateDbError (err, dbFuncName))
-  // return null
-// }
-
-// const doDbCallWarnNull = (dbFunc, vals) => doDbCall (
-  // (err) => warnNull (err, dbFunc.name),
-  // dbFunc,
-  // vals,
-// )
-
 // --- @throws
-const doDbCall = (dbFunc, vals) => _doDbCall (
-  (err) => die (decorateDbError (err, dbFunc.name)),
-  dbFunc,
-  vals,
+const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
+  die << decorateRejection ('DB error on ' + dbFunc.name + ': '),
+  id,
 )
 
 // --- these all throw
@@ -221,6 +204,8 @@ const getUserinfoLoginSync = (email) => {
 
 const getUserinfoLogin = async (email) => getUserinfoLoginSync (email)
 
+// --- @todo can we remove the call to getUserinfoLoginSync here? Seems the
+// only part we need is `doDbCall (dbUserGet ...)`
 const getUserPassword = (email) => getUserinfoLoginSync (email)
   | whenOk (({ password, ... _ }) => password)
 
