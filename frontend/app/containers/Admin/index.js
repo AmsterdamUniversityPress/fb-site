@@ -5,7 +5,7 @@ import {
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
-import { keyPressListen, useNavigate, } from 'react-router-dom'
+import { useNavigate, } from 'react-router-dom'
 
 import styled from 'styled-components'
 
@@ -239,7 +239,7 @@ const ContentsUserAdd = container (
     )
     useEffect (() => {
       if (userAddSuccess) onSuccess ()
-    }, [userAddSuccess])
+    }, [onSuccess, userAddSuccess])
 
     return <DialogContentsS>
       <div className='x__title'>
@@ -329,7 +329,7 @@ export default container (
     const onClickRemoveConfirm = useCallback (() => {
       userRemoveDispatch (emailToRemove)
       closeRemoveDialog ()
-    }, [userRemoveDispatch, emailToRemove])
+    }, [userRemoveDispatch, emailToRemove, closeRemoveDialog])
     const onClickRemoveCancel = useCallbackConst (() => closeRemoveDialog ())
     const onClickAddUser = useCallbackConst (() => {
       userAddStartDispatch ()
@@ -338,11 +338,11 @@ export default container (
     const onClickSendMail = useCallback ((email) => {
       openSendMailDialog ()
       setEmailToSend (email)
-    })
+    }, [openSendMailDialog, setEmailToSend])
     const onClickSendMailConfirm = useCallback (() => {
       closeSendMailDialog ()
       sendWelcomeWelcomeEmailDispatch (emailToSend)
-    }, [emailToSend, sendWelcomeWelcomeEmailDispatch])
+    }, [closeSendMailDialog, sendWelcomeWelcomeEmailDispatch, emailToSend])
     const onClickSendMailCancel = useCallbackConst (() => closeSendMailDialog ())
     const onUserAddSuccess = useCallbackConst (() => {
       usersFetchDispatch ()

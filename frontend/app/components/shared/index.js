@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  prop, sprintf1, ifNil,
+  prop, sprintf1, ifNil, noop,
 } from 'stick-js/es'
 
 import React from 'react'

@@ -1,9 +1,9 @@
 import {
   pipe, compose, composeRight,
-  not, allAgainst, noop, ifTrue, F, T,
+  tap, gt, gte,
+  not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
-  lets, id, die, tap, whenTrue, invoke, prop, gte,
-  lt, lte, gt,
+  lets, id, whenTrue, invoke, prop,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -14,7 +14,7 @@ import zxcvbn from 'zxcvbn'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, keyPressListen, } from 'alleycat-js/es/dom'
-import { logWith, max, } from 'alleycat-js/es/general'
+import { logWith, } from 'alleycat-js/es/general'
 import { all, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
@@ -468,26 +468,24 @@ const PasswordStrengthS = styled.div`
     overflow-x: hidden;
     > .x__bar-bar {
       position: absolute;
-      // --- @future use maximumScore (this assumes max score is 4)
-      ${prop ('flup') >> condS ([
-        eq (1) | guard (() => 'background: green;'),
+      ${prop ('scoreProgress') >> condS ([
+        gte (1) | guard (() => 'background: green;'),
         gt (0.5) | guard (() => 'background: yellow;'),
         gt (0.25) | guard (() => 'background: orange;'),
         otherwise | guard (() => 'background: red;'),
       ])}
       width: 100%;
       height: 100%;
-      left: calc(-200px + 200px*${prop ('flup')});
+      left: calc(-200px + 200px*${prop ('scoreProgress')});
       transition: left 0.3s;
     }
   }
 `
 
-// --- 4 is max of zxcvbn
-const PasswordStrength = ({ show=true, className, score, minimumScore, maximumScore=4, }) => {
+const PasswordStrength = ({ show=true, className, score, minimumScore, }) => {
   return <PasswordStrengthS
     className={clss (show || 'u--hide', className)}
-    flup={score / minimumScore}
+    scoreProgress={score / minimumScore}
   >
     <div className='x__label'>
       wachtwoordsterkte
@@ -515,7 +513,7 @@ const ContentsForgotPasswordDialog = container (
     )
     const submit = useCallback (
       () => sendWelcomeResetEmailDispatch (email),
-      [email],
+      [sendWelcomeResetEmailDispatch, email],
     )
     const onKeyDownInput = useCallback (
       keyDownListen (
@@ -600,7 +598,7 @@ const UserPasswordForm = container (
         'init-password': () => resetPasswordDispatch (email, password, resetPasswordToken, navigate),
         'reset-password': () => resetPasswordDispatch (email, password, resetPasswordToken, navigate),
       })),
-      [email, password, logIn],
+      [mode, logIn, email, password, resetPasswordDispatch, resetPasswordToken, navigate],
     )
 
     const onClickSubmit = useCallback (() => {
@@ -626,6 +624,8 @@ const UserPasswordForm = container (
 
     useEffect (() => setForgotPasswordDialogIsOpen (false), [emailRequestSuccess])
 
+    // --- we want this effect to run exactly once, hence the empty array -- this makes the linter
+    // complain but seems to be a case of the linter being too picky.
     useEffect (() => {
       if (mode === 'login') {
         setEmail (inputEmailRef.current.value)
@@ -641,7 +641,7 @@ const UserPasswordForm = container (
     )
     const passwordIsStrongEnough = useMemo (
       () => enforcePasswordStrength ? (passwordScore >= minimumPasswordScore) : true,
-      [enforcePasswordStrength, passwordScore, minimumPasswordScore],
+      [passwordScore],
     )
     const passwordIsNotEmpty = useMemo (
       () => password | isNotEmptyString,
@@ -963,7 +963,7 @@ const UserPage = container (
     )
     const passwordIsStrongEnough = useMemo (
       () => enforcePasswordStrength ? (passwordScore >= minimumPasswordScore) : true,
-      [enforcePasswordStrength, passwordScore, minimumPasswordScore],
+      [passwordScore],
     )
     const newPasswordIsNotEmpty = useMemo (
       () => newPassword | isNotEmptyString,
@@ -1198,7 +1198,7 @@ export default container (
       if (not (isLoggedIn) && not (isUserLoggedInPending) && not (pageIsChoosePassword) && page !== 'login') navigate ('/login')
       else if (isUserLoggedIn && page === 'login') navigate ('/')
       else if (not (hasPrivilegeAdminUser) && page === 'user-admin') navigate ('/')
-    }, [hasPrivilegeAdminUser, isLoggedIn, isUserLoggedInPending, isUserLoggedIn, page, navigate])
+    }, [isLoggedIn, isUserLoggedInPending, pageIsChoosePassword, page, navigate, isUserLoggedIn, hasPrivilegeAdminUser])
 
     if (not (isLoggedIn) && page !== 'login' && not (pageIsChoosePassword)) return
 

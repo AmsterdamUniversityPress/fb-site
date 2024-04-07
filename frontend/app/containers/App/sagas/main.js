@@ -282,7 +282,7 @@ function *s_sendWelcomeResetEmail (email) {
   yield call (sendWelcomeEmail, email, 'reset')
 }
 
-function *s_sendWelcomeResetEmailCompleted ({ rcomplete, email, type, }) {
+function *s_sendWelcomeResetEmailCompleted ({ rcomplete, email, }) {
   const ok = rcomplete | requestCompleteFold (
     // --- ok
     () => true,
