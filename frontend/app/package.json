@@ -16,7 +16,7 @@
     "generate": "plop --plopfile internals/lib/generators/index.js"
   },
   "dependencies": {
-    "alleycat-js": "^0.4.16",
+    "alleycat-js": "^0.4.19",
     "bilby": "^0.0.2",
     "core-js": "3",
     "daggy": "^1.2.0",
