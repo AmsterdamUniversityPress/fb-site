@@ -10,7 +10,7 @@ import { useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
-import { clss, } from 'alleycat-js/es/dom'
+import { clss, keyDownListen, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, useReduxReducer, } from 'alleycat-js/es/redux-hooks'
@@ -42,7 +42,7 @@ import { Input, } from '../../components/shared/Input'
 import { spinner, } from '../../alleycat-components'
 
 import {
-  component, container, useWhy, keyDownListen, isNotEmptyString,
+  component, container, useWhy, isNotEmptyString,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults, toastInfo,
 } from '../../common'
@@ -223,13 +223,11 @@ const ContentsUserAdd = container (
       () => userAddDispatch (email, firstName, lastName, ['user']),
       [email, firstName, lastName, userAddDispatch],
     )
+    // --- @todo document why we don't prevent default here
     const onKeyDownInput = useCallback (
       (event) => event | keyDownListen (
-        () => {
-          // event.preventDefault ()
-          canSubmit && doUserAdd ()
-        },
         'Enter',
+        () => canSubmit && doUserAdd (),
       ),
       [canSubmit, doUserAdd],
     )

@@ -13,7 +13,7 @@ import styled from 'styled-components'
 import zxcvbn from 'zxcvbn'
 
 import configure from 'alleycat-js/es/configure'
-import { clss, keyPressListen, } from 'alleycat-js/es/dom'
+import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
 import { all, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
@@ -58,7 +58,7 @@ import CloseIcon from '../../components/svg/CloseIcon'
 import Pagination from '../../containers/shared/Pagination'
 
 import {
-  component, container, foldWhenJust, isNotEmptyString, keyDownListen, useWhy,
+  component, container, foldWhenJust, isNotEmptyString, useWhy,
   lookupOn, lookupOnOrDie,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults,
@@ -516,12 +516,9 @@ const ContentsForgotPasswordDialog = container (
       [sendResetEmailDispatch, email],
     )
     const onKeyDownInput = useCallback (
-      keyDownListen (
-        () => {
-          event.preventDefault ()
-          canSubmit && submit ()
-        },
+      (event) => event | keyDownListenPreventDefault (
         'Enter',
+		() => canSubmit && submit (),
       ),
       [canSubmit, submit],
     )
@@ -606,14 +603,10 @@ const UserPasswordForm = container (
       doLogIn ()
     }, [doLogIn])
 
-    // --- @todo make key down
-    const onKeyPressInput = useCallback (
-      (event) => event | keyPressListen (
-        () => {
-          event.preventDefault ()
-          canSubmit && doLogIn ()
-        },
+    const onKeyDownInput = useCallback (
+      (event) => event | keyDownListenPreventDefault (
         'Enter',
+		() => canSubmit && doLogIn (),
       ),
       [doLogIn, canSubmit],
     )
@@ -695,7 +688,7 @@ const UserPasswordForm = container (
               emailadres
             </div>
             <div className='x__input x__email-input'>
-              <input type='text' autoComplete='username' value={email} onChange={onChangeEmail} onKeyPress={onKeyPressInput} ref={inputEmailRef}/>
+              <input type='text' autoComplete='username' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} ref={inputEmailRef}/>
             </div>
           </> || <>
             <div/>
@@ -707,7 +700,7 @@ const UserPasswordForm = container (
             wachtwoord
           </div>}
           <div className='x__input x__password-input'>
-            <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyPress={onKeyPressInput} ref={inputPasswordRef}/>
+            <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyDown={onKeyDownInput} ref={inputPasswordRef}/>
           </div>
           <div className='x__icon'>
             <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
@@ -945,12 +938,9 @@ const UserPage = container (
     )
 
     const onKeyDownInput = useCallback (
-      keyDownListen (
-        () => {
-          event.preventDefault ()
-          canSubmitPassword && doPasswordUpdate ()
-        },
+      (event) => event | keyDownListenPreventDefault (
         'Enter',
+        () => canSubmitPassword && doPasswordUpdate (),
       ),
       [doPasswordUpdate, canSubmitPassword],
     )
