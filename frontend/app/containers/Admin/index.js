@@ -31,7 +31,7 @@ import {
 } from './selectors'
 
 import {
-  sendWelcomeWelcomeEmail,
+  sendWelcomeEmail,
   userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
@@ -270,7 +270,7 @@ const ContentsUserAdd = container (
 )
 
 const dispatchTable = {
-  sendWelcomeWelcomeEmailDispatch: sendWelcomeWelcomeEmail,
+  sendWelcomeEmailDispatch: sendWelcomeEmail,
   usersFetchDispatch: usersFetch,
   userAddStartDispatch: userAddStart,
   userRemoveDispatch: userRemove,
@@ -289,7 +289,7 @@ export default container (
     const {
       users,
       userRemoveDispatch,
-      sendWelcomeWelcomeEmailDispatch,
+      sendWelcomeEmailDispatch,
       usersFetchDispatch,
       userAddStartDispatch,
       userRemovePendingUsers,
@@ -341,8 +341,8 @@ export default container (
     }, [openSendMailDialog, setEmailToSend])
     const onClickSendMailConfirm = useCallback (() => {
       closeSendMailDialog ()
-      sendWelcomeWelcomeEmailDispatch (emailToSend)
-    }, [closeSendMailDialog, sendWelcomeWelcomeEmailDispatch, emailToSend])
+      sendWelcomeEmailDispatch (emailToSend)
+    }, [closeSendMailDialog, sendWelcomeEmailDispatch, emailToSend])
     const onClickSendMailCancel = useCallbackConst (() => closeSendMailDialog ())
     const onUserAddSuccess = useCallbackConst (() => {
       usersFetchDispatch ()

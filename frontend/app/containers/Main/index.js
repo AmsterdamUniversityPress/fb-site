@@ -25,7 +25,7 @@ import {
   passwordUpdate,
   passwordUpdateDone,
   resetPassword,
-  sendWelcomeResetEmail,
+  sendResetEmail,
 } from '../App/actions/main'
 
 import {
@@ -499,10 +499,10 @@ const PasswordStrength = ({ show=true, className, score, minimumScore, }) => {
 const ContentsForgotPasswordDialog = container (
   [
     'ContentsForgotPasswordDialog',
-    { sendWelcomeResetEmailDispatch: sendWelcomeResetEmail, },
+    { sendResetEmailDispatch: sendResetEmail, },
     { emailRequestPending: selectEmailRequestPending, },
   ],
-  ({ sendWelcomeResetEmailDispatch, emailRequestPending, }) => {
+  ({ sendResetEmailDispatch, emailRequestPending, }) => {
     const [email, setEmail] = useState ('')
     const canSubmit = useMemo (
       () => email | isNotEmptyString,
@@ -512,8 +512,8 @@ const ContentsForgotPasswordDialog = container (
       (event) => setEmail (event.target.value),
     )
     const submit = useCallback (
-      () => sendWelcomeResetEmailDispatch (email),
-      [sendWelcomeResetEmailDispatch, email],
+      () => sendResetEmailDispatch (email),
+      [sendResetEmailDispatch, email],
     )
     const onKeyDownInput = useCallback (
       keyDownListen (

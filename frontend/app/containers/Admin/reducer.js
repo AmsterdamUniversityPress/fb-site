@@ -9,8 +9,8 @@ import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
-  sendWelcomeWelcomeEmail,
-  sendWelcomeWelcomeEmailCompleted,
+  sendWelcomeEmail,
+  sendWelcomeEmailCompleted,
   usersFetchCompleted,
   userAdd,
   userAddCompleted,
@@ -40,10 +40,10 @@ const setAdd = recurry (2) (
 )
 
 const reducerTable = makeReducer (
-  sendWelcomeWelcomeEmail, (email) => update (
+  sendWelcomeEmail, (email) => update (
     'emailRequestPending', setAdd (email),
   ),
-  sendWelcomeWelcomeEmailCompleted, ({ email, ... _ }) => update (
+  sendWelcomeEmailCompleted, ({ email, ... _ }) => update (
     'emailRequestPending', setRemove (email),
   ),
   userAdd, (... _) => assoc (

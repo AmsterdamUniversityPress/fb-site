@@ -13,8 +13,8 @@ import {
   logIn,
   loginUserCompleted,
   loggedOutUser,
-  sendWelcomeResetEmail,
-  sendWelcomeResetEmailCompleted,
+  sendResetEmail,
+  sendResetEmailCompleted,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
@@ -57,10 +57,10 @@ const reducerTable = makeReducer (
     userUser: RequestInit,
     userPrivileges: Nothing,
   }),
-  sendWelcomeResetEmail, (_email) => assoc (
+  sendResetEmail, (_email) => assoc (
     'emailRequestPending', true,
   ),
-  sendWelcomeResetEmailCompleted, ({ rcomplete, ... _ }) => composeRight (
+  sendResetEmailCompleted, ({ rcomplete, ... _ }) => composeRight (
     assoc ('emailRequestPending', false),
     rcomplete | cata ({
       RequestCompleteError: (_) => id,

@@ -79,24 +79,24 @@ export const usersFetchCompleted = action (
   'usersFetchCompleted',
 )
 
-export const sendWelcomeWelcomeEmail = action (
+export const sendWelcomeEmail = action (
   (email) => email,
-  'sendWelcomeWelcomeEmail',
+  'sendWelcomeEmail',
 )
 
-export const sendWelcomeWelcomeEmailCompleted = action (
+export const sendWelcomeEmailCompleted = action (
   (rcomplete, email) => ({ rcomplete, email, }),
-  'sendWelcomeWelcomeEmailCompleted',
+  'sendWelcomeEmailCompleted',
 )
 
-export const sendWelcomeResetEmail = action (
+export const sendResetEmail = action (
   (email) => email,
-  'sendWelcomeResetEmail',
+  'sendResetEmail',
 )
 
-export const sendWelcomeResetEmailCompleted = action (
+export const sendResetEmailCompleted = action (
   (rcomplete, email) => ({ rcomplete, email, }),
-  'sendWelcomeResetEmailCompleted',
+  'sendResetEmailCompleted',
 )
 
 export const userAdd = action (
