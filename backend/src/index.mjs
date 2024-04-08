@@ -204,6 +204,16 @@ const getUserinfoLoginSync = (email) => {
 
 const getUserinfoLogin = async (email) => getUserinfoLoginSync (email)
 
+// --- returns an optional object which will get stored in the jwt as
+//     { session: retValue, }
+// or `null`.
+
+const initSession = async (_email) => {
+  const sessionId = crypto.randomUUID ()
+  // --- @todo store in db
+  return { sessionId, }
+}
+
 // --- @todo can we remove the call to getUserinfoLoginSync here? Seems the
 // only part we need is `doDbCall (dbUserGet ...)`
 const getUserPassword = (email) => getUserinfoLoginSync (email)
@@ -245,6 +255,7 @@ const alleycatAuth = authFactory.create ().init ({
   cookieMaxAgeMs,
   getUserinfoLogin,
   getUserinfoRequest,
+  initSession,
   isAuthorized: async (email, req, privileges=null) => {
     // --- `privileges` may be null, but we want to make sure it's always explicitly set to
     // something (we use the empty set to mean no / open authorization)
