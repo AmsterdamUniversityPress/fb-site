@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  assoc, always, id, update,
+  assoc, always, id, update, not,
 } from 'stick-js/es'
 
 import { cata, Just, Nothing, } from 'alleycat-js/es/bilby'
@@ -27,10 +27,10 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
-  halt, () => assoc('error', true),
-  // fondsenFetch, (_) => assoc (
-    // 'fondsen', RequestLoading (Nothing),
-  // ),
+  halt, () => assoc ('error', true),
+  fondsenFetch, ({ resetResults, ... _ }) => not (resetResults) ? id : assoc (
+    'fondsen', RequestLoading (Nothing),
+  ),
   fondsenFetchCompleted, (rcomplete) => composeManyRight (
     assoc ('fondsen', rcomplete | cata ({
       RequestCompleteError: (e) => RequestError (e),

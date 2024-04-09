@@ -17,7 +17,7 @@ export const appMounted = action (
 )
 
 export const fondsenFetch = action (
-  (pageNum) => pageNum,
+  (pageNum, resetResults) => ({ pageNum, resetResults }),
   'fondsenFetch',
 )
 

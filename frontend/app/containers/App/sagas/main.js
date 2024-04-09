@@ -77,9 +77,9 @@ function *callForever (delayMs, f, ... args) {
   yield call (callForever, delayMs, f, ... args)
 }
 
-function *fondsenRefresh () {
+function *fondsenRefresh (resetResults=true) {
   const pageNum = yield select (selectPage)
-  yield put (a_fondsenFetch (pageNum))
+  yield put (a_fondsenFetch (pageNum, resetResults))
 }
 
 function *hello (first=false) {
@@ -112,7 +112,7 @@ function *helloCompleted (rcomplete, first=false) {
   )
   // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
-    if (first) yield call (fondsenRefresh)
+    if (first) yield call (fondsenRefresh, false)
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
@@ -165,7 +165,7 @@ function *s_appMounted () {
   yield callForever (helloInterval, helloWrapper)
 }
 
-function *s_fondsenFetch (pageNum) {
+function *s_fondsenFetch ({ pageNum, ... _ }) {
   const pageLength = yield select (selectNumPerPage)
   const beginIdx = pageNum * pageLength
   const url = mkURL ()
@@ -210,7 +210,7 @@ function *s_loginUserCompleted (rcomplete) {
     () => (onError ('(no message)'), false),
   )
   // yield put (a_userLoggedIn (user))
-  if (success) yield call (fondsenRefresh)
+  if (success) yield call (fondsenRefresh, false)
 }
 
 function *s_logOutUser () {
@@ -308,11 +308,11 @@ function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
 
 function *s_setNumPerPageIdx () {
   yield put (a_setPage (0))
-  yield call (fondsenRefresh)
+  yield call (fondsenRefresh, true)
 }
 
 function *s_setPage () {
-  yield call (fondsenRefresh)
+  yield call (fondsenRefresh, true)
 }
 
 function *s_userAdd ({ email, firstName, lastName, privileges }) {
