@@ -421,6 +421,10 @@ const init = ({ port, }) => express ()
       ),
     ),
   ))
+  | secureGet (privsUser) ('/search/autocomplete/:query', getAndValidateRequestParams ([
+      basicStringValidator ('query'),
+    ], ({ res }, query) => res | sendStatus (200, { results: [1, 2, 3], }),
+  ))
   | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
       basicStringValidator ('oldPassword'),

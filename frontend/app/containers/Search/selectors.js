@@ -13,7 +13,5 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-; `
-export const selectCounter = selectVal ('counter')
-export const selectCountedSeven = select ('countedSeven', [selectCounter], gte (7))
-`
+export const selectQuery = selectVal ('query')
+export const selectResults = selectVal ('results')

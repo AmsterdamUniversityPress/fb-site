@@ -6,9 +6,17 @@ import {
 import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
-; `
-export const counterIncrement = action (
-  (amplify = true) => amplify,
-  'counterIncrement',
+export const queryUpdated = action (
+  (query) => query,
+  'queryUpdated',
 )
-`
+
+export const execute = action (
+  (query) => query,
+  'execute',
+)
+
+export const executeCompleted = action (
+  (rcomplete) => rcomplete,
+  'executeCompleted',
+)
