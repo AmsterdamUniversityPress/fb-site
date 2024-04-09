@@ -1,9 +1,11 @@
 import {
   pipe, compose, composeRight,
-  path, noop, ok,
+  path, noop, ok, join, map,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
+
+import { Link, } from 'react-router-dom'
 
 import { FormattedMessage, } from 'react-intl'
 import { connect, useDispatch, } from 'react-redux'
@@ -28,7 +30,7 @@ import { selectResults, } from './selectors'
 import { Input, } from '../../components/shared/Input'
 import { DropDown, } from '../../components/shared'
 
-import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, } from '../../common'
+import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
 import config from '../../config'
 
 const targetValue = path (['target', 'value'])
@@ -58,17 +60,73 @@ const SearchS = styled.div`
     }
   }
   > .x__results-wrapper {
+    text-align: left;
     position: relative;
     z-index: 2;
     width: 500px;
     margin: auto;
     > .x__results {
+      overflow-x: hidden;
+      overflow-y: hidden;
       position: absolute;
       width: 100%;
       min-height: 500px;
+      .x__result {
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
+        &:hover {
+          background: #EEE;
+        }
+        .x__separator {
+          height: 1px;
+          background: #AAA;
+          width: 60%;
+          margin-top: 15px;
+          margin-bottom: 15px;
+        }
+      }
     }
   }
 `
+
+const ResultS = styled.div`
+  > * {
+    white-space: break-spaces;
+  }
+  .x__name {
+  }
+  .x__type {
+    display: none;
+  }
+  .x__categories {
+    display: none;
+  }
+  .x__match {
+    > * {
+      display: inline-block;
+    }
+    .x__l {
+    }
+    .x__main {
+      background: yellow;
+    }
+    .x__r {
+    }
+  }
+`
+
+const Result = ({ uuid: _uuid, name, type, categories, matchl, match, matchr, }) => <ResultS>
+  <div className='x__name'>{name}</div>
+  <div className='x__type'>{type}</div>
+  <div className='x__categories'>{categories | join (', ')}</div>
+  <div className='x__match'>
+    <div className='x__l'>{matchl}</div>
+    <div className='x__main'>{match}</div>
+    <div className='x__r'>{matchr}</div>
+  </div>
+</ResultS>
 
 const dispatchTable = {
   queryUpdatedDispatch: queryUpdated,
@@ -131,15 +189,30 @@ export default container (
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
       <div className='x__results-wrapper'>
-        <div className='x__results'>
+        {showResults && <div className='x__results'>
           <DropDown
-            open={showResults}
+            open={true}
             wrapperStyle={{ minHeight: '300px', }}
             contentsStyle={{ height: '100%', }}
           >
-            {results}
+            {results | mapX (
+              ({ uuid, name, type, categories, match: [matchl, match, matchr], }, idx) => <div className='x__result'>
+                <Link to={'/detail/' + uuid}>
+                  {idx === 0 || <div className='x__separator'/>}
+                  <Result
+                    uuid={uuid}
+                    name={name}
+                    type={type}
+                    categories={categories}
+                    matchl={matchl}
+                    match={match}
+                    matchr={matchr}
+                  />
+                </Link>
+              </div>
+            )}
           </DropDown>
-        </div>
+        </div>}
       </div>
     </SearchS>
   }

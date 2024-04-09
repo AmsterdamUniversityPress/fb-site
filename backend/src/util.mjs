@@ -2,9 +2,10 @@ import {
   pipe, compose, composeRight,
   map, spreadTo, lets, flip, invoke,
   sprintf1, sprintfN, id, T, recurry,
-  ifOk, always, die, tryCatch,
+  ifOk, ifNil, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF,
+  list,
 } from 'stick-js/es'
 
 import path from 'path'
@@ -13,7 +14,7 @@ import { fileURLToPath, } from 'url'
 import { recover, then, } from 'alleycat-js/es/async'
 import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, decorateRejection, setTimeoutOn, } from 'alleycat-js/es/general'
-import { ifUndefined, } from 'alleycat-js/es/predicate'
+import { ifArray, ifUndefined, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
 
@@ -255,3 +256,6 @@ export const retryPDefaultMessage = recurry (4) (
     f,
   ),
 )
+
+export const toListSingleton = ifArray (id, list)
+export const toListCollapseNil = ifNil (() => [], toListSingleton)

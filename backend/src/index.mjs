@@ -4,7 +4,7 @@ import {
   gt, againstAny, eq, die, map, reduce, split,
   not, concatTo, recurry, ifOk, ifNil, noop,
   repeatF, dot, dot1, dot2, join, appendM,
-  anyAgainst, ifPredicate, whenOk,
+  anyAgainst, ifPredicate, whenOk, invoke,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -48,6 +48,7 @@ import {
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
   retryPDefaultMessage,
+  toListCollapseNil,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -311,6 +312,49 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
+const manualSearch = invoke (() => {
+  const fields = [
+    'doelstelling',
+    'doelgroep',
+    'categories',
+    'naam_organisatie',
+    'type_organisatie',
+  ]
+  const max = 3
+  const contextLeft = 20
+  const contextRight = contextLeft
+  return (query) => {
+    let n = 0
+    const results = []
+    for (const fonds of data) {
+      for (const field of fields) {
+        const values = fonds [field] | toListCollapseNil
+        for (const value of values) {
+          const idx = value.indexOf (query)
+          if (idx === -1) continue
+          results.push ({
+            uuid: fonds.uuid,
+            name: fonds.naam_organisatie,
+            type: fonds.type_organisatie,
+            categories: fonds.categories,
+            match: lets (
+              () => query.length,
+              () => Math.max (0, idx - contextLeft),
+              (ql, begin) => [
+                value.substring (begin, idx),
+                value.substring (idx, idx + ql),
+                value.substr (idx + ql, contextRight),
+              ],
+            ),
+          })
+          if (++n === max) return results
+        }
+      }
+    }
+    return results
+  }
+})
+
 const reduceEmail = (contents) => lets (
   () => (x) => '<p>' + x + '</p>',
   (toP) => contents | reduce (
@@ -423,7 +467,10 @@ const init = ({ port, }) => express ()
   ))
   | secureGet (privsUser) ('/search/autocomplete/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
-    ], ({ res }, query) => res | sendStatus (200, { results: [1, 2, 3], }),
+    ], ({ res }, query) => {
+      const results = manualSearch (query)
+      return res | sendStatus (200, { results, })
+    },
   ))
   | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
