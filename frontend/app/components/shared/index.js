@@ -295,3 +295,32 @@ export const DialogContentsS = styled.div`
     margin-top: 30px;
   }
 `
+
+const DropDownS = styled.div`
+  position: relative;
+  .x__contents {
+    background: #FBFBFB;
+    border: 1px solid #999999;
+    position: absolute;
+    font-size: 18px;
+    padding: 15px;
+    text-wrap: nowrap;
+    right: 0px;
+    top: 50px;
+    cursor: default;
+    box-shadow: 1px 1px 4px;
+    hr {
+      margin-top: 20px;
+      width: 50%;
+    }
+    > .x__menu-items {
+      margin-top: 12px;
+    }
+  }
+`
+
+export const DropDown = ({ open=false, children, }) => <DropDownS>
+  {open && <div className='x__contents'>
+    {children}
+  </div>}
+</DropDownS>

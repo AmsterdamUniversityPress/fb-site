@@ -53,7 +53,7 @@ import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Search from '../../containers/Search'
-import { BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 import Pagination from '../../containers/shared/Pagination'
@@ -99,25 +99,6 @@ const UserS = styled.div`
   width: 50px;
   cursor: pointer;
   position: relative;
-  > .x__contents {
-    background: #FBFBFB;
-    border: 1px solid #999999;
-    position: absolute;
-    font-size: 18px;
-    padding: 15px;
-    text-wrap: nowrap;
-    right: 0px;
-    top: 50px;
-    cursor: default;
-    box-shadow: 1px 1px 4px;
-    hr {
-      margin-top: 20px;
-      width: 50%;
-    }
-    > .x__menu-items {
-      margin-top: 12px;
-    }
-  }
 `
 
 const UserinfoInstitutionS = styled.div`
@@ -244,33 +225,33 @@ const User = container (
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
-      {open && <div className='x__contents'>
-        {getUserType () | condS ([
-          eq ('institution') | guard (() => <UserinfoInstitution onNavigate={onNavigate}/>),
-          eq ('user') | guard (() => <>
-            <UserinfoUser/>
-            <hr/>
-            <div className='x__menu-items'>
-              <MenuItem
-                onClick={onClickLogout}
-                imgSrc={iconLogout}
-                text='afmelden'
-              />
-              <MenuItem
-                onClick={onClickPasswordUpdate}
-                imgSrc={iconUpdate}
-                text='wachtwoord veranderen'
-              />
-              {hasPrivilegeAdminUser && <MenuItem
-                onClick={onClickAdmin}
-                imgSrc={iconAdmin}
-                text='gebruikers beheren'
-              />}
-            </div>
-          </>),
-          otherwise | guard (() => null),
-        ])}
-      </div>}
+      <DropDown open={open}>
+          {getUserType () | condS ([
+            eq ('institution') | guard (() => <UserinfoInstitution onNavigate={onNavigate}/>),
+              eq ('user') | guard (() => <>
+                <UserinfoUser/>
+                <hr/>
+                <div className='x__menu-items'>
+                  <MenuItem
+                    onClick={onClickLogout}
+                    imgSrc={iconLogout}
+                    text='afmelden'
+                  />
+                  <MenuItem
+                    onClick={onClickPasswordUpdate}
+                    imgSrc={iconUpdate}
+                    text='wachtwoord veranderen'
+                  />
+                  {hasPrivilegeAdminUser && <MenuItem
+                    onClick={onClickAdmin}
+                    imgSrc={iconAdmin}
+                    text='gebruikers beheren'
+                  />}
+                </div>
+              </>),
+              otherwise | guard (() => null),
+          ])}
+        </DropDown>
     </UserS>
   },
 )
