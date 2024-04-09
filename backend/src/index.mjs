@@ -126,10 +126,10 @@ const redisPassword = lets (
 )
 
 // @todo validation
-const elasticURL = lets (
-  () => ['must be a url (?)', () => true],
-  (validate) => env ('ELASTIC_URL', validate),
-)
+// const elasticURL = lets (
+  // () => ['must be a url (?)', () => true],
+  // (validate) => env ('ELASTIC_URL', validate),
+// )
 
 const redisURL = getRedisURL (redisPassword)
 
