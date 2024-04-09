@@ -71,7 +71,7 @@ const SearchS = styled.div`
       position: absolute;
       width: 100%;
       min-height: 500px;
-      .x__result {
+      .x__result-wrapper {
         a {
           text-decoration: none;
           color: inherit;
@@ -79,12 +79,14 @@ const SearchS = styled.div`
         &:hover {
           background: #EEE;
         }
+        .x__result {
+          padding-top: 15px;
+          padding-bottom: 15px;
+        }
         .x__separator {
           height: 1px;
           background: #AAA;
           width: 60%;
-          margin-top: 15px;
-          margin-bottom: 15px;
         }
       }
     }
@@ -96,6 +98,8 @@ const ResultS = styled.div`
     white-space: break-spaces;
   }
   .x__name {
+    text-decoration: underline;
+    opacity: 0.8;
   }
   .x__type {
     display: none;
@@ -196,20 +200,24 @@ export default container (
             contentsStyle={{ height: '100%', }}
           >
             {results | mapX (
-              ({ uuid, name, type, categories, match: [matchl, match, matchr], }, idx) => <div className='x__result'>
-                <Link to={'/detail/' + uuid}>
-                  {idx === 0 || <div className='x__separator'/>}
-                  <Result
-                    uuid={uuid}
-                    name={name}
-                    type={type}
-                    categories={categories}
-                    matchl={matchl}
-                    match={match}
-                    matchr={matchr}
-                  />
-                </Link>
-              </div>
+              ({ uuid, name, type, categories, match: [matchl, match, matchr], }, idx) => <>
+                <div className='x__result-wrapper'>
+                  <Link to={'/detail/' + uuid}>
+                    {idx === 0 || <div className='x__separator'/>}
+                      <div className='x__result'>
+                        <Result
+                          uuid={uuid}
+                          name={name}
+                          type={type}
+                          categories={categories}
+                          matchl={matchl}
+                          match={match}
+                          matchr={matchr}
+                        />
+                      </div>
+                  </Link>
+                </div>
+              </>
             )}
           </DropDown>
         </div>}
