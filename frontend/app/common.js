@@ -5,7 +5,7 @@ import {
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
   againstAny, contains, containsV, flip,
-  map, addIndex, ifTrue,
+  map, addIndex, ifTrue, ifPredicate, whenPredicate,
 } from 'stick-js/es'
 
 // --- for spinner
@@ -22,7 +22,10 @@ const sagaEffects = {
 import { cata, fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 
-import { doApiCall as _doApiCall, requestCompleteFold, } from 'alleycat-js/es/fetch'
+import {
+  doApiCall as _doApiCall, requestCompleteFold,
+  RequestInit, RequestLoading, RequestError, RequestResults,
+} from 'alleycat-js/es/fetch'
 import { getQueryParams, } from 'alleycat-js/es/general'
 import { all, allV, ifUndefined, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
@@ -238,6 +241,8 @@ export const foldWhenJust = recurry (2) (
 
 export const isNotEmptyString = not << isEmptyString
 export const isNotEmptyList = not << isEmptyList
+export const whenIsNotEmptyString = isNotEmptyString | whenPredicate
+export const ifIsEmptyString = isEmptyString | ifPredicate
 
 // --- functor map for `null` which treats it like `Nothing`
 export const nullMap = recurry (2) (
@@ -260,6 +265,18 @@ export const whenRequestCompleteSuccess = recurry (2) (
   (f) => (rcomplete) => rcomplete | requestCompleteFold (
     f, noop, noop,
   ),
+)
+
+export const foldRequestComplete = recurry (3) (
+  (onError) => (onSuccess) => (rcomplete) => rcomplete | cata ({
+    RequestCompleteError: (e) => onError (e),
+    RequestCompleteSuccess: (results) => onSuccess (results),
+  }),
+)
+
+export const rcompleteToResults = foldRequestComplete (
+  (e) => RequestError (e),
+  (results) => RequestResults (results),
 )
 
 export const lookupOn = recurry (2) (
@@ -288,4 +305,21 @@ export const lookupOrDie = recurry (3) (
 )
 export const lookupOnOrDie = recurry (3) (
   (msg) => (o) => (k) => lookupOrDie (msg, k, o),
+)
+
+/* Basically `each` with the arguments reversed. Useful for when you have a value and want to
+ * apply several functions to it, but don't want to compose the functions.
+ * You can also use `pam` for this (reverse map), but this makes it explicit that we're performing
+ * (side-)effects and don't care about the return values of the functions.
+ * (As a special case it returns the return value of the last one in case that's useful, but this
+ * may change).
+ */
+
+export const effects = recurry (2) (
+  (fs) => (x) => {
+    let last
+    for (const f of fs)
+      last = f (x)
+    return last
+  }
 )
