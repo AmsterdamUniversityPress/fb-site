@@ -52,6 +52,7 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
+import Search from '../../containers/Search'
 import { BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -1024,48 +1025,6 @@ const UserPage = container (
       </FormS>
     </FormWrapper>
   }
-)
-
-const targetValue = path (['target', 'value'])
-
-const SearchS = styled.div`
-  > * {
-    vertical-align: middle;
-  }
-  > .x__text {
-    margin-left: 20px;
-    &.x--disabled {
-      opacity: 0.6;
-    }
-  }
-`
-
-const Search = component (
-  ['Search'],
-  () => {
-    const [string, setString] = useState ('')
-    const onChange = useCallbackConst (setString << targetValue)
-    const canSearch = useMemo (() => string | isNotEmptyString, [string])
-    const cls = clss ('x__text', canSearch || 'x--disabled')
-    return <SearchS>
-      <Input
-        withIcon={['search', 'left']}
-        height='100%'
-        width='50%'
-        padding='16px'
-        style={{ display: 'inline-block', }}
-        inputStyle={{
-          fontSize: '25px',
-          border: '2px solid black',
-          borderRadius: '1000px',
-          background: 'white',
-        }}
-        onChange={onChange}
-        value={string}
-      />
-      <span className={cls}>zoeken</span>
-    </SearchS>
-  },
 )
 
 const FondsMainS = styled.div`
