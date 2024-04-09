@@ -28,9 +28,9 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   halt, () => assoc('error', true),
-  fondsenFetch, (_) => assoc (
-    'fondsen', RequestLoading (Nothing),
-  ),
+  // fondsenFetch, (_) => assoc (
+    // 'fondsen', RequestLoading (Nothing),
+  // ),
   fondsenFetchCompleted, (rcomplete) => composeManyRight (
     assoc ('fondsen', rcomplete | cata ({
       RequestCompleteError: (e) => RequestError (e),
