@@ -325,6 +325,7 @@ const manualSearch = invoke (() => {
   const contextRight = contextLeft
   return (query) => {
     let n = 0
+    let matchKey = 0
     const results = []
     for (const fonds of data) {
       for (const field of fields) {
@@ -333,6 +334,8 @@ const manualSearch = invoke (() => {
           const idx = value.indexOf (query)
           if (idx === -1) continue
           results.push ({
+            // --- for e.g. react key
+            matchKey: ++matchKey,
             uuid: fonds.uuid,
             name: fonds.naam_organisatie,
             type: fonds.type_organisatie,

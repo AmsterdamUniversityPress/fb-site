@@ -200,8 +200,8 @@ export default container (
             contentsStyle={{ height: '100%', }}
           >
             {results | mapX (
-              ({ uuid, name, type, categories, match: [matchl, match, matchr], }, idx) => <>
-                <div className='x__result-wrapper'>
+              ({ uuid, matchKey, name, type, categories, match: [matchl, match, matchr], }, idx) =>
+                <div key={matchKey} className='x__result-wrapper'>
                   <Link to={'/detail/' + uuid}>
                     {idx === 0 || <div className='x__separator'/>}
                       <div className='x__result'>
@@ -217,7 +217,6 @@ export default container (
                       </div>
                   </Link>
                 </div>
-              </>
             )}
           </DropDown>
         </div>}
