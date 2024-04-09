@@ -99,6 +99,10 @@ const UserS = styled.div`
   width: 50px;
   cursor: pointer;
   position: relative;
+  .x__dropdown-wrapper {
+    position: relative;
+    top: 15px;
+  }
 `
 
 const UserinfoInstitutionS = styled.div`
@@ -225,33 +229,34 @@ const User = container (
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
-      <DropDown open={open}>
-          {getUserType () | condS ([
-            eq ('institution') | guard (() => <UserinfoInstitution onNavigate={onNavigate}/>),
-              eq ('user') | guard (() => <>
-                <UserinfoUser/>
-                <hr/>
-                <div className='x__menu-items'>
-                  <MenuItem
-                    onClick={onClickLogout}
-                    imgSrc={iconLogout}
-                    text='afmelden'
-                  />
-                  <MenuItem
-                    onClick={onClickPasswordUpdate}
-                    imgSrc={iconUpdate}
-                    text='wachtwoord veranderen'
-                  />
-                  {hasPrivilegeAdminUser && <MenuItem
-                    onClick={onClickAdmin}
-                    imgSrc={iconAdmin}
-                    text='gebruikers beheren'
-                  />}
-                </div>
-              </>),
-              otherwise | guard (() => null),
-          ])}
+      <div className='x__dropdown-wrapper'>
+        <DropDown open={open} contentsStyle={{ right: '0px', }}>
+          {invoke (getUserType () | lookupOnOrDie ('Bad user type') ({
+            institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
+            user: () => <>
+              <UserinfoUser/>
+              <hr/>
+              <div className='x__menu-items'>
+                <MenuItem
+                  onClick={onClickLogout}
+                  imgSrc={iconLogout}
+                  text='afmelden'
+                />
+                <MenuItem
+                  onClick={onClickPasswordUpdate}
+                  imgSrc={iconUpdate}
+                  text='wachtwoord veranderen'
+                />
+                {hasPrivilegeAdminUser && <MenuItem
+                  onClick={onClickAdmin}
+                  imgSrc={iconAdmin}
+                  text='gebruikers beheren'
+                />}
+              </div>
+            </>,
+          }))}
         </DropDown>
+      </div>
     </UserS>
   },
 )

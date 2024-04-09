@@ -297,16 +297,18 @@ export const DialogContentsS = styled.div`
 `
 
 const DropDownS = styled.div`
-  position: relative;
-  .x__contents {
+  > .x__wrapper {
+    position: relative;
+    width: 100%;
+  }
+  > .x__wrapper > .x__contents {
+    min-width: 100%;
     background: #FBFBFB;
     border: 1px solid #999999;
     position: absolute;
     font-size: 18px;
     padding: 15px;
     text-wrap: nowrap;
-    right: 0px;
-    top: 50px;
     cursor: default;
     box-shadow: 1px 1px 4px;
     hr {
@@ -319,8 +321,10 @@ const DropDownS = styled.div`
   }
 `
 
-export const DropDown = ({ open=false, children, }) => <DropDownS>
-  {open && <div className='x__contents'>
-    {children}
-  </div>}
+export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle={}, children, }) => <DropDownS style={style}>
+  <div className='x__wrapper' style={wrapperStyle}>
+    {open && <div className='x__contents' style={contentsStyle}>
+      {children}
+    </div>}
+  </div>
 </DropDownS>

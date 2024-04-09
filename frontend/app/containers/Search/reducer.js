@@ -22,7 +22,7 @@ const reducerTable = makeReducer (
   queryUpdated, (query) => assoc ('query', query | trim | ifIsEmptyString (
     () => Nothing, Just,
   )),
-  execute, () => assoc ('results', RequestLoading (Nothing)),
+  // execute, () => assoc ('results', RequestLoading (Nothing)),
   executeCompleted, (rcomplete) => assoc ('results', rcomplete | rcompleteToResults),
 )
 

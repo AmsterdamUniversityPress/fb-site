@@ -226,6 +226,13 @@ export const foldWhenRequestResults = (f) => cata ({
   RequestResults: (res) => f (res),
 })
 
+export const requestIsLoading = cata ({
+  RequestInit: F,
+  RequestLoading: T,
+  RequestError: F,
+  RequestResults: F,
+})
+
 // :: (a -> b) -> Request a -> b | undefined
 export const toRequestResults = cata ({
   RequestInit: () => die ('toRequestResults (): got RequestInit'),
