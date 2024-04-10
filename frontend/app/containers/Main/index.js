@@ -660,7 +660,7 @@ const UserPasswordForm = container (
           Je bent ingelogd courtesy of {getInstitutionName ()}.
         </p>
         <p>
-          Je kunt door naar <a href='/'>de fondsen</a>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
+          Je kunt door naar <Link to='/'>de fondsen</Link>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
         </p>
       </TextBoxS>
       }
