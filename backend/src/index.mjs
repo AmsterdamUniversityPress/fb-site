@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
+  rangeTo,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, concatTo, recurry, ifOk, ifNil, noop, take,
   repeatF, dot, dot1, dot2, join, appendM, path,
@@ -316,14 +317,14 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
+const fields = [
+  'doelstelling',
+  'doelgroep',
+  'categories',
+  'naam_organisatie',
+  'type_organisatie',
+]
 const manualSearch = invoke (() => {
-  const fields = [
-    'doelstelling',
-    'doelgroep',
-    'categories',
-    'naam_organisatie',
-    'type_organisatie',
-  ]
   const contextLeft = 20
   const contextRight = contextLeft
   return async (max, query) => {
@@ -383,6 +384,35 @@ const search = (max, query) => esSearch (query)
     })
     return ret | take (max)
   })
+
+const completeQueries = invoke (() => {
+  const words = new Set ()
+  const lookup = new Map ()
+  for (const fonds of data) {
+    for (const field of fields) {
+      const value = String (fonds [field] ?? '')
+      for (const word of (value.match (/\w+/g) ?? [])) {
+        words.add (word)
+        for (const n of (1 | rangeTo (100))) {
+          const l = lookup.get (word.slice (0, n)) ?? []
+          l.push (word)
+          lookup.set (word.slice (0, n), l)
+        }
+      }
+    }
+  }
+  return (query) => (lookup.get (query) ?? []) | take (3)
+})
+
+; if (false) [
+  'b', 'br', 'bra', 'brab', 'braba', 'braban', 'brabant',
+  'B', 'Br', 'Bra', 'Brab', 'Braba', 'Braban', 'Brabant',
+] | map (
+  (x) => {
+    console.log ('x', x)
+    completeQueries (x) | console.log
+  }
+)
 
 const reduceEmail = (contents) => lets (
   () => (x) => '<p>' + x + '</p>',
@@ -494,10 +524,17 @@ const init = ({ port, }) => express ()
       ),
     ),
   ))
-  | secureGet (privsUser) ('/search/autocomplete/:query', getAndValidateRequestParams ([
+  | secureGet (privsUser) ('/search/autocomplete-search/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
     ], async ({ res }, query) => {
       const results = await search (3, query)
+      return res | sendStatus (200, { results, })
+    },
+  ))
+  | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
+      basicStringValidator ('query'),
+    ], async ({ res }, query) => {
+      const results = await completeQueries (3, query)
       return res | sendStatus (200, { results, })
     },
   ))
