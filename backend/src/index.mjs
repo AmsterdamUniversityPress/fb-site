@@ -18,13 +18,16 @@ import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
 
-import { allP, recover, rejectP, startP, then, } from 'alleycat-js/es/async'
+import { Client } from '@elastic/elasticsearch'
+
+import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, logWith, } from 'alleycat-js/es/general'
+import { decorateRejection, length, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
 import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
+
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config, } from './config.mjs'
@@ -70,6 +73,12 @@ import {
   key as redisKey,
   setExpire as redisSetExpire,
 } from './util-redis.mjs'
+import {
+  init as esInit,
+  checkConnection as esCheckConnection,
+  search as esSearch,
+  waitConnection as esWaitConnection,
+} from './elastic.mjs'
 
 import {
   authFactory,
@@ -125,11 +134,7 @@ const redisPassword = lets (
   (validate) => env ('REDIS_PASSWORD', validate),
 )
 
-// @todo validation
-// const elasticURL = lets (
-  // () => ['must be a url (?)', () => true],
-  // (validate) => env ('ELASTIC_URL', validate),
-// )
+const elasticURL = env ('ELASTIC_URL')
 
 const redisURL = getRedisURL (redisPassword)
 
@@ -513,6 +518,7 @@ const init = ({ port, }) => express ()
       return retryPDefaultMessage (
         'Unable to send email',
         warn,
+        // --- @todo string/int
         lookupOnOr (() => null, {
           0: 100,
           1: 500,
@@ -604,6 +610,10 @@ const yargs = yargsMod
     boolean: true,
     describe: 'Initialise the database: this will erase all data if it exists.',
   })
+  .option ('force-reindex-elastic', {
+    boolean: true,
+    describe: 'Rebuild the elastic index even if it already exists.',
+  })
   .strict ()
   .help ('h')
   .alias ('h', 'help')
@@ -615,13 +625,20 @@ if (opt._.length !== 0)
   yargs.showHelp (error)
 
 const initRedis = async () => redisInit (redisURL, 1000)
-| recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
+  | recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
+const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.forceReindexElastic, })
+| recover (error << decorateRejection ('Fatal error connecting to elastic.'))
 
+await initRedis ()
+await initElastic ()
 
 dbInit (opt.forceInitDb)
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
 dbInitUsers (encrypt, users ?? [])
+
 init ({ port: serverPort, })
-await initRedis ()
+
+// const res = await esSearch ('brabant')
+// await wait (1000)

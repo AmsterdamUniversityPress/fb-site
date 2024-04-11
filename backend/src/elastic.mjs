@@ -1,26 +1,78 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, sprintfN,
+  sprintf1, sprintfN, die,
+  map, tryCatch, id,
+  ok, not,
 } from 'stick-js/es'
 
-import { Client } from '@elastic/elasticsearch'
+import { Client, } from '@elastic/elasticsearch'
 
-import { warn, } from 'alleycat-js/es/io'
-import { decorateRejection, info, } from 'alleycat-js/es/general'
+import { info, warn, } from 'alleycat-js/es/io'
 
-import { recover, then, } from 'alleycat-js/es/async'
+import { recover, then, startP, rejectP, resolveP, } from 'alleycat-js/es/async'
+import { decorateAndReject, eachP, tryCatchP, retryPDefaultMessage, } from './util.mjs'
 
-const esClient = (url) => new Client({ node: url })
+const index = 'main'
 
-let esIndex
+let esClient
 
-const mkIndexP = async (url, index) => esClient (url)
-  .indices.create ({ index })
-  | then ((index | sprintf1 | 'Created elasic index: %s') | info)
-  | recover ((e) => warn (decorateRejection ('Error with elastic index: ', e)))
-
-export const init = async (url, index) => {
-  esIndex = await mkIndexP (url, index)
+export const init = (url, data, { forceReindex=false, }={}, ) => {
+  esClient = new Client ({ node: url, })
+  return waitConnection ()
+    | then (() => esClient.indices.exists ({ index, }))
+    | recover (decorateAndReject ('Error with esClient.indices.exists: '))
+    | then ((exists) => {
+      if (exists && !forceReindex) return false
+      if (exists) return esClient.indices.delete ({ index, })
+        | recover (decorateAndReject ('Error with esClient.indices.delete: '))
+        | then (() => true)
+      else return true
+    })
+    | then ((doInit) => doInit && initIndex (data))
 }
 
+const initIndex = (data) => startP ()
+  | then (() => info ('building index'))
+  | then (() => esClient.indices.create ({ index, }))
+  | recover (decorateAndReject ('Error with esClient.indices.create: '))
+  | then (
+    () => data | eachP ((fonds) => esClient.index ({
+      index,
+      id: fonds.uuid,
+      document: fonds,
+    }))
+    | recover (decorateAndReject ('Error with indexing'))
+  )
+  | then (() => info ('done building index'))
 
+export const search = (value) => startP ()
+  | then (() => esClient.search ({
+    query: {
+      match: {
+        naam_organisatie: value,
+      },
+    // highlight: {
+      // fields: {}
+    // }
+    },
+  }))
+  | recover (decorateAndReject ('Error with esClient.search: '))
+
+// :: Promise Boolean
+export const checkConnection = () => {
+  info ("Checking connection to ElasticSearch...")
+  return startP ()
+  | then (() => esClient.cluster.health ({}))
+  | then ((results) => ok (results) && not (results.timed_out))
+  | recover ((e) => warn ('Error with esClient.cluster.health: ', e))
+}
+
+const checkConnectionReject = () => checkConnection ()
+  | then ((good) => good || rejectP ())
+
+export const waitConnection = () => retryPDefaultMessage (
+  'Unable to establish connection to elastic, trying again',
+  warn,
+  (retryN) => retryN < 3 ? 100 : retryN < 10 ? 500 : retryN < 15 ? 1000 : null,
+  () => checkConnectionReject (),
+)
