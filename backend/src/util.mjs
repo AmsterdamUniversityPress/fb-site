@@ -8,10 +8,11 @@ import {
   list,
 } from 'stick-js/es'
 
-import path from 'path'
-import { fileURLToPath, } from 'url'
+import path from 'node:path'
+import { fileURLToPath, } from 'node:url'
+import util from 'node:util'
 
-import { recover, then, } from 'alleycat-js/es/async'
+import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, decorateRejection, setTimeoutOn, } from 'alleycat-js/es/general'
 import { ifArray, ifUndefined, } from 'alleycat-js/es/predicate'
@@ -157,6 +158,10 @@ export const decorateAndRethrow = recurry (2) (
   ),
 )
 
+export const decorateAndReject = recurry (2) (
+  (prefix) => rejectP << decorateRejection (prefix),
+)
+
 /* Returns true iff all elements of `n` are contained in `m`. Also true if
  * `n` is the empty set.
  */
@@ -259,3 +264,13 @@ export const retryPDefaultMessage = recurry (4) (
 
 export const toListSingleton = ifArray (id, list)
 export const toListCollapseNil = ifNil (() => [], toListSingleton)
+
+export const inspect = x => util.inspect (x, { depth: null, colors: process.stdout.isTTY, })
+
+// --- @todo stick
+export const eachP = recurry (2) (
+  (f) => async (xs) => {
+    for (const x of xs)
+      await f (x)
+  }
+)
