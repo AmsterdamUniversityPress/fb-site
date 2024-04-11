@@ -45,15 +45,31 @@ const initIndex = (data) => startP ()
   )
   | then (() => info ('done building index'))
 
-export const search = (value) => startP ()
+export const search = (query) => startP ()
   | then (() => esClient.search ({
     query: {
-      match: {
-        naam_organisatie: value,
+      bool: {
+        // --- i.e., or
+        should: [
+          { term: { doelstelling: query, }},
+          { term: { doelgroep: query, }},
+          { term: { categories: query, }},
+          { term: { naam_organisatie: query, }},
+          { term: { type_organisatie: query, }},
+        ],
       },
-    // highlight: {
-      // fields: {}
-    // }
+    },
+    highlight: {
+      // --- @todo
+      pre_tags: '<span class="highlight">',
+      post_tags: '</span>',
+      fields: {
+        doelgroep: {},
+        doelstelling: {},
+        categories: {},
+        naam_organisatie: {},
+        type_organisatie: {},
+      },
     },
   }))
   | recover (decorateAndReject ('Error with esClient.search: '))

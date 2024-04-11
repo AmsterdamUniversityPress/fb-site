@@ -111,17 +111,13 @@ const ResultS = styled.div`
     > * {
       display: inline-block;
     }
-    .x__l {
-    }
-    .x__main {
+    .highlight {
       background: yellow;
-    }
-    .x__r {
     }
   }
 `
 
-const Result = ({ uuid: _uuid, name, type, categories, matchl, match, matchr, }) => <ResultS>
+const ResultOld = ({ uuid: _uuid, name, type, categories, matchl, match, matchr, }) => <ResultS>
   <div className='x__name'>{name}</div>
   <div className='x__type'>{type}</div>
   <div className='x__categories'>{categories | join (', ')}</div>
@@ -130,6 +126,13 @@ const Result = ({ uuid: _uuid, name, type, categories, matchl, match, matchr, })
     <div className='x__main'>{match}</div>
     <div className='x__r'>{matchr}</div>
   </div>
+</ResultS>
+
+const Result = ({ uuid: _uuid, name, type, categories, match, }) => <ResultS>
+  <div className='x__name'>{name}</div>
+  <div className='x__type'>{type}</div>
+  <div className='x__categories'>{categories | join (', ')}</div>
+  <div className='x__match' dangerouslySetInnerHTML={{__html: match}}/>
 </ResultS>
 
 const dispatchTable = {
@@ -200,23 +203,24 @@ export default container (
             contentsStyle={{ height: '100%', }}
           >
             {results | mapX (
-              ({ uuid, matchKey, name, type, categories, match: [matchl, match, matchr], }, idx) =>
-                <div key={matchKey} className='x__result-wrapper'>
-                  <Link to={'/detail/' + uuid}>
-                    {idx === 0 || <div className='x__separator'/>}
-                      <div className='x__result'>
-                        <Result
-                          uuid={uuid}
-                          name={name}
-                          type={type}
-                          categories={categories}
-                          matchl={matchl}
-                          match={match}
-                          matchr={matchr}
-                        />
-                      </div>
-                  </Link>
-                </div>
+              ({ uuid, matchKey, name, type, categories, match, }, idx1) => [match] | mapX (
+                (theMatch, idx2) => <>
+                  <div key={matchKey} className='x__result-wrapper'>
+                    <Link to={'/detail/' + uuid}>
+                      {idx1 * idx2 === 0 || <div className='x__separator'/>}
+                        <div className='x__result'>
+                          <Result
+                            uuid={uuid}
+                            name={name}
+                            type={type}
+                            categories={categories}
+                            match={theMatch}
+                          />
+                        </div>
+                    </Link>
+                  </div>
+                </>
+              ),
             )}
           </DropDown>
         </div>}

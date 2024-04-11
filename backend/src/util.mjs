@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke,
+  map, spreadTo, lets, flip, invoke, addIndex,
   sprintf1, sprintfN, id, T, recurry,
   ifOk, ifNil, always, die, tryCatch,
   ifPredicateResults, whenPredicateResults,
@@ -265,12 +265,27 @@ export const retryPDefaultMessage = recurry (4) (
 export const toListSingleton = ifArray (id, list)
 export const toListCollapseNil = ifNil (() => [], toListSingleton)
 
-export const inspect = x => util.inspect (x, { depth: null, colors: process.stdout.isTTY, })
+export const inspectN = recurry (2) (
+  (depth) => (x) => util.inspect (x, { depth, colors: process.stdout.isTTY, }),
+)
+export const inspect = inspectN (null)
 
 // --- @todo stick
 export const eachP = recurry (2) (
   (f) => async (xs) => {
     for (const x of xs)
       await f (x)
+  }
+)
+
+export const mapX = addIndex (map)
+
+export const flatten = recurry (2) (
+  (n) => (xs) => {
+    let ys = xs
+    n | repeatF (
+      () => ys = ys | flatMap (id),
+    )
+    return ys
   }
 )

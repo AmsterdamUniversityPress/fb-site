@@ -1,10 +1,10 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  gt, againstAny, eq, die, map, reduce, split,
-  not, concatTo, recurry, ifOk, ifNil, noop,
-  repeatF, dot, dot1, dot2, join, appendM,
-  anyAgainst, ifPredicate, whenOk, invoke,
+  gt, againstAny, eq, die, map, reduce, split, values,
+  not, concatTo, recurry, ifOk, ifNil, noop, take,
+  repeatF, dot, dot1, dot2, join, appendM, path,
+  anyAgainst, ifPredicate, whenOk, invoke, each,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -17,8 +17,6 @@ import express from 'express'
 import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
-
-import { Client } from '@elastic/elasticsearch'
 
 import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
@@ -52,6 +50,7 @@ import {
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
   retryPDefaultMessage,
   toListCollapseNil,
+  mapX, flatten,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -325,10 +324,9 @@ const manualSearch = invoke (() => {
     'naam_organisatie',
     'type_organisatie',
   ]
-  const max = 3
   const contextLeft = 20
   const contextRight = contextLeft
-  return (query) => {
+  return async (max, query) => {
     let n = 0
     let matchKey = 0
     const results = []
@@ -362,6 +360,29 @@ const manualSearch = invoke (() => {
     return results
   }
 })
+
+// const search = manualSearch
+const search = (max, query) => esSearch (query)
+  | then ((results) => {
+    const hits = results | path (['hits', 'hits'])
+    if (nil (hits)) rejectP ('Invalid return')
+    const ret = []
+    let idx = -1
+    hits | take (max) | each ((result) => {
+      const { _source: fonds, _id: uuid, highlight, } = result
+      const { naam_organisatie: name, type_organisatie: type, categories, } = fonds
+      const match = highlight | values | flatten (1)
+      match | each ((theMatch) => ret.push ({
+        matchKey: ++idx,
+        uuid,
+        categories,
+        name,
+        type,
+        match: theMatch,
+      }))
+    })
+    return ret | take (max)
+  })
 
 const reduceEmail = (contents) => lets (
   () => (x) => '<p>' + x + '</p>',
@@ -475,8 +496,8 @@ const init = ({ port, }) => express ()
   ))
   | secureGet (privsUser) ('/search/autocomplete/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
-    ], ({ res }, query) => {
-      const results = manualSearch (query)
+    ], async ({ res }, query) => {
+      const results = await search (3, query)
       return res | sendStatus (200, { results, })
     },
   ))
@@ -640,5 +661,3 @@ dbInitUsers (encrypt, users ?? [])
 
 init ({ port: serverPort, })
 
-// const res = await esSearch ('brabant')
-// await wait (1000)
