@@ -53,6 +53,7 @@ import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Search from '../../containers/Search'
+import SearchQuery from '../../containers/SearchQuery'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -1034,6 +1035,7 @@ const FondsMain = () => {
   return <FondsMainS>
     <div className='x__search'>
       <Search/>
+      <SearchQuery/>
     </div>
     <div className='x__main'>
       <Fondsen/>

@@ -394,14 +394,14 @@ const completeQueries = invoke (() => {
       for (const word of (value.match (/\w+/g) ?? [])) {
         words.add (word)
         for (const n of (1 | rangeTo (100))) {
-          const l = lookup.get (word.slice (0, n)) ?? []
-          l.push (word)
+          const l = lookup.get (word.slice (0, n)) ?? new Set ()
+          l.add (word)
           lookup.set (word.slice (0, n), l)
         }
       }
     }
   }
-  return (query) => (lookup.get (query) ?? []) | take (3)
+  return (max, query) => [... (lookup.get (query) ?? new Set ()).values ()] | take (max)
 })
 
 ; if (false) [
@@ -534,7 +534,7 @@ const init = ({ port, }) => express ()
   | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
     ], async ({ res }, query) => {
-      const results = await completeQueries (3, query)
+      const results = await completeQueries (10, query)
       return res | sendStatus (200, { results, })
     },
   ))
