@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  path, noop, ok, join, map,
+  path, noop, ok, join, map, not,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -15,7 +15,7 @@ import styled from 'styled-components'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
-import { allV, } from 'alleycat-js/es/predicate'
+import { allV, isEmptyList, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -131,7 +131,7 @@ export default container (
       () => resultsRequest | requestResults ({ onLoading: noop, }),
       [resultsRequest],
     )
-    const hasResults = ok (results)
+    const hasResults = ok (results) && not (isEmptyList (results))
     const isLoading = useMemo (
       () => resultsRequest | requestIsLoading,
       [resultsRequest],

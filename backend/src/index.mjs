@@ -387,14 +387,16 @@ const search = (max, query) => esSearch (query)
   })
 
 const completeQueries = invoke (() => {
+  const minChars = 3
   const words = new Set ()
   const lookup = new Map ()
   for (const fonds of data) {
     for (const field of fields) {
       const value = String (fonds [field] ?? '')
       for (const word of (value.match (/\w+/g) ?? [])) {
+        if (word.length < minChars) continue
         words.add (word)
-        for (const n of (3 | rangeTo (100))) {
+        for (const n of (minChars | rangeTo (100))) {
           const l = lookup.get (word.slice (0, n)) ?? new Set ()
           l.add (word)
           lookup.set (word.slice (0, n), l)
@@ -402,18 +404,8 @@ const completeQueries = invoke (() => {
       }
     }
   }
-  return (max, query) => [... (lookup.get (query) ?? new Set ()).values ()] | take (max)
+  return (max, query) => take (max, [... (lookup.get (query) ?? new Set ()).values ()])
 })
-
-; if (false) [
-  'b', 'br', 'bra', 'brab', 'braba', 'braban', 'brabant',
-  'B', 'Br', 'Bra', 'Brab', 'Braba', 'Braban', 'Brabant',
-] | map (
-  (x) => {
-    console.log ('x', x)
-    completeQueries (x) | console.log
-  }
-)
 
 const reduceEmail = (contents) => lets (
   () => (x) => '<p>' + x + '</p>',
