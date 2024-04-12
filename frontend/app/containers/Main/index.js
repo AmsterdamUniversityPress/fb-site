@@ -1020,8 +1020,20 @@ const FondsMainS = styled.div`
   flex-direction: column;
   width: 100%;
   > .x__search {
+    width: 1000px;
+    margin: auto;
     flex: 0 0 120px;
     text-align: center;
+    > .x__variant-search, .x__variant-query {
+      > p > span {
+        background: white;
+        color: black;
+        padding: 5px;
+      }
+      margin-bottom: 75px;
+    }
+    > .x__variant-query {
+    }
   }
   > .x__main {
     // --- @todo
@@ -1034,8 +1046,32 @@ const FondsMainS = styled.div`
 const FondsMain = () => {
   return <FondsMainS>
     <div className='x__search'>
-      <Search/>
-      <SearchQuery/>
+      <div className='x__variant-search'>
+        <p>
+          <span>
+            ‘autocomplete search’
+          </span>
+        </p>
+        <p>
+          <span>
+            probeer ‘vermogen’
+          </span>
+        </p>
+        <Search/>
+      </div>
+      <div className='x__variant-query'>
+        <p>
+          <span>
+            ‘autocomplete query’
+          </span>
+        </p>
+        <p>
+          <span>
+            probeer ‘ver’
+          </span>
+        </p>
+        <SearchQuery/>
+      </div>
     </div>
     <div className='x__main'>
       <Fondsen/>

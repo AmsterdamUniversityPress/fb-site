@@ -15,7 +15,7 @@ import styled from 'styled-components'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
-import { allV, } from 'alleycat-js/es/predicate'
+import { allV, anyV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -30,7 +30,7 @@ import { selectResults, } from './selectors'
 import { Input, } from '../../components/shared/Input'
 import { DropDown, } from '../../components/shared'
 
-import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
+import { container, effects, isNotEmptyString, isNotEmptyList, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
 import config from '../../config'
 
 const targetValue = path (['target', 'value'])
@@ -169,8 +169,14 @@ export default container (
       [query],
     )
     const showResults = useMemo (
-      () => allV (hasQuery, hasResults || isLoading),
-      [hasQuery, hasResults, isLoading],
+      () => allV (
+        hasQuery,
+        anyV (
+          isLoading,
+          hasResults && isNotEmptyList (results),
+        ),
+      ),
+      [hasQuery, isLoading, hasResults, results],
     )
 
     useWhy ('Search', props)

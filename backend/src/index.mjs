@@ -393,7 +393,7 @@ const completeQueries = invoke (() => {
       const value = String (fonds [field] ?? '')
       for (const word of (value.match (/\w+/g) ?? [])) {
         words.add (word)
-        for (const n of (1 | rangeTo (100))) {
+        for (const n of (3 | rangeTo (100))) {
           const l = lookup.get (word.slice (0, n)) ?? new Set ()
           l.add (word)
           lookup.set (word.slice (0, n), l)
