@@ -1,12 +1,16 @@
 import {
   pipe, compose, composeRight,
-  tap, map, split, containsV, lets,
+  tap, map, split, containsV, lets, prop,
 } from 'stick-js/es'
 
 import { createSelector, } from 'reselect'
 
 import { requestIsPending, requestIsResults, } from 'alleycat-js/es/fetch'
 import { logWith, } from 'alleycat-js/es/general'
+
+import ascend from 'ramda/es/ascend'
+import descend from 'ramda/es/descend'
+import sortWith from 'ramda/es/sortWith'
 
 import { initialState, } from './reducer'
 
@@ -19,16 +23,24 @@ const { select, selectTop, selectVal, } = initSelectors (
 
 export const selectUsers = selectVal ('users')
 
+const sortUsers = sortWith ([
+  descend (prop ('isAdminUser')),
+  ascend (prop ('isActive')),
+])
+
 export const selectUsersComponent = select (
   'usersComponent',
   [selectUsers],
-  (users) => users | map (
-    (data) => data | map (
+  (usersRequest) => usersRequest | map (
+    (users) => users
+    | map (
       ({ email, firstName, lastName, isActive, privileges, }) => lets (
         () => privileges | split (',') | containsV ('admin-user'),
         (isAdminUser) => ({ email, firstName, lastName, isActive, isAdminUser, })
       ),
-    ),
+    )
+    // --- order: inactive, ..., admin-user
+    | sortUsers
   ),
 )
 

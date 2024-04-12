@@ -414,9 +414,7 @@ export default container (
             <div className='col1 x__header'>
               E-mailadres
             </div>
-            <div className='col2 x__header'>
-              {/*Geactiveerd*/}
-            </div>
+            <div className='col2 x__header'/>
             <div className='col3 x__header'/>
             <div className='col4 x__header'/>
             {users | map (({ email, firstName, lastName, isActive, isAdminUser, }) => {
