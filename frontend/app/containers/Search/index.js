@@ -28,6 +28,7 @@ import saga from './saga'
 import { selectResults, } from './selectors'
 
 import { Input, } from '../../components/shared/Input'
+import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import { DropDown, } from '../../components/shared'
 
 import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
@@ -151,26 +152,30 @@ export default container (
 
     return <SearchS>
       <div className='x__wrapper'>
-        <Input
-          withIcon={['search', 'left']}
-          height='100%'
-          padding='16px'
-          style={{ display: 'inline-block', }}
-          inputStyle={{
-            fontSize: '25px',
-            border: '2px solid black',
-            borderRadius: '1000px',
-            background: 'white',
+        <InputWithAutocomplete
+          Input={Input}
+          inputProps={{
+            withIcon: ['search', 'left'],
+            height: '100%',
+            padding: '16px',
+            style: { display: 'inline-block', },
+            inputStyle: {
+              fontSize: '25px',
+              border: '2px solid black',
+              borderRadius: '1000px',
+              background: 'white',
+            },
           }}
-          onChange={onChange}
-          value={query}
+          onChange={(value) => onChange (value)}
+          // onSubmit={(value) => }
+          suggestions={results}
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
       <div className='x__results-wrapper'>
         {showResults && <div className='x__results'>
           <DropDown
-            open={true}
+            open={false}
             wrapperStyle={{ minHeight: '300px', }}
             contentsStyle={{ height: '100%', }}
           >
