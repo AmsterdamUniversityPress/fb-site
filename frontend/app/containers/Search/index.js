@@ -44,6 +44,7 @@ const SearchS = styled.div`
     width: 50%;
     margin: auto;
     position: relative;
+    z-index: 3;
     > .x__zoeken {
       position: absolute;
       border-radius: 10px;
@@ -168,7 +169,7 @@ export default container (
             },
           }}
           onChange={(value) => onChange (value)}
-          // onSubmit={(value) => }
+          onSelect={(value) => alert ('submit! ' + value)}
           suggestions={results}
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>

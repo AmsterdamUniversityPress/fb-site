@@ -1,32 +1,27 @@
 import {
   pipe, compose, composeRight,
-  noop, map, whenOk, plus, minus,
+  noop, map, whenOk, plus, minus, each,
 } from 'stick-js/es'
 
-import React, { Fragment, memo, useCallback, useEffect, useRef, useState, } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, } from 'react'
 
 import styled from 'styled-components'
 
-import configure from 'alleycat-js/es/configure'
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
-import { logWith, min, max, } from 'alleycat-js/es/general'
+import { logWith, min, max, warn, } from 'alleycat-js/es/general'
 import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { Input as InputDefault, } from '../Input'
 import { DropDown, } from '../../shared'
-import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, isNotEmptyList, mapX, } from '../../../common'
-import config from '../../../config'
-
-const configTop = config | configure.init
+import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
 
 const InputWithAutocompleteS = styled.div`
   text-align: left;
   .x__dropdown-wrapper {
     position: absolute;
     width: 100%;
-    z-index: 2;
   }
 `
 
@@ -47,19 +42,20 @@ const Suggestion = ({
   data,
   selected: selectedProp=false,
   selectedStyle={},
-  onSelect: onSelectProp,
+  onSelect,
 }) => {
   const [selected, setSelected] = useState (selectedProp)
   useEffect (() => { setSelected (selectedProp) }, [selectedProp])
   const onMouseOver = useCallbackConst (() => setSelected (true))
   const onMouseOut = useCallbackConst (() => setSelected (selectedProp))
+  const onClick = useCallback (() => onSelect (), [onSelect])
   return <SuggestionS>
     <div
       className={clss ('x__data', selected && 'x--selected')}
       style={selected ? selectedStyle : {}}
       onMouseOver={onMouseOver}
       onMouseOut={onMouseOut}
-      onClick={onSelectProp}
+      onClick={onClick}
     >
       {data}
     </div>
@@ -78,10 +74,11 @@ export default component (
       selectedSuggestionStyle={},
       onBlur: onBlurProp=noop,
       onChange: onChangeProp=noop,
+      onSelect: onSelectProp=noop,
     } = props
-    const suggestions = suggestionsProp ?? []
+    const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
     const [value, setValue] = useState (valueProp)
-    const [showSuggestions, setShowSuggestions] = useState (false)
+    const [showSuggestions, setShowSuggestions] = useState (true)
     const [enteredValue, setEnteredValue] = useState (valueProp)
     // --- -1 means use the value, >= 0 means that idx of the suggestions.
     const [selectedIdx, setSelectedIdx] = useState (-1)
@@ -91,35 +88,68 @@ export default component (
       setShowSuggestions (true)
       onChangeProp (event)
     }, [onChangeProp])
-    const onKeyDownInput = useCallback (
-      (event) => {
-        event | keyDownListenPreventDefault (
-          'ArrowDown',
-          () => setSelectedIdx (plus (1) >> min (suggestions.length - 1)),
-        )
-        event | keyDownListenPreventDefault (
-          'ArrowUp',
-          () => setSelectedIdx (minus (1) >> max (-1)),
-        )
+    const _onSelect = useCallback (
+      (theValue) => {
+        onSelectProp (theValue)
+        if (closeOnSelected) setShowSuggestions (false)
       },
+      [onSelectProp, closeOnSelected],
     )
-    const onBlur = useCallbackConst (
-      () => setShowSuggestions (false),
-    )
-    const onSelect = useCallbackConst (
+    const onSelectWithPointer = useCallback (
       (idx) => () => {
         setSelectedIdx (idx)
-        if (closeOnSelected) setShowSuggestions (false)
-      }
+        _onSelect (valueForIdx (idx))
+      },
+      [_onSelect, valueForIdx],
     )
+    const onSelectWithKeyboard = useCallback (
+      () => _onSelect (value),
+      [_onSelect, value],
+    )
+    const onKeyDownInput = useCallback (
+      (event) => event | effects ([
+        keyDownListenPreventDefault (
+          'ArrowDown',
+          () => canKeyboard && setSelectedIdx (
+            plus (1) >> min (suggestions.length - 1),
+          ),
+        ),
+        keyDownListenPreventDefault (
+          'ArrowUp',
+          () => canKeyboard && setSelectedIdx (
+            minus (1) >> max (-1),
+          ),
+        ),
+        keyDownListenPreventDefault (
+          'Enter',
+          () => onSelectWithKeyboard (),
+        ),
+      ]),
+      [canKeyboard, suggestions, onSelectWithKeyboard, selectedIdx],
+    )
+    const onBlur = useCallbackConst (
+      (event) => {
+        onBlurProp (event)
+        // --- @todo not working: if you click a suggestion, blur happens before click and click
+        // gets ignored.
+        // setShowSuggestions (false)
+      },
+    )
+    const valueForIdx = useCallback ((idx) => {
+      if (idx === -1) return enteredValue
+      return idx | lookupOnOr (
+        () => warn ('valueForIdx failed for:', String (idx), suggestions),
+        suggestions,
+      )
+    }, [enteredValue, suggestions])
     useEffect (() => {
-      if (selectedIdx === -1) setValue (enteredValue)
-      else setValue (suggestions [selectedIdx])
+      setValue (valueForIdx (selectedIdx))
     }, [selectedIdx])
     const dropdownOpen = allV (
       showSuggestions,
       suggestions | isNotEmptyList,
     )
+    const canKeyboard = dropdownOpen
 
     useEffect (() => { setValue (valueProp) }, [valueProp])
     useWhy ('InputWithAutocomplete', props)
@@ -140,7 +170,7 @@ export default component (
             key={idx}
             data={result}
             selected={idx === selectedIdx}
-            onSelect={onSelect (idx)}
+            onSelect={onSelectWithPointer (idx)}
             style={suggestionStyle}
             selectedStyle={selectedSuggestionStyle}
           />)}
