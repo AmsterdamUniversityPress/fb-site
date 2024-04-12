@@ -289,3 +289,20 @@ export const flatten = recurry (2) (
     return ys
   }
 )
+
+export const thenWhenPredicateResults = recurry (3) (
+  (pred) => (f) => (promise) => {
+    const res = pred ()
+    return promise | then (
+      (ret) => res ? f ([res, ret]) : ret,
+    )
+  },
+)
+
+export const thenWhen = recurry (3) (
+  (p) => (f) => then (p () ? f : id),
+)
+
+export const thenWhenTrue = recurry (3) (
+  (x) => thenWhen (() => x === true)
+)
