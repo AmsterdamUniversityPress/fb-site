@@ -53,7 +53,6 @@ import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Search from '../../containers/Search'
-import SearchQuery from '../../containers/SearchQuery'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -1024,16 +1023,6 @@ const FondsMainS = styled.div`
     margin: auto;
     flex: 0 0 120px;
     text-align: center;
-    > .x__variant-search, .x__variant-query {
-      > p > span {
-        background: white;
-        color: black;
-        padding: 5px;
-      }
-      margin-bottom: 75px;
-    }
-    > .x__variant-query {
-    }
   }
   > .x__main {
     // --- @todo
@@ -1046,32 +1035,7 @@ const FondsMainS = styled.div`
 const FondsMain = () => {
   return <FondsMainS>
     <div className='x__search'>
-      <div className='x__variant-search'>
-        <p>
-          <span>
-            ‘autocomplete search’
-          </span>
-        </p>
-        <p>
-          <span>
-            probeer ‘vermogen’
-          </span>
-        </p>
-        <Search/>
-      </div>
-      <div className='x__variant-query'>
-        <p>
-          <span>
-            ‘autocomplete query’
-          </span>
-        </p>
-        <p>
-          <span>
-            probeer ‘ver’
-          </span>
-        </p>
-        <SearchQuery/>
-      </div>
+      <Search/>
     </div>
     <div className='x__main'>
       <Fondsen/>

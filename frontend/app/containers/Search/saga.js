@@ -20,7 +20,7 @@ import { doApiCall, saga, toastError, } from '../../common'
 
 function *s_execute (query) {
   yield call (doApiCall, {
-    url: '/api/search/autocomplete-search/' + query,
+    url: '/api/search/autocomplete-query/' + query,
     resultsModify: map (prop ('results')),
     continuation: EffAction (a_executeCompleted),
   })

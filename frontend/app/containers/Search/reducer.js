@@ -26,4 +26,4 @@ const reducerTable = makeReducer (
   executeCompleted, (rcomplete) => assoc ('results', rcomplete | rcompleteToResults),
 )
 
-export default reducer ('SearchQuery', initialState, reducerTable)
+export default reducer ('Search', initialState, reducerTable)

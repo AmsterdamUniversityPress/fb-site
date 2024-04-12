@@ -15,7 +15,7 @@ import styled from 'styled-components'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
-import { allV, anyV, } from 'alleycat-js/es/predicate'
+import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -30,7 +30,7 @@ import { selectResults, } from './selectors'
 import { Input, } from '../../components/shared/Input'
 import { DropDown, } from '../../components/shared'
 
-import { container, effects, isNotEmptyString, isNotEmptyList, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
+import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
 import config from '../../config'
 
 const targetValue = path (['target', 'value'])
@@ -97,42 +97,14 @@ const ResultS = styled.div`
   > * {
     white-space: break-spaces;
   }
-  .x__name {
-    text-decoration: underline;
-    opacity: 0.8;
-  }
-  .x__type {
-    display: none;
-  }
-  .x__categories {
-    display: none;
-  }
-  .x__match {
-    > * {
-      display: inline-block;
-    }
-    .highlight {
-      background: yellow;
-    }
+  .x__word {
+    // text-decoration: underline;
+    // opacity: 0.8;
   }
 `
 
-const ResultOld = ({ uuid: _uuid, name, type, categories, matchl, match, matchr, }) => <ResultS>
-  <div className='x__name'>{name}</div>
-  <div className='x__type'>{type}</div>
-  <div className='x__categories'>{categories | join (', ')}</div>
-  <div className='x__match'>
-    <div className='x__l'>{matchl}</div>
-    <div className='x__main'>{match}</div>
-    <div className='x__r'>{matchr}</div>
-  </div>
-</ResultS>
-
-const Result = ({ uuid: _uuid, name, type, categories, match, }) => <ResultS>
-  <div className='x__name'>{name}</div>
-  <div className='x__type'>{type}</div>
-  <div className='x__categories'>{categories | join (', ')}</div>
-  <div className='x__match' dangerouslySetInnerHTML={{__html: match}}/>
+const Result = ({ word, }) => <ResultS>
+  <div className='x__word'>{word}</div>
 </ResultS>
 
 const dispatchTable = {
@@ -169,14 +141,8 @@ export default container (
       [query],
     )
     const showResults = useMemo (
-      () => allV (
-        hasQuery,
-        anyV (
-          isLoading,
-          hasResults && isNotEmptyList (results),
-        ),
-      ),
-      [hasQuery, isLoading, hasResults, results],
+      () => allV (hasQuery, hasResults || isLoading),
+      [hasQuery, hasResults, isLoading],
     )
 
     useWhy ('Search', props)
@@ -209,24 +175,10 @@ export default container (
             contentsStyle={{ height: '100%', }}
           >
             {results | mapX (
-              ({ uuid, matchKey, name, type, categories, match, }, idx1) => [match] | mapX (
-                (theMatch, idx2) => <>
-                  <div key={matchKey} className='x__result-wrapper'>
-                    <Link to={'/detail/' + uuid}>
-                      {idx1 * idx2 === 0 || <div className='x__separator'/>}
-                        <div className='x__result'>
-                          <Result
-                            uuid={uuid}
-                            name={name}
-                            type={type}
-                            categories={categories}
-                            match={theMatch}
-                          />
-                        </div>
-                    </Link>
-                  </div>
-                </>
-              ),
+              (word, idx) =>
+                <div key={idx} className='x__result'>
+                  <Result word={word}/>
+                </div>
             )}
           </DropDown>
         </div>}
