@@ -49,6 +49,7 @@ const SearchS = styled.div`
       border-radius: 10px;
       cursor: pointer;
       left: 550px;
+      top: 5px;
       padding: 10px;
       background: white;
       margin-left: 20px;
