@@ -608,8 +608,8 @@ const init = ({ port, }) => express ()
   )
   | securePut (privsAdminUser) ('/user-admin/', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
-      basicAlphaNumericStringValidator ('firstName'),
-      basicAlphaNumericStringValidator ('lastName'),
+      basicStringValidator ('firstName'),
+      basicStringValidator ('lastName'),
       basicStringListValidator ('privileges')
     ], ({ res, }, email, firstName, lastName, privileges) => {
       doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
