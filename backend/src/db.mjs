@@ -174,20 +174,13 @@ export const loggedInRemove = (email) => doEither (
   ),
 )
 
-// export const privilegeAdd = (email, privilege) => doEither (
-  // () => userIdGet (email),
-  // (userId) => sqliteApi.run (
-    // SB (`insert into privilege (userId, privilege) values (?, ?)`, [ userId, privilege ]),
-  // )
-// )
-
-// export const privilegeGet = (email) => sqliteApi.getPluck (
-  // SB ('select p.privilege from user u outer left join privilege p on u.id = p.userId where u.email = ?', email)
-// )
-
-export const usersGet = () => sqliteApi.all (
-  S ('select email, firstName, lastName, (case when password is null then 0 else 1 end) as isActive from user'),
-)
+export const usersGet = () => sqliteApi.all (S (`
+  select u.email, u.firstName, u.lastName, group_concat(up.privilege) as privileges,
+  (case when password is null then 0 else 1 end) as isActive
+  from user u left join userPrivilege up
+  on u.id = up.userId
+  group by email
+`))
 
 export const privilegesGet = (email) => sqliteApi.allPluck (SB (
   `select privilege from user u join userPrivilege up
