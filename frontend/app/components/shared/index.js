@@ -220,6 +220,13 @@ const MenuItemS = styled.div`
   &:hover > .x__text {
     border-bottom: 2px solid #00000099;
   }
+  &.x--disabled {
+    opacity: 0.6;
+    cursor: inherit;
+    > .x__text {
+      border-bottom: none;
+    }
+  }
   > img {
     vertical-align: middle;
   }
@@ -249,19 +256,24 @@ const MenuItemS = styled.div`
 `
 
 export const MenuItem = ({
-  imgSrc, text='',
+  imgSrc,
+  text='',
+  disabled=false,
   // --- 'menu' | 'page'
   size='menu',
   Contents=null, contentsProps={}, ... restProps
-}) => <MenuItemS {... restProps} className={'x--size-' + size}>
-  <img src={imgSrc}/>
-  <span className='x__text'>
-    {Contents | ifNil (
-      () => text,
-      () => <Contents {... contentsProps}/>,
-    )}
-  </span>
-</MenuItemS>
+}) => {
+  const cls = clss ('x--size-' + size, disabled && 'x--disabled')
+  return <MenuItemS {... restProps} className={cls}>
+    <img src={imgSrc}/>
+    <span className='x__text'>
+      {Contents | ifNil (
+        () => text,
+        () => <Contents {... contentsProps}/>,
+      )}
+    </span>
+  </MenuItemS>
+}
 
 // --- @todo ugly -- this expects the contents to have a specific layout which is only clear after
 // looking at how it's used.

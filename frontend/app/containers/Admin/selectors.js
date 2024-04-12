@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tap,
+  tap, map, split, containsV, lets,
 } from 'stick-js/es'
 
 import { createSelector, } from 'reselect'
@@ -18,6 +18,20 @@ const { select, selectTop, selectVal, } = initSelectors (
 )
 
 export const selectUsers = selectVal ('users')
+
+export const selectUsersComponent = select (
+  'usersComponent',
+  [selectUsers],
+  (users) => users | map (
+    (data) => data | map (
+      ({ email, firstName, lastName, isActive, privileges, }) => lets (
+        () => privileges | split (',') | containsV ('admin-user'),
+        (isAdminUser) => ({ email, firstName, lastName, isActive, isAdminUser, })
+      ),
+    ),
+  ),
+)
+
 export const selectEmailRequestPending = selectVal ('emailRequestPending')
 export const selectUserAddRequest = selectVal ('userAddRequest')
 export const selectUserRemoveRequest = selectVal ('userRemoveRequest')

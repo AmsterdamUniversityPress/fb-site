@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, noop, F, T, not,
+  map, noop, F, T, not, tap,
   allAgainst,
 } from 'stick-js/es'
 
@@ -23,7 +23,7 @@ import reducer from './reducer'
 import saga from './saga'
 import {
   selectEmailRequestPending,
-  selectUsers,
+  selectUsersComponent,
   selectUserAddPending,
   selectUserAddSuccess,
   selectUserRemovePending,
@@ -98,6 +98,10 @@ const AdminS = styled.div`
       }
       > .col0 {
         border-left: 2px solid #00000022;
+        > .x__admin-user-marker {
+          width: 20px;
+          font-size: 10px;
+        }
       }
       > .col4 {
         border-right: 2px solid #00000022;
@@ -275,7 +279,7 @@ const dispatchTable = {
 }
 
 const selectorTable = {
-  users: selectUsers,
+  usersRequest: selectUsersComponent,
   emailRequestPending: selectEmailRequestPending,
   userRemovePending: selectUserRemovePending,
   userRemovePendingUsers: selectUserRemovePendingUsers,
@@ -285,7 +289,7 @@ export default container (
   ['Admin', dispatchTable, selectorTable],
   (props) => {
     const {
-      users,
+      usersRequest,
       userRemoveDispatch,
       sendWelcomeEmailDispatch,
       usersFetchDispatch,
@@ -393,9 +397,9 @@ export default container (
         />
       </div>
       <div className='x__main'>
-        {users | requestResults ({
+        {usersRequest | requestResults ({
           onError: noop,
-          onResults: (data) => <>
+          onResults: (users) => <>
             <div className='x__add-user'>
               <MenuItem
                 onClick={onClickAddUser}
@@ -415,36 +419,44 @@ export default container (
             </div>
             <div className='col3 x__header'/>
             <div className='col4 x__header'/>
-            {data | map (({ email, firstName, lastName, isActive, }) => <div className='data-row' key={email}>
-              <div className={clss ('col0', 'x__name', isActive || 'x--not-active')}>
-                {firstName} {lastName}
-              </div>
-              <div className={clss ('col1', 'x__email', isActive || 'x--not-active')}>
-                {email}
-              </div>
-              <div className='col2 x__is-active'>
-                {/* isActive ? <span className='x__yes'>✔</span> : <span className='x__no'>✘</span> */}
-              </div>
-              <div className='col3 x__buttons'>
-                <div className='x__buttons-flex'>
-                  <MenuItem
-                    onClick={() => onClickSendMail (email)}
-                    text='welkomst e-mail opnieuw versturen'
-                    imgSrc={iconUpdate}
-                  />
-                  <MenuItem
-                    onClick={() => onClickRemove (email)}
-                    text='gebruiker verwijderen'
-                    imgSrc={iconRemove}
-                  />
+            {users | map (({ email, firstName, lastName, isActive, isAdminUser, }) => {
+              const buttonsDisabled = isAdminUser
+              return <div className='data-row' key={email}>
+                <div className={clss ('col0', 'x__name', isActive || 'x--not-active')}>
+                  <span className='x__admin-user-marker'>
+                  {isAdminUser && '★'}
+                  </span>
+                  {firstName} {lastName}
+                </div>
+                <div className={clss ('col1', 'x__email', isActive || 'x--not-active')}>
+                  {email}
+                </div>
+                <div className='col2 x__is-active'>
+                  {/* isActive ? <span className='x__yes'>✔</span> : <span className='x__no'>✘</span> */}
+                </div>
+                <div className='col3 x__buttons'>
+                  <div className='x__buttons-flex'>
+                    <MenuItem
+                      disabled={buttonsDisabled}
+                      onClick={() => buttonsDisabled || onClickSendMail (email)}
+                      text='welkomst e-mail opnieuw versturen'
+                      imgSrc={iconUpdate}
+                    />
+                    <MenuItem
+                      disabled={buttonsDisabled}
+                      onClick={() => buttonsDisabled || onClickRemove (email)}
+                      text='gebruiker verwijderen'
+                      imgSrc={iconRemove}
+                    />
+                  </div>
+                </div>
+                <div className='col4 x__spinner'>
+                  <span>
+                    {pending (email) && <Spinner size={20}/>}
+                  </span>
                 </div>
               </div>
-              <div className='col4 x__spinner'>
-                <span>
-                  {pending (email) && <Spinner size={20}/>}
-                </span>
-              </div>
-            </div>
+            }
             )}
           </>
         })}
