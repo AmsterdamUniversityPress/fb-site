@@ -52,6 +52,7 @@ import {
   retryPDefaultMessage,
   toListCollapseNil,
   mapX, flatten,
+  thenWhenTrue,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -433,6 +434,18 @@ const getWelcomeOrResetLink = (stub, email, token) => join ('/', [
   'https://' + fbDomain, stub, email, encodeURIComponent (token),
 ])
 
+const getPasswordChangedEmail = (email, _) => {
+  const contents = [
+    'Je wachtwoord voor FB Online is zojuist veranderd.',
+    'Je gebruikersnaam is: ' + email,
+    'We tonen het nieuwe wachtwoord niet. Als je je wachtwoord niet zelf hebt veranderd via onze interface, neem dan gelijk contact op met ...',
+  ]
+  return [
+    'Je wachtwoord voor FB Online is veranderd',
+    ... reduceEmail (contents),
+  ]
+}
+
 const getWelcomeEmail = (email, token) => {
   const link = getWelcomeOrResetLink ('init-password', email, token)
   const contents = [
@@ -472,23 +485,30 @@ const getResetEmail = (email, token) => {
   ]
 }
 
-const sendWelcomeOrResetEmail = (email, type) => {
-  const token = crypto.randomBytes (activateTokenLength).base64Slice ()
-    // --- slash (%2F) can occur in base64 but causes Apache to give a 404,
-    // so for now we manually replace slash with a different character
-    // (@todo check AllowEncodedSlashes directive)
-    .replace (/\//g, 'A')
-  const tokenEncrypted = encrypt (token)
-  const [subject, text, html] = type | lookupOnOrDie (
-    'sendWelcomeOrResetEmail(): Invalid type: ' + type,
+const mkActivateToken = () => lets (
+  () => crypto.randomBytes (activateTokenLength).base64Slice (),
+  // --- slash (%2F) can occur in base64 but causes Apache to give a 404, so
+  // for now we manually replace slash with a different character (@todo
+  // check AllowEncodedSlashes directive)
+  (token) => token.replace (/\//g, 'A'),
+  (_, token) => encrypt (token),
+  (_, token, tokenEncrypted) => [token, tokenEncrypted],
+)
+
+const sendInfoEmailTryOnce = (email, type) => {
+  const [getEmail, storeToken, [token, tokenEncrypted]] = type | lookupOnOrDie (
+    'sendInfoEmailTryOnce (): Invalid type: ' + type,
     {
-      welcome: getWelcomeEmail (email, token),
-      reset: getResetEmail (email, token),
+      'password-changed': [getPasswordChangedEmail, false, [null, null]],
+      reset: [getResetEmail, true, mkActivateToken ()],
+      welcome: [getWelcomeEmail, true, mkActivateToken ()],
     },
   )
+  const [subject, text, html] = getEmail (email, token)
 
   return startP ()
-  | then (() => redisSetExpire (activateTokenExpireSecs) (
+  // --- on a retry, this will overwrite the previous one, so that's fine.
+  | thenWhenTrue (storeToken) (() => redisSetExpire (activateTokenExpireSecs) (
     redisKey ('activate', email), tokenEncrypted),
   )
   | then (() => emailTransporter.sendMail ({
@@ -500,6 +520,18 @@ const sendWelcomeOrResetEmail = (email, type) => {
   }))
   | recover (rejectP << decorateRejection ('Unable to send welcome email: '))
 }
+
+const sendInfoEmail = (email, type) => retryPDefaultMessage (
+  'Unable to send email',
+  warn,
+  // --- @todo string/int
+  lookupOnOr (() => null, {
+    0: 100,
+    1: 500,
+    2: 1000,
+  }),
+  () => sendInfoEmailTryOnce (email, type),
+)
 
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
@@ -538,6 +570,7 @@ const init = ({ port, }) => express ()
       return res | sendStatus (200, { results, })
     },
   ))
+  // --- @todo should we also require a token here?
   | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
       basicEmailValidator ('email'),
       basicStringValidator ('oldPassword'),
@@ -556,7 +589,14 @@ const init = ({ port, }) => express ()
         () => '/user: update password failed: ',
         () => updateUserPasswordSync (email, newPassword),
       )
-      return res | sendStatus (200, null)
+      return sendInfoEmail (email, 'password-changed')
+      | then (() => res | sendStatus (200, null))
+      | recover (
+        (e) => {
+          warn ('/user: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
+          return res | sendStatus (201, null)
+        },
+      )
     },
   ))
   | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
@@ -573,17 +613,7 @@ const init = ({ port, }) => express ()
       basicStringListValidator ('privileges')
     ], ({ res, }, email, firstName, lastName, privileges) => {
       doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
-      return retryPDefaultMessage (
-        'Unable to send email',
-        warn,
-        // --- @todo string/int
-        lookupOnOr (() => null, {
-          0: 100,
-          1: 500,
-          2: 1000,
-        }),
-        () => sendWelcomeOrResetEmail (email, 'welcome'),
-      )
+      return sendInfoEmail (email, 'welcome')
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
         warn (decorateRejection ('Error with /user-admin: ', e))
@@ -618,8 +648,14 @@ const init = ({ port, }) => express ()
             updateUserPassword (email, password),
             redisDelete (redisKey ('activate', email))
           ])
-          | then (() => res | sendStatus (200, null))
           | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
+          | then (() => sendInfoEmail (email, 'password-changed')
+            | then (() => res | sendStatus (200, null))
+            | recover ((e) => {
+              warn ('/user/reset-password: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
+              res | sendStatus (201, null)
+            })
+          )
         },
         () => userError ('No match for token'),
       ))
@@ -630,8 +666,7 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
-      // --- @todo retry
-      return sendWelcomeOrResetEmail (to, 'welcome')
+      return sendInfoEmail (to, 'welcome')
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
         warn (decorateRejection ('Error with /user/send-welcome-email: ', e))
@@ -643,8 +678,7 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
-      // --- @todo retry
-      return sendWelcomeOrResetEmail (to, 'reset')
+      return sendInfoEmail (to, 'reset')
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
         warn (decorateRejection ('Error with /user/reset-welcome-email: ', e))
