@@ -125,7 +125,7 @@ export default component (
           () => onSelectWithKeyboard (),
         ),
       ]),
-      [canKeyboard, suggestions, onSelectWithKeyboard, selectedIdx],
+      [canKeyboard, suggestions, onSelectWithKeyboard],
     )
     const onBlur = useCallbackConst (
       (event) => {
@@ -142,6 +142,7 @@ export default component (
         suggestions,
       )
     }, [enteredValue, suggestions])
+    // --- we do not want to depend on `valueForIdx` here, even though the linter complains.
     useEffect (() => {
       setValue (valueForIdx (selectedIdx))
     }, [selectedIdx])

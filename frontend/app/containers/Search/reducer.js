@@ -3,10 +3,8 @@ import {
   assoc,
 } from 'stick-js/es'
 
-import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alleycat-js/es/fetch'
-import { composeManyRight, } from 'alleycat-js/es/general'
-
 import { Just, Nothing, } from 'alleycat-js/es/bilby'
+import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alleycat-js/es/fetch'
 import { trim, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
