@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  invoke, whenOk,
+  invoke, whenOk, prop,
 } from 'stick-js/es'
 
 import React, { useCallback, useRef, useState, } from 'react'
@@ -39,17 +39,17 @@ const InputBaseMixin = `
 
 const InputS = styled.input`
   ${InputBaseMixin}
-  ${({ padding, }) => `
+  ${({ padding, }) => padding | whenOk (() => `
     :focus {
       padding: calc(${padding} - 1px);
     }
-  `}
+  `)}
 `
 
 const InputWrapperS = styled.div`
   position: relative;
   display: inline-block;
-  >.x__icon {
+  > .x__icon {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -66,7 +66,24 @@ const InputWrapperS = styled.div`
       right: 15px;
     }
   }
-  >.x__input {
+  .x__close-icon {
+    position: absolute;
+    display: inline-block;
+    display: flex;
+    align-items: center;
+    right: 20px;
+    font-size: 150%;
+    cursor: pointer;
+    height: 100%;
+    overflow: hidden;
+    opacity: 0.5;
+    &:hover {
+      opacity: 1;
+    }
+    > span {
+    }
+  }
+  > .x__input {
   }
 `
 
@@ -84,32 +101,50 @@ const InputWrapper = invoke (() => {
     search: <img src={searchIcon}/>,
   }
   return (props) => {
-    const { withIcon=[], theRef, height, width, padding, border, style={}, inputStyle={}, } = props
+    const {
+      withIcon=[], withCloseIcon=false, inputRef: inputRefProp=null, style={}, width,
+      onChange=noop, onKeyDown=noop, onBlur=noop,
+      inputProps={},
+    } = props
+    const { style: inputStyle={}, ... restInputProps } = inputProps
     const [icon, where] = withIcon
     const hasIcon = withIcon | isNotEmptyList
+    const inputRef = useRef (null)
+    const theInputRef = inputRefProp ?? inputRef
     const onClickIcon = useCallbackConst (() => {
-      theRef | whenOk (({ current, }) => current.focus ())
+      theInputRef | whenOk (({ current, }) => current.focus ())
+    })
+    const onClickClear = useCallbackConst (() => {
+      theInputRef.current.value = ''
     })
     const clsIcon = clss (
       'x__icon',
       wheres [where] || null,
     )
     const clsInput = 'x__input'
+    inputStyle.padding ??= '16px'
     return <InputWrapperS style={{ width, ... style, }}>
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
         {icons [icon] || null}
       </div>}
+      {withCloseIcon && <div className='x__close-icon' onClick={onClickClear}>
+        <span>
+          ×
+        </span>
+      </div>}
       <div className={clsInput}>
         <InputS
-          {...props}
-          ref={theRef}
-          padding={padding}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onBlur={onBlur}
+          {... restInputProps}
+          ref={theInputRef}
+          // --- this is for avoiding a weird jump / blue outline on mobile. It probably won't work
+          // right if the caller gives varying values for paddingLeft, paddingRight, etc.
+          padding={inputStyle.padding}
           style={{
-            height,
-            padding,
-            border,
-            ... styles [where],
             ... inputStyle,
+            ... styles [where],
           }}
         />
       </div>

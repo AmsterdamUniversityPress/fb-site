@@ -158,17 +158,19 @@ export default container (
           Input={Input}
           inputProps={{
             withIcon: ['search', 'left'],
-            height: '100%',
-            padding: '16px',
+            withCloseIcon: true,
             style: { display: 'inline-block', },
-            inputStyle: {
-              fontSize: '25px',
-              border: '2px solid black',
-              borderRadius: '1000px',
-              background: 'white',
+            inputProps: {
+              style: {
+                height: '100%',
+                fontSize: '25px',
+                border: '2px solid black',
+                borderRadius: '1000px',
+                background: 'white',
+              },
             },
           }}
-          onChange={(value) => onChange (value)}
+          onChange={(event) => onChange (event)}
           onSelect={(value) => alert ('submit! ' + value)}
           suggestions={results}
         />
