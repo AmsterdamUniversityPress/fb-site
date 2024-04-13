@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  invoke, whenOk, prop,
+  invoke, whenOk, prop, noop, path,
 } from 'stick-js/es'
 
 import React, { useCallback, useRef, useState, } from 'react'
@@ -8,11 +8,11 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
-import {} from 'alleycat-js/es/predicate'
+import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, withDisplayName, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
-import { mediaPhone, mediaPhoneOnly, mediaTablet, mediaDesktop, isNotEmptyList, } from '../../../common'
+import { mediaPhone, mediaPhoneOnly, mediaTablet, mediaDesktop, isNotEmptyList, isNotEmptyString, } from '../../../common'
 
 import config from '../../../config'
 
@@ -102,8 +102,8 @@ const InputWrapper = invoke (() => {
   }
   return (props) => {
     const {
-      withIcon=[], withCloseIcon=false, inputRef: inputRefProp=null, style={}, width,
-      onChange=noop, onKeyDown=noop, onBlur=noop,
+      withIcon=[], showCloseIcon=false, inputRef: inputRefProp=null, style={}, width,
+      onBlur=noop, onChange=noop, onClear=noop, onKeyDown=noop,
       inputProps={},
     } = props
     const { style: inputStyle={}, ... restInputProps } = inputProps
@@ -111,12 +111,17 @@ const InputWrapper = invoke (() => {
     const hasIcon = withIcon | isNotEmptyList
     const inputRef = useRef (null)
     const theInputRef = inputRefProp ?? inputRef
-    const onClickIcon = useCallbackConst (() => {
-      theInputRef | whenOk (({ current, }) => current.focus ())
-    })
-    const onClickClear = useCallbackConst (() => {
+    const onClickIcon = useCallback (() => {
+      theInputRef.current | whenOk ((input) => input.focus ())
+    }, [theInputRef])
+    const onClickClear = useCallback (() => {
       theInputRef.current.value = ''
-    })
+      onClear ()
+    }, [theInputRef, onClear])
+    const showTheCloseIcon = allV (
+      showCloseIcon,
+      theInputRef.current | whenOk (prop ('value') >> isNotEmptyString)
+    )
     const clsIcon = clss (
       'x__icon',
       wheres [where] || null,
@@ -127,7 +132,7 @@ const InputWrapper = invoke (() => {
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
         {icons [icon] || null}
       </div>}
-      {withCloseIcon && <div className='x__close-icon' onClick={onClickClear}>
+      {showTheCloseIcon && <div className='x__close-icon' onClick={onClickClear}>
         <span>
           ×
         </span>

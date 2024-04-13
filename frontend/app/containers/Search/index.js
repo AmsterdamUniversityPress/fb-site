@@ -123,10 +123,15 @@ export default container (
   (props) => {
     const { queryUpdatedDispatch, results: resultsRequest, } = props
     const [query, setQuery] = useState ('')
-    const onChange = useCallbackConst (targetValue >> trim >> effects ([
+    const onChangeValue = useCallbackConst (effects ([
       setQuery,
       queryUpdatedDispatch,
     ]))
+    const onChange = useCallbackConst (targetValue >> trim >> onChangeValue)
+    const onClear = useCallbackConst (() => {
+      onChangeValue ('')
+      setSuggestions ([])
+    })
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -134,6 +139,8 @@ export default container (
       () => resultsRequest | requestResults ({ onLoading: noop, }),
       [resultsRequest],
     )
+    const [suggestions, setSuggestions] = useState (results)
+    useEffect (() => { setSuggestions (results) }, [results])
     const hasResults = ok (results) && not (isEmptyList (results))
     const isLoading = useMemo (
       () => resultsRequest | requestIsLoading,
@@ -158,7 +165,7 @@ export default container (
           Input={Input}
           inputProps={{
             withIcon: ['search', 'left'],
-            withCloseIcon: true,
+            showCloseIcon: true,
             style: { display: 'inline-block', },
             inputProps: {
               style: {
@@ -171,8 +178,10 @@ export default container (
             },
           }}
           onChange={(event) => onChange (event)}
+          onClear={onClear}
           onSelect={(value) => alert ('submit! ' + value)}
-          suggestions={results}
+          // suggestions={results}
+          suggestions={suggestions}
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>

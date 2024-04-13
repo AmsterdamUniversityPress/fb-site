@@ -74,6 +74,7 @@ export default component (
       selectedSuggestionStyle={},
       onBlur: onBlurProp=noop,
       onChange: onChangeProp=noop,
+      onClear=noop,
       onSelect: onSelectProp=noop,
     } = props
     const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
@@ -157,6 +158,7 @@ export default component (
     return <InputWithAutocompleteS>
       <Input {... inputProps}
         onChange={onChangeInput}
+        onClear={onClear}
         onKeyDown={onKeyDownInput}
         onBlur={onBlur}
         value={value}
