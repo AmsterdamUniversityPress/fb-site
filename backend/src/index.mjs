@@ -371,8 +371,8 @@ const search = (max, query) => esSearch (query)
     const ret = []
     let idx = -1
     hits | take (max) | each ((result) => {
-      const { _source: fonds, _id: uuid, highlight, } = result
-      const { naam_organisatie: name, type_organisatie: type, categories, } = fonds
+      const { _source: fonds, highlight, } = result
+      const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
       const match = highlight | values | flatten (1)
       match | each ((theMatch) => ret.push ({
         matchKey: ++idx,
