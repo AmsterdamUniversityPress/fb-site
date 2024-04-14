@@ -91,6 +91,7 @@ const colors = configColors.gets (
   'highlight', 'highlightAlpha',
   'highlight2Alpha', 'highlight2Alpha',
   'highlight3Alpha', 'highlight3Alpha',
+  'highlight4Alpha', 'highlight4Alpha',
 )
 
 const Spinner = spinner ('comet')
@@ -292,7 +293,7 @@ const Header = ({ isLoggedIn, }) => <HeaderS>
 const LogoS = styled.div`
   border: 1px solid black;
   padding: 20px;
-  background: ${colors.highlight3Alpha};
+  background: ${colors.highlight4Alpha};
   &, .x__background {
     border-radius: 7px;
   }
@@ -1065,7 +1066,7 @@ const ContentsS = styled.div`
       position: relative;
       left: 50%;
       transform: translateX(-50%);
-      width: 450px;
+      width: 600px;
     }
   }
 `

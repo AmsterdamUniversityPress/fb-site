@@ -113,5 +113,7 @@ export default {
     highlight2Alpha: '#ffc4c4dd',
     highlight3: '#fff88c',
     highlight3Alpha: '#fff88cdd',
+    highlight4: '#efefff',
+    highlight4Alpha: '#efefffdd',
   },
 }
