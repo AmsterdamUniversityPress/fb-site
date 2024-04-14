@@ -22,7 +22,7 @@ import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoHelvetica from './images/fb-logo-helvetica.svg'
-import imageOilPaints from './images/oil-paints.jpg'
+import imageBackground from './images/background.jpg'
 import imageUitgave from './images/uitgave.svg'
 
 // const debugRenders = envIsDev
@@ -97,7 +97,7 @@ export default {
     update: iconUpdate,
   },
   images: {
-    background: imageOilPaints,
+    background: imageBackground,
     fonds: imageEyeWall,
     logo: imageLogoHelvetica,
     uitgave: imageUitgave,
