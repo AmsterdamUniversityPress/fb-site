@@ -230,7 +230,7 @@ const User = container (
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} height='40px' onClick={onClick}/>
       <div className='x__dropdown-wrapper'>
-        <DropDown open={open} contentsStyle={{ right: '0px', }}>
+        <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', }}>
           {invoke (getUserType () | lookupOnOrDie ('Bad user type') ({
             institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
             user: () => <>
@@ -1023,16 +1023,12 @@ const FondsMainS = styled.div`
     margin: auto;
     flex: 0 0 120px;
     text-align: center;
-    position: relative;
-    z-index: 1;
   }
   > .x__main {
     // --- @todo
     flex: 0 0 calc(100vh - 120px);
     // overflow-y: auto;
     margin: auto;
-    position: relative;
-    z-index: 2;
   }
 `
 

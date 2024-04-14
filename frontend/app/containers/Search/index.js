@@ -189,8 +189,7 @@ export default container (
         {showResults && <div className='x__results'>
           <DropDown
             open={false}
-            wrapperStyle={{ minHeight: '300px', }}
-            contentsStyle={{ height: '100%', }}
+            contentsStyle={{ minHeight: '300px', height: '100%', }}
           >
             {results | mapX (
               (word, idx) =>

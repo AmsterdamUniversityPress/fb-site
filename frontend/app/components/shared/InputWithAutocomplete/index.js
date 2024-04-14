@@ -166,8 +166,7 @@ export default component (
       <div className='x__dropdown-wrapper'>
         <DropDown
           open={dropdownOpen}
-          wrapperStyle={{ minHeight: '300px', }}
-          contentsStyle={{ height: '100%', padding: '0px', paddingTop: '10px', paddingBottom: '10px', }}
+          contentsStyle={{ minHeight: '300px', height: '100%', padding: '0px', paddingTop: '10px', paddingBottom: '10px', }}
         >
           {suggestions | mapX ((result, idx) => <Suggestion
             key={idx}
