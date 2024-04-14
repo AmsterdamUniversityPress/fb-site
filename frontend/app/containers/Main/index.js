@@ -858,7 +858,7 @@ const Fondsen = container (
       />,
     )}
     {fondsen | requestResults ({
-      spinnerProps: { color: colors.highlightAlpha, },
+      spinnerProps: { color: 'white', size: 60, delayMs: 400, },
       onError: noop,
       onResults: (results) => <>
         {results | map (

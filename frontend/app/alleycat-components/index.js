@@ -91,19 +91,32 @@ export const alleyCatFooter = condS ([
 const SpinnerWrapperS = styled.div`
   width: 10px;
   display: inline-block;
+  @keyframes ac-spinner-wrapper {
+    0% {
+      opacity: 0;
+    }
+    99% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  animation-duration: ${prop ('delayMs')}ms;
+  animation-name: ac-spinner-wrapper;
   ${({ keepVisible, spinning, }) => lets (
     () => spinning || keepVisible,
-    (show) => show ? 'opacity: 1;' : 'opacity: 0;',
+    (show) => show ? 'visibility: visible;' : 'visibility: hidden;',
   )}
 `
 
-const SpinnerTextblocks = ({ spinning=true, keepVisible=false, ... restProps }) =>
-  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible}>
+const SpinnerTextblocks = ({ spinning=true, keepVisible=false, delayMs=0, ... restProps }) =>
+  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible} delayMs={delayMs}>
     <SpinnerTextblocksC type='textblocks' spinning={spinning} {... restProps}/>
   </SpinnerWrapperS>
 
-const SpinnerComet = ({ spinning=true, keepVisible=false, ... restProps }) =>
-  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible}>
+const SpinnerComet = ({ spinning=true, keepVisible=false, delayMs=100, ... restProps }) =>
+  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible} delayMs={delayMs}>
     <SpinnerCometC spinning={spinning} {... restProps}/>
   </SpinnerWrapperS>
 
