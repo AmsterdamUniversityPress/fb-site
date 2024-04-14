@@ -5,7 +5,7 @@
         "app"
     ],
     "dependencies": {
-        "alleycat-frontend": "^0.3.20",
+        "alleycat-frontend": "^0.3.21",
         "react-modal": "^3.16.1"
     }
 }

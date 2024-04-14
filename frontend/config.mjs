@@ -7,4 +7,7 @@ export default {
       pathRewrite: { '^/api': '' },
     }],
   ],
+  devServerClient: {
+    webSocketURL: 'wss://fb-dev.alleycat.cc/ws',
+  },
 }
