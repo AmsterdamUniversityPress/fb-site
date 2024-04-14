@@ -525,11 +525,17 @@ const sendInfoEmail = (email, type) => retryPDefaultMessage (
   () => sendInfoEmailTryOnce (email, type),
 )
 
+const cacheExpireSecs = 10 * 3600
+
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
   | use (cors (corsOptions))
   | useAuthMiddleware
+  | use ((_req, res, next) => {
+    res.set ('Cache-control', cacheExpireSecs | sprintf1 ('max-age=%d'))
+    next ()
+  })
   | secureGet (privsUser) ('/fondsen', getAndValidateQuery ([
       basicValidator ('beginIdx', isNonNegativeInt, Number),
       basicValidator ('number', isPositiveInt, Number),
