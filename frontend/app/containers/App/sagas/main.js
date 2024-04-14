@@ -7,7 +7,7 @@ import {
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
-import { requestCompleteFold, requestJSONStdOpts, noParseCodes, } from 'alleycat-js/es/fetch'
+import { requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
 import { between, error, logWith, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 import { cata, } from 'alleycat-js/es/bilby'

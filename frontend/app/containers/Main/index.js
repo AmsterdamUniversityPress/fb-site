@@ -1021,12 +1021,12 @@ const FondsMainS = styled.div`
   > .x__search {
     width: 1000px;
     margin: auto;
-    flex: 0 0 120px;
+    flex: 0 0 104px;
     text-align: center;
   }
   > .x__main {
     // --- @todo
-    flex: 0 0 calc(100vh - 120px);
+    flex: 0 0 calc(100vh - 104px);
     // overflow-y: auto;
     margin: auto;
   }
