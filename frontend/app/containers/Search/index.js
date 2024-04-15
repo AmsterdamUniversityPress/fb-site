@@ -163,11 +163,12 @@ export default container (
       <div className='x__wrapper'>
         <InputWithAutocomplete
           Input={Input}
-          inputProps={{
+          inputWrapperProps={{
             withIcon: ['search', 'left'],
             showCloseIcon: true,
             style: { display: 'inline-block', },
             inputProps: {
+              autoFocus: true,
               style: {
                 height: '100%',
                 fontSize: '25px',

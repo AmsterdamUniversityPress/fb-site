@@ -66,7 +66,7 @@ export default component (
   ['InputWithAutocomplete', null],
   (props) => {
     const {
-      Input=InputDefault, inputProps={},
+      Input=InputDefault, inputWrapperProps={},
       value: valueProp='',
       suggestions: suggestionsProp=null,
       closeOnSelected=false,
@@ -156,7 +156,8 @@ export default component (
     useEffect (() => { setValue (valueProp) }, [valueProp])
     useWhy ('InputWithAutocomplete', props)
     return <InputWithAutocompleteS>
-      <Input {... inputProps}
+      <Input
+        {... inputWrapperProps}
         onChange={onChangeInput}
         onClear={onClear}
         onKeyDown={onKeyDownInput}
