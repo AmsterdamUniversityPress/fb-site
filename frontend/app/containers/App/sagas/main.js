@@ -281,7 +281,6 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 }
 
 function *s_searchFetch (query) {
-  alert ('submit from saga! ' + query)
   yield call (doApiCall, {
     url: '/api/search/search/' + query,
     continuation: EffAction (a_searchFetchCompleted),

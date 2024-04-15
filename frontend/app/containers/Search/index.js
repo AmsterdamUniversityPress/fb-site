@@ -139,9 +139,8 @@ export default container (
     const onSelect = useCallback (() => {
       searchFetchDispatch (query)
       navigate ('/searchResults')
-      setQuery ('')
-      queryUpdatedDispatch ('')
-    }, [query, setQuery, queryUpdatedDispatch, searchFetchDispatch])
+      onClear ()
+    }, [onClear, query, searchFetchDispatch])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 

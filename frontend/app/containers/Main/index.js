@@ -4,6 +4,7 @@ import {
   not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
+  sprintfN,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -878,8 +879,28 @@ const Fondsen = container (
 
 const SearchResultsS = styled.div`
   background: white;
-  text-align: center;
+  width: 80%;
   min-width: 100px;
+  > .x__wrapper {
+    padding: 3%;
+    > .x__name {
+      font-weight: bold;
+      font-size: 25px;
+      display: inline-block;
+    }
+    > .x__type {
+      display: inline-block;
+      font-weight: bold;
+      font-size: 25px;
+    }
+    > .x__match {
+      text-align: centre;
+      > .highlight {
+        background: yellow;
+      }
+    }
+
+  }
 `
 
 const SearchResults = container (
@@ -887,17 +908,30 @@ const SearchResults = container (
     searchResults: selectSearchResults,
   }],
   ({ searchResults, }) => {
-    return  <SearchResultsS>
-      {searchResults | requestResults ({
-        spinnerProps: { color: 'white', size: 60, delayMs: 400, },
-        onError: noop,
-        onResults: (results) => <>
-          {results | map (
-            ({ uuid, }) => <div key={uuid}>{uuid}</div>
-          )}
-        </>
-      })}
-    </SearchResultsS>
+    return <>
+      <div className='x__search'>
+        <Search/>
+      </div>
+      <SearchResultsS>
+        {searchResults | requestResults ({
+          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+            onError: noop,
+            onResults: (results) => <>
+              {results | map (
+                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
+                  <div className='x__name'>{name}</div>
+                  {/* @todo is this a good way to get some spaces here? */}
+                  <div className='x__type'>&nbsp;{[type] | sprintfN ("(%s)")}</div>
+                  <div
+                    className='x__match'
+                    dangerouslySetInnerHTML={{__html: match}}
+                  />
+                </div>
+              )}
+            </>
+        })}
+      </SearchResultsS>
+    </>
   }
 )
 
