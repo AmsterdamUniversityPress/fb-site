@@ -16,6 +16,7 @@ export const initialState = {
   results: RequestInit,
 }
 
+// minor: this value is already trimmed in the component.
 const reducerTable = makeReducer (
   queryUpdated, (query) => assoc ('query', query | trim | ifIsEmptyString (
     () => Nothing, Just,

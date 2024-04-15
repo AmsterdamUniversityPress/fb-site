@@ -26,6 +26,9 @@ function *s_execute (query) {
   })
 }
 
+// s_queryUpdated listens to a_queryUpdated, but selects the value queryMb from the reducer. The
+// reducer also listens to a_queryUpdated, so how do we know the value in the reducer is updated
+// before this function is executed?
 function *s_queryUpdated (_query) {
   const queryMb = yield select (selectQuery)
   yield queryMb | foldWhenJust (
