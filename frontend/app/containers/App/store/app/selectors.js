@@ -123,3 +123,9 @@ export const selectHasPrivilegeAdminUser = select (
   [selectPrivilegesSet],
   (privs) => privs.has ('admin-user'),
 )
+
+export const selectSearchResults = select (
+  'searchResults',
+  [],
+  (searchResults) => searchResults | map (ok)
+)

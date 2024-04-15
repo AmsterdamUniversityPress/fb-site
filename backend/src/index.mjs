@@ -554,7 +554,7 @@ const init = ({ port, }) => express ()
       ),
     ),
   ))
-  | secureGet (privsUser) ('/search/autocomplete-search/:query', getAndValidateRequestParams ([
+  | secureGet (privsUser) ('/search/search/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
     ], async ({ res }, query) => {
       const results = await search (3, query)

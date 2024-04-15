@@ -79,6 +79,16 @@ export const usersFetchCompleted = action (
   'usersFetchCompleted',
 )
 
+export const searchFetch = action (
+  (query) => query,
+  'searchFetch',
+)
+
+export const searchFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'searchFetchCompleted',
+)
+
 export const sendWelcomeEmail = action (
   (email) => email,
   'sendWelcomeEmail',

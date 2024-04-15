@@ -6,6 +6,10 @@ import {
 import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
+export const querySelected = action (
+  (query) => query,
+  'querySelected',
+)
 export const queryUpdated = action (
   (query) => query,
   'queryUpdated',

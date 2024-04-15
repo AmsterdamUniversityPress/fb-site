@@ -24,6 +24,8 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   resetPassword as a_resetPassword,
+  searchFetch as a_searchFetch,
+  searchFetchCompleted as a_searchFetchCompleted,
   sendResetEmail as a_sendResetEmail,
   sendResetEmailCompleted as a_sendResetEmailCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
@@ -278,6 +280,15 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
   )
 }
 
+function *s_searchFetch (query) {
+  alert ('submit from saga! ' + query)
+  yield call (doApiCall, {
+    url: '/api/search/search/' + query,
+    continuation: EffAction (a_searchFetchCompleted),
+    oops: toastError,
+  })
+}
+
 function *s_sendResetEmail (email) {
   yield call (sendEmail, email, 'reset')
 }
@@ -370,6 +381,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_resetPassword, s_resetPassword),
+    saga (takeLatest, a_searchFetch, s_searchFetch),
     saga (takeLatest, a_sendResetEmail, s_sendResetEmail),
     saga (takeLatest, a_sendResetEmailCompleted, s_sendResetEmailCompleted),
     saga (takeEvery,  a_sendWelcomeEmail, s_sendWelcomeEmail),

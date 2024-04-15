@@ -41,6 +41,7 @@ import {
 import {
   selectFondsen,
   selectNumFondsen,
+  selectSearchResults,
 } from '../App/store/domain/selectors'
 import {
   selectPasswordUpdated,
@@ -875,6 +876,31 @@ const Fondsen = container (
   </FondsenS>,
 )
 
+const SearchResultsS = styled.div`
+  background: white;
+  text-align: center;
+  min-width: 100px;
+`
+
+const SearchResults = container (
+  ['SearchResults', {}, {
+    searchResults: selectSearchResults,
+  }],
+  ({ searchResults, }) => {
+    return  <SearchResultsS>
+      {searchResults | requestResults ({
+        spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+        onError: noop,
+        onResults: (results) => <>
+          {results | map (
+            ({ uuid, }) => <div key={uuid}>{uuid}</div>
+          )}
+        </>
+      })}
+    </SearchResultsS>
+  }
+)
+
 const UserPage = container (
   ['UserPage',
     {
@@ -1079,6 +1105,7 @@ const Contents = container (
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email ?? ''}/>],
+      searchresults: [true, () => <SearchResults/>],
       user: [true, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],

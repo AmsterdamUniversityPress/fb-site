@@ -10,6 +10,7 @@ import { Link, } from 'react-router-dom'
 import { FormattedMessage, } from 'react-intl'
 import { connect, useDispatch, } from 'react-redux'
 import { createStructuredSelector, } from 'reselect'
+import { useNavigate, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -23,6 +24,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 import { createReducer, } from '../../redux'
 
 import { queryUpdated, } from './actions'
+import { searchFetch } from '../App/actions/main'
 import reducer from './reducer'
 import saga from './saga'
 import { selectResults, } from './selectors'
@@ -112,6 +114,7 @@ const Result = ({ word, }) => <ResultS>
 
 const dispatchTable = {
   queryUpdatedDispatch: queryUpdated,
+  searchFetchDispatch: searchFetch,
 }
 
 const selectorTable = {
@@ -121,7 +124,7 @@ const selectorTable = {
 export default container (
   ['Search', dispatchTable, selectorTable],
   (props) => {
-    const { queryUpdatedDispatch, results: resultsRequest, } = props
+    const { queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
     const [query, setQuery] = useState ('')
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
@@ -132,6 +135,13 @@ export default container (
       onChangeValue ('')
       setSuggestions ([])
     })
+    const navigate = useNavigate ()
+    const onSelect = useCallback (() => {
+      searchFetchDispatch (query)
+      navigate ('/searchResults')
+      setQuery ('')
+      queryUpdatedDispatch ('')
+    }, [query, setQuery, queryUpdatedDispatch, searchFetchDispatch])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -180,7 +190,7 @@ export default container (
           }}
           onChange={(event) => onChange (event)}
           onClear={onClear}
-          onSelect={(value) => alert ('submit! ' + value)}
+          onSelect={onSelect}
           // suggestions={results}
           suggestions={suggestions}
         />

@@ -12,9 +12,11 @@ import {
   fondsenFetch,
   fondsenFetchCompleted,
   halt,
+  searchFetch,
+  searchFetchCompleted,
 } from '../../actions/main'
 
-import { reducer, } from '../../../../common'
+import { rcompleteToResults, reducer, } from '../../../../common'
 
 export const initialState = {
   // --- `error=true` means the reducer is totally corrupted and the app should halt.
@@ -24,6 +26,7 @@ export const initialState = {
   // at the beginning of each request, because we don't want the pagination component (which selects
   // on this) to flicker.
   numFondsen: Nothing,
+  searchResults: RequestInit,
 }
 
 const reducerTable = makeReducer (
@@ -42,6 +45,15 @@ const reducerTable = makeReducer (
       RequestCompleteError: id,
       RequestCompleteSuccess: (results) => always (Just (results.metadata.totalAvailable)),
     })),
+  ),
+  searchFetch, () => assoc (
+    'searchResults', RequestLoading (Nothing),
+  ),
+  searchFetchCompleted, (rcomplete) => assoc (
+    'searchResults', rcomplete | cata ({
+      RequestCompleteError: (e) => RequestError (e),
+      RequestCompleteSuccess: (results) => RequestResults (results)
+    }),
   ),
 )
 
