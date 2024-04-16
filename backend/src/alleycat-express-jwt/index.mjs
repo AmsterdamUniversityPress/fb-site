@@ -316,8 +316,11 @@ const init = ({
   // --- note that the cookie must be cleared with exactly the same options as it was set with,
   // meaning that if for some reason /login and /logout are not both http or both https (during
   // development for example), the cookie won't get cleared and there may be bizarre results.
-  const doCookie = (req) => lets (
-    () => getCookieOptions (req.secure, cookieMaxAgeMs),
+  const doCookie = (_req) => lets (
+    // --- we always set 'secure' and don't currently provide a way to
+    // change this (note that depending on `req.secure` is confusing because
+    // the proxy may be http while the app URL is https.
+    () => getCookieOptions (true, cookieMaxAgeMs),
     (cookieOptions) => ({
       clear: (res) => res.clearCookie ('jwt', cookieOptions),
       set: (jwt) => (res) => res.cookie ('jwt', jwt, cookieOptions),
