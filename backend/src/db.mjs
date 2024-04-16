@@ -2,21 +2,22 @@ import {
   pipe, compose, composeRight,
   tryCatch, id, die, not,
   whenPredicate, noop, lets,
-  map, ok, compact,
+  map, ok, compact, tap,
 } from 'stick-js/es'
 
 import fs from 'node:fs'
 import { dirname, } from 'node:path'
 
-import { Left, Right, isLeft, fold, } from 'alleycat-js/es/bilby'
+import { Right, isLeft, fold, } from 'alleycat-js/es/bilby'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
 import configure from 'alleycat-js/es/configure'
-import { decorateRejection, } from 'alleycat-js/es/general'
+import { decorateRejection, logWith, } from 'alleycat-js/es/general'
 import { info, yellow, } from 'alleycat-js/es/io'
 
 import { config, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
 import { doEither, } from './util.mjs'
+import { runMigrations, } from './db-migrations.mjs'
 
 const configTop = config | configure.init
 
@@ -27,60 +28,16 @@ const { dbPath, } = tryCatch (
 )
 const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 
-// --- @todo find a good place for this
-/* The bsqlite3 library lets us wrap an arbitrary function in db.transaction () and then run it.
- * It's fine if those functions themselves open and close transactions (which means we are free to
- * use `runs`).
- * When the function exits the transaction is committed and if an error is thrown it rolls back.
- * This function lets us wrap a series of Either functions in a transaction by making sure that an
- * error is first seen by the `transaction` function, so that the roll back happens, and then
- * wrapped in Left (or Right for ok).
- */
-const doEitherWithTransaction = (... fs) => tryCatch (
-  (res) => Right (res),
-  (err) => Left (err),
-  () => sqliteApi.db.transaction (() => doEither (... fs) | fold (
-    (e) => die ('Rolling back transaction due to error:', e),
-    (r) => r,
-  )) (),
-)
-
-const createTables = [
-  S (`drop table if exists user`),
-  S (`drop table if exists loggedIn`),
-  S (`drop table if exists userPrivilege`),
-  S (`create table user (
-    id integer primary key autoincrement,
-    email text unique not null,
-    firstName text,
-    lastName text,
-    password text
-  )`),
-  S (`create table loggedIn (
-    id integer primary key autoincrement,
-    userId int not null,
-    unique (userId)
-  )`),
-  S (`create table userPrivilege (
-    id integer primary key autoincrement,
-    userId int not null,
-    privilege string not null,
-    unique (userId, privilege)
-  )`),
-]
-
 let sqliteApi
 
-const initialiseSchema = () => sqliteApi.runs (createTables)
-
 // --- initializes the schema if it's a new database, or if `forceInit` is `true`
-export const init = (forceInit=false) => {
+// --- @throws
+export const init = (version, allowDestructiveMigrations) => {
   info ('opening db file at', dbPath | yellow)
   mkdirIfNeeded (dirname (dbPath))
-  const force = forceInit || not (fs.existsSync (dbPath))
   sqliteApi = getApi (dbPath, {})
-  if (force) initialiseSchema () | foldWhenLeft (
-    decorateRejection ("Couldn't initialise schema: ") >> die,
+  runMigrations (sqliteApi, version, allowDestructiveMigrations) | foldWhenLeft (
+    die << decorateRejection ("Couldn't run migrations: "),
   )
 }
 

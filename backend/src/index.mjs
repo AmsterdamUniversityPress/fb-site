@@ -46,19 +46,18 @@ import {
 } from './db.mjs'
 import { errorX, warn, } from './io.mjs'
 import {
-  env, envOrConfig, ifMapHas,
+  env, envOptional, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
   retryPDefaultMessage,
   toListCollapseNil,
-  mapX, flatten,
+  flatten,
   thenWhenTrue,
 } from './util.mjs'
 import {
   getAndValidateQuery,
   getAndValidateBodyParams,
   getAndValidateRequestParams,
-  basicAlphaNumericStringValidator,
   basicBase64StringValidator,
   basicEmailValidator,
   basicPasswordValidator,
@@ -97,7 +96,7 @@ const appEnv = lets (
 )
 
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
-const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, minimumPasswordScore, serverPort, users, } = tryCatch (
+const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, minimumPasswordScore, schemaVersion, serverPort, users, } = tryCatch (
   id,
   decorateRejection ("Couldn't load config: ") >> errorX,
   () => configTop.gets (
@@ -109,6 +108,7 @@ const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAg
     'fbDomains',
     getRedisURLConfigKey,
     'minimumPasswordScore',
+    'schemaVersion',
     'serverPort',
     'users',
   ),
@@ -136,6 +136,11 @@ const redisPassword = lets (
 )
 
 const elasticURL = env ('ELASTIC_URL')
+const allowDestructiveMigrations = (envOptional ('ALLOW_DESTRUCTIVE_MIGRATIONS') ?? '0')
+  | lookupOnOrDie ('Invalid value for ALLOW_DESTRUCTIVE_MIGRATIONS') ({
+  0: false,
+  1: true,
+})
 
 const redisURL = getRedisURL (redisPassword)
 
@@ -696,10 +701,6 @@ const init = ({ port, }) => express ()
 
 const yargs = yargsMod
   .usage ('Usage: node $0 [options]')
-  .option ('force-init-db', {
-    boolean: true,
-    describe: 'Initialise the database: this will erase all data if it exists.',
-  })
   .option ('force-reindex-elastic', {
     boolean: true,
     describe: 'Rebuild the elastic index even if it already exists.',
@@ -722,11 +723,11 @@ const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.fo
 await initRedis ()
 await initElastic ()
 
-dbInit (opt.forceInitDb)
+dbInit (schemaVersion, allowDestructiveMigrations)
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
-dbInitUsers (encrypt, users ?? [])
+if (schemaVersion !== 0) dbInitUsers (encrypt, users ?? [])
 
 init ({ port: serverPort, })
 
