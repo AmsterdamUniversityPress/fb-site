@@ -55,38 +55,4 @@ export default [
       },
     },
   ]],
-  [2, [
-    {
-      forwards: {
-        sql: 'create table new (id integer, color text)',
-        destructive: false,
-      },
-      backwards: {
-        sql: 'drop table new',
-        destructive: true,
-      },
-    },
-    {
-      forwards: {
-        sql: `alter table new add column shape text`,
-        destructive: false,
-      },
-      backwards: {
-        sql: `alter table new drop column shape`,
-        destructive: true,
-      },
-    },
-  ]],
-  [3, [
-    {
-      forwards: {
-        sql: SB ('insert into new (shape) values (?), (?)', ['square', 'floop']),
-        destructive: true,
-      },
-      backwards: {
-        sql: `delete from new`,
-        destructive: false,
-      },
-    },
-  ]],
 ]

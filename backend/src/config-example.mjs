@@ -13,12 +13,9 @@ const dbDir = pathJoin (rootDir, 'db')
 const dbPath = pathJoin (dbDir, 'main.db')
 
 export const config = {
-  activateTokenExpireSecs: 3 * 24 * 3600,
-  activateTokenLength: 32,
-  cookieMaxAgeMs: 10 * 1000,
   cookieSecret: Nothing,
-  dbPath,
   jwtSecret: Nothing,
+  dbPath,
   email: {
     host: 'smtp.mailserver.xx',
     // --- combination of port=587, secure=false and requireTLS=true should make it use SMARTTLS
@@ -42,8 +39,6 @@ export const config = {
     tst: (password) => 'redis://xxx',
     xxx: (password) => 'redis://xxx',
   },
-  minimumPasswordScore: 4,
-  schemaVersion: 1,
   serverPort: 4444,
   authorizeByIP: [
     /*

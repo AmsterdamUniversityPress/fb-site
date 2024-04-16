@@ -1,11 +1,10 @@
 import {
   pipe, compose, composeRight,
-  tryCatch, id, die, not,
+  tryCatch, id, die,
   whenPredicate, noop, lets,
   map, ok, compact, tap,
 } from 'stick-js/es'
 
-import fs from 'node:fs'
 import { dirname, } from 'node:path'
 
 import { Right, isLeft, fold, } from 'alleycat-js/es/bilby'
@@ -14,18 +13,20 @@ import configure from 'alleycat-js/es/configure'
 import { decorateRejection, logWith, } from 'alleycat-js/es/general'
 import { info, yellow, } from 'alleycat-js/es/io'
 
-import { config, } from './config.mjs'
+import { config as configUser, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
 import { doEither, } from './util.mjs'
 import { runMigrations, } from './db-migrations.mjs'
 
-const configTop = config | configure.init
+const configTop = configUser | configure.init
 
 const { dbPath, } = tryCatch (
   id,
-  decorateRejection ("Couldn't load config: ") >> errorX,
+  decorateRejection ("Couldn't load user config: ") >> errorX,
   () => configTop.gets ('dbPath')
 )
+
+// --- @todo put somewhere else / reuse ?
 const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 
 let sqliteApi

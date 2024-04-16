@@ -29,7 +29,8 @@ import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate
 
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
-import { config, } from './config.mjs'
+import { config as configFb, } from './config-fb.mjs'
+import { config as configUser, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import {
   init as dbInit,
@@ -85,7 +86,8 @@ import {
 // } from 'alleycat-express-jwt'
 } from './alleycat-express-jwt/index.mjs'
 
-const configTop = config | configure.init
+const configUserTop = configUser | configure.init
+const configFbTop = configFb | configure.init
 
 const appEnv = lets (
   () => [
@@ -96,21 +98,29 @@ const appEnv = lets (
 )
 
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
-const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAgeMs, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, minimumPasswordScore, schemaVersion, serverPort, users, } = tryCatch (
+
+const { authorizeByIP, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
   id,
-  decorateRejection ("Couldn't load config: ") >> errorX,
-  () => configTop.gets (
-    'activateTokenExpireSecs',
-    'activateTokenLength',
+  decorateRejection ("Couldn't load user config: ") >> errorX,
+  () => configUserTop.gets (
     'authorizeByIP',
-    'cookieMaxAgeMs',
     'email',
     'fbDomains',
     getRedisURLConfigKey,
-    'minimumPasswordScore',
-    'schemaVersion',
     'serverPort',
     'users',
+  ),
+)
+
+const { activateTokenExpireSecs, activateTokenLength, cookieMaxAgeMs, minimumPasswordScore, schemaVersion, } = tryCatch (
+  id,
+  decorateRejection ("Couldn't load FB config: ") >> errorX,
+  () => configFbTop.gets (
+    'activateTokenExpireSecs',
+    'activateTokenLength',
+    'cookieMaxAgeMs',
+    'minimumPasswordScore',
+    'schemaVersion',
   ),
 )
 
@@ -119,12 +129,12 @@ const { activateTokenExpireSecs, activateTokenLength, authorizeByIP, cookieMaxAg
 
 const cookieSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
-  (validate) => envOrConfig (configTop, 'cookieSecret', 'COOKIE_SECRET', validate),
+  (validate) => envOrConfig (configUserTop, 'cookieSecret', 'COOKIE_SECRET', validate),
 )
 
 const jwtSecret = lets (
   () => ['must be longer than 25 characters', length >> gt (25)],
-  (validate) => envOrConfig (configTop, 'jwtSecret', 'JWT_SECRET', validate),
+  (validate) => envOrConfig (configUserTop, 'jwtSecret', 'JWT_SECRET', validate),
 )
 
 // --- `env` and not `envOrConfig`, because this is a system password which
