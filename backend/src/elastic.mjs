@@ -76,7 +76,7 @@ export const search = (query) => startP ()
 
 // :: Promise Boolean
 export const checkConnection = () => {
-  info ("Checking connection to ElasticSearch...")
+  info ("checking connection to ElasticSearch...")
   return startP ()
   | then (() => esClient.cluster.health ({}))
   | then ((results) => ok (results) && not (results.timed_out))

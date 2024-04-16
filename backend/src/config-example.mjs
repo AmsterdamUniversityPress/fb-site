@@ -43,6 +43,7 @@ export const config = {
     xxx: (password) => 'redis://xxx',
   },
   minimumPasswordScore: 4,
+  schemaVersion: 1,
   serverPort: 4444,
   authorizeByIP: [
     /*
