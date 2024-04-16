@@ -55,4 +55,61 @@ export default [
       },
     },
   ]],
+  [2, [
+    {
+      forwards: {
+        sql: `drop table loggedIn`,
+        destructive: true,
+      },
+      backwards: {
+        sql: `create table loggedIn (
+          id integer primary key autoincrement,
+          userId int not null,
+          unique (userId)
+        )`,
+        destructive: false,
+      },
+    },
+    {
+      forwards: {
+        // --- don't use 'unique' in the 'create table' statement, because it's impossible to change later -- better to use 'create
+        // unique index', which enforces the same constraint, but is changeable.
+        sql: `create table loggedIn (
+          id integer primary key autoincrement,
+          userId int not null,
+          sessionId text not null,
+          lastRefreshed int not null
+        )`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `drop table loggedIn`,
+        destructive: true,
+      },
+    },
+    {
+      forwards: {
+        sql: `create unique index loggedIn_unique on loggedIn (userId, sessionId)`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `drop index loggedIn_unique`,
+        destructive: true,
+      },
+    },
+  ]]
+  /*
+    {
+      forwards: {
+        sql: `
+        `,
+        destructive: ,
+      },
+      backwards: {
+        sql: `
+        `,
+        destructive: ,
+      },
+    },
+  */
 ]

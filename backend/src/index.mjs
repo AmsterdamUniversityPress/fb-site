@@ -186,8 +186,8 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
 
 // --- these all throw
 const getLoggedIn = (email) => doDbCall (dbLoggedInGet, [ email, ])
-const addLoggedIn = (email) => doDbCall (dbLoggedInAdd, [ email, ])
-const removeLoggedIn = (email) => doDbCall (dbLoggedInRemove, [ email, ])
+const addLoggedIn = (email, sessionId) => doDbCall (dbLoggedInAdd, [ email, sessionId, ])
+const removeLoggedIn = (email, sessionId) => doDbCall (dbLoggedInRemove, [ email, sessionId, ])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
 )
@@ -299,13 +299,16 @@ const alleycatAuth = authFactory.create ().init ({
     return authIP.checkProxyIP (req)
   },
   jwtSecret,
-  onLogin: async (email, _user) => {
-    addLoggedIn (email)
+  // --- arg 2 = { username, userinfo, session=null, }
+  onLogin: async (email, { session: { sessionId }}) => {
+    addLoggedIn (email, sessionId)
   },
-  onLogout: async (email) => {
+  onLogout: async (email, { sessionId, }) => {
     decorateAndRethrow (
-      'Unexpected, ' + email + ' not found in `loggedIn`: ',
-      () => removeLoggedIn (email),
+      [email, sessionId] | sprintfN (
+        'Unexpected, email %s, session id %s not found in `loggedIn`: ',
+      ),
+      () => removeLoggedIn (email, sessionId),
     )
   },
   usernameField: 'email',

@@ -7,7 +7,7 @@ import {
 
 import { dirname, } from 'node:path'
 
-import { Right, isLeft, fold, } from 'alleycat-js/es/bilby'
+import { Left, Right, isLeft, fold, } from 'alleycat-js/es/bilby'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
 import configure from 'alleycat-js/es/configure'
 import { decorateRejection, logWith, } from 'alleycat-js/es/general'
@@ -15,7 +15,7 @@ import { info, yellow, } from 'alleycat-js/es/io'
 
 import { config as configUser, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
-import { doEither, } from './util.mjs'
+import { doEither, epochMs, ifEqualsZero, } from './util.mjs'
 import { runMigrations, } from './db-migrations.mjs'
 
 const configTop = configUser | configure.init
@@ -112,10 +112,11 @@ export const userPasswordUpdate = (email, hashed_password) => doEither (
   ),
 )
 
-export const loggedInAdd = (email) => doEither (
+export const loggedInAdd = (email, sessionId) => doEither (
   () => userIdGet (email),
-  (userId) => sqliteApi.run (
-    SB (`insert or ignore into loggedIn (userId) values (?)`, userId),
+  (userId) => Right ([userId, epochMs ()]),
+  ([userId, lastRefreshed]) => sqliteApi.run (
+    SB (`insert into loggedIn (userId, sessionId, lastRefreshed) values (?, ?, ?) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
   )
 )
 
@@ -125,10 +126,18 @@ const loggedInGetId = (email) => sqliteApi.getPluck (
 
 export const loggedInGet = loggedInGetId >> map (ok)
 
-export const loggedInRemove = (email) => doEither (
-  () => loggedInGetId (email),
+const loggedInGetUserId = (email) => sqliteApi.getPluck (
+  SB ('select u.id from user u outer left join loggedIn l on u.id = l.userId where u.email = ?', email)
+)
+
+export const loggedInRemove = (email, sessionId) => doEither (
+  () => loggedInGetUserId (email),
   (userId) => sqliteApi.run (
-    SB (`delete from loggedIn where id = ?`, userId),
+    SB (`delete from loggedIn where userId = ? and sessionId = ?`, [userId, sessionId]),
+  ),
+  ({ changes, }) => changes | ifEqualsZero (
+    () => Left ('loggedInRemove (): failed to remove any rows'),
+    () => Right (null),
   ),
 )
 

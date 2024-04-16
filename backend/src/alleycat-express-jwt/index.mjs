@@ -392,7 +392,7 @@ const init = ({
           imsg: 'req.user.username was empty',
         })
         // --- not expected to return anything
-        onLogout (username)
+        onLogout (username, session)
           | recover (rejectP << decorateRejection ('onLogout: '))
           | recover ((e) => {
             warn (e)
