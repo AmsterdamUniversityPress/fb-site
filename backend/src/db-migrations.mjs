@@ -7,11 +7,12 @@ import {
   multiply,
 } from 'stick-js/es'
 
-import { Left, Right, flatMap, } from 'alleycat-js/es/bilby'
+import { Left, Right, cata, flatMap, } from 'alleycat-js/es/bilby'
 import { S, SB, } from 'alleycat-js/es/bsqlite3'
+import { logWith, } from 'alleycat-js/es/general'
 import { green, info, red, yellow, } from 'alleycat-js/es/io'
 
-import { doEither, flatten, isNonNegativeInt, mapLookupEitherOnWith, pluckOkZ, reverse, traverseListEither, } from './util.mjs'
+import { doEither, flatten, ifString, isNonNegativeInt, mapLookupEitherOnWith, pluckOkZ, reverse, traverseListEither, } from './util.mjs'
 
 import migrationsList from './migrations.mjs'
 import { doEitherWithTransaction, checkHasExactlyOneRowFail, tableExists, } from './util-db.mjs'
@@ -47,14 +48,21 @@ const getMigrations = (allowDestructive, from, to) => {
     (num) => lets (
       () => num | mapLookupEitherOnWith ('No migration for ' + String (num), migrations),
       (migsEither) => migsEither | flatMap (transformMigrations >> traverseListEither (
-        getMigrationSql (dir, num, allowDestructive),
+        getMigrationSql (dir, num, allowDestructive) >> map (ifString (S, id)),
       )),
     ),
   )
   | map (flatten (1))
-  | tap (map ((xs) => info ('running migrations:\n' + join ('\n') (xs | map (
-    (x) => '    ٭ ' + x,
-  )))))
+  | tap (map ((xs) => {
+    const pref = '    ٭ '
+    info ('running migrations:\n' + join ('\n') (xs | map (
+      // --- @todo does bsqlite have fold?
+      cata ({
+        S: (x) => pref + x,
+        SB: (x, bindings) => [pref, x, bindings | map (String) >> join (', ')] | sprintfN ('%s%s [%s]'),
+      }),
+    )))
+  }))
 }
 
 
@@ -63,7 +71,7 @@ const doMigrations = (sqliteApi, allowDestructive, versionCur, versionTgt) => do
   (sqls) => doEitherWithTransaction (
     sqliteApi,
     ... sqls | map (
-      (sql) => () => sqliteApi.run (S (sql)),
+      (sql) => () => sqliteApi.run (sql),
     ),
     () => sqliteApi.run (SB ('update version set version=?', [versionTgt])),
   )

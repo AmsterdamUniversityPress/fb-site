@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
   map, spreadTo, lets, flip, invoke, addIndex, not,
-  sprintf1, sprintfN, id, T, recurry, reduceRight, reduce,
-  ifOk, ifNil, always, die, tryCatch, assocM,
+  sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
+  ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF,
   list, ifNo, tap, ok,
@@ -398,3 +398,4 @@ export const pluck1Z = recurry (4) (
 )
 export const pluck1OkZ = pluck1Z ([ok, 'must not be nil'])
 
+export const ifString = ifPredicate (isString)

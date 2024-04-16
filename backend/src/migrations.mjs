@@ -2,6 +2,8 @@ import {
   pipe, compose, composeRight,
 } from 'stick-js'
 
+import { S, SB, } from 'alleycat-js/es/bsqlite3'
+
 // --- we consider version 0 as the empty database
 
 export default [
@@ -78,11 +80,11 @@ export default [
   [3, [
     {
       forwards: {
-        sql: `alter table new drop column color`,
+        sql: SB ('insert into new (shape) values (?), (?)', ['square', 'floop']),
         destructive: true,
       },
       backwards: {
-        sql: `alter table new add column color text`,
+        sql: `delete from new`,
         destructive: false,
       },
     },
