@@ -39,9 +39,9 @@ import {
   userRemove as dbUserRemove,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
-  loggedInAdd as dbLoggedInAdd,
-  loggedInRemove as dbLoggedInRemove,
-  loggedInGet as dbLoggedInGet,
+  sessionAdd as dbSessionAdd,
+  sessionRemove as dbSessionRemove,
+  sessionGet as dbSessionGet,
   privilegesGet as dbPrivilegesGet,
   usersGet as dbUsersGet,
 } from './db.mjs'
@@ -184,10 +184,10 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
   id,
 )
 
-// --- these all throw
-const getLoggedIn = (email) => doDbCall (dbLoggedInGet, [ email, ])
-const addLoggedIn = (email, sessionId) => doDbCall (dbLoggedInAdd, [ email, sessionId, ])
-const removeLoggedIn = (email, sessionId) => doDbCall (dbLoggedInRemove, [ email, sessionId, ])
+// --- these all @throw
+const getLoggedIn = (email) => doDbCall (dbSessionGet, [email])
+const addLoggedIn = (email, sessionId) => doDbCall (dbSessionAdd, [email, sessionId])
+const removeLoggedIn = (email, sessionId) => doDbCall (dbSessionRemove, [email, sessionId])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
 )
@@ -232,7 +232,6 @@ const getUserinfoLogin = async (email) => getUserinfoLoginSync (email)
 
 const initSession = async (_email) => {
   const sessionId = crypto.randomUUID ()
-  // --- @todo store in db
   return { sessionId, }
 }
 
@@ -306,7 +305,7 @@ const alleycatAuth = authFactory.create ().init ({
   onLogout: async (email, { sessionId, }) => {
     decorateAndRethrow (
       [email, sessionId] | sprintfN (
-        'Unexpected, email %s, session id %s not found in `loggedIn`: ',
+        'Unexpected, unable to look up session for email=%s session id=%s: ',
       ),
       () => removeLoggedIn (email, sessionId),
     )

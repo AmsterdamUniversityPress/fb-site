@@ -97,6 +97,18 @@ export default [
         destructive: true,
       },
     },
+  ]],
+  [3, [
+    {
+      forwards: {
+        sql: `alter table loggedIn rename to session`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `alter table session rename to loggedIn`,
+        destructive: false,
+      },
+    },
   ]]
   /*
     {

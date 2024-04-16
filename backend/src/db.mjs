@@ -112,31 +112,31 @@ export const userPasswordUpdate = (email, hashed_password) => doEither (
   ),
 )
 
-export const loggedInAdd = (email, sessionId) => doEither (
+export const sessionAdd = (email, sessionId) => doEither (
   () => userIdGet (email),
   (userId) => Right ([userId, epochMs ()]),
   ([userId, lastRefreshed]) => sqliteApi.run (
-    SB (`insert into loggedIn (userId, sessionId, lastRefreshed) values (?, ?, ?) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
+    SB (`insert into session (userId, sessionId, lastRefreshed) values (?, ?, ?) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
   )
 )
 
-const loggedInGetId = (email) => sqliteApi.getPluck (
-  SB ('select l.id from user u outer left join loggedIn l on u.id = l.userId where u.email = ?', email)
+const sessionGetId = (email) => sqliteApi.getPluck (
+  SB ('select s.id from user u outer left join session s on u.id = s.userId where u.email = ?', email)
 )
 
-export const loggedInGet = loggedInGetId >> map (ok)
+export const sessionGet = sessionGetId >> map (ok)
 
-const loggedInGetUserId = (email) => sqliteApi.getPluck (
-  SB ('select u.id from user u outer left join loggedIn l on u.id = l.userId where u.email = ?', email)
+const sessionGetUserId = (email) => sqliteApi.getPluck (
+  SB ('select u.id from user u left join session s on u.id = s.userId where u.email = ?', email)
 )
 
-export const loggedInRemove = (email, sessionId) => doEither (
-  () => loggedInGetUserId (email),
+export const sessionRemove = (email, sessionId) => doEither (
+  () => sessionGetUserId (email),
   (userId) => sqliteApi.run (
-    SB (`delete from loggedIn where userId = ? and sessionId = ?`, [userId, sessionId]),
+    SB (`delete from session where userId = ? and sessionId = ?`, [userId, sessionId]),
   ),
   ({ changes, }) => changes | ifEqualsZero (
-    () => Left ('loggedInRemove (): failed to remove any rows'),
+    () => Left ('sessionRemove (): failed to remove any rows'),
     () => Right (null),
   ),
 )

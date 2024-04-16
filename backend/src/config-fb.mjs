@@ -12,5 +12,5 @@ export const config = {
   cookieMaxAgeMs: 24 * 3600 * 1000,
   jwtSecret: Nothing,
   minimumPasswordScore: 4,
-  schemaVersion: 2,
+  schemaVersion: 3,
 }
