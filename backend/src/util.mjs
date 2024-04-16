@@ -1,11 +1,11 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke, addIndex,
-  sprintf1, sprintfN, id, T, recurry,
-  ifOk, ifNil, always, die, tryCatch,
+  map, spreadTo, lets, flip, invoke, addIndex, not,
+  sprintf1, sprintfN, id, T, recurry, reduceRight, reduce,
+  ifOk, ifNil, always, die, tryCatch, assocM,
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF,
-  list,
+  list, ifNo, tap, ok,
 } from 'stick-js/es'
 
 import path from 'node:path'
@@ -26,6 +26,10 @@ export const base64decode = (x) => Buffer.from (x, 'base64').toString ('ascii')
 export const base64decodeAsBuffer = (x) => Buffer.from (x, 'base64')
 export const base64encode = (x) => Buffer.from (x).toString ('base64')
 
+export const ifNot = recurry (3) (
+  (x) => (yes) => (no) => x | ifNo (yes, no),
+)
+
 // --- @future generic monad
 // --- this feeds the unwrapped value to the next function in the chain --
 // note that it does not accumulate the values like the `lets`-style
@@ -36,7 +40,7 @@ export const doEither = (...eithers) => lets (
 )
 
 // --- `config` may be null, in which case `configKey` is ignored
-export const envOrConfig = (config, configKey, envKey, validate=[null, T]) => {
+export const _envOrConfig = (required) => (config, configKey, envKey, validate=[null, T]) => {
   const [val, configOrEnvString] = lets (
     () => process.env [envKey],
     (fromEnv) => config | ifOk (
@@ -45,15 +49,21 @@ export const envOrConfig = (config, configKey, envKey, validate=[null, T]) => {
         | foldMaybe (id, () => fromEnv)
         | ifOk (
           (val) => [val, 'Config/environment'],
-          () => error (
-            [brightRed (envKey), brightRed (configKey)] | sprintfN ('Need environment variable %s or config value %s'),
+          () => ifNot (required) (
+            () => [void 8, 'Config/environment'],
+            () => error (
+              [brightRed (envKey), brightRed (configKey)] | sprintfN ('Need environment variable %s or config value %s'),
+            ),
           ),
         )
       },
       () => fromEnv | ifOk (
         (val) => [val, 'Environment'],
-        () => error (
-          [brightRed (envKey)] | sprintfN ('Missing environment variable %s'),
+        () => ifNot (required) (
+          () => [void 8, 'Environment'],
+          () => error (
+            [brightRed (envKey)] | sprintfN ('Missing environment variable %s'),
+          ),
         ),
       ),
     ),
@@ -65,7 +75,9 @@ export const envOrConfig = (config, configKey, envKey, validate=[null, T]) => {
   return val
 }
 
-export const env = (key, validate) => envOrConfig (null, null, key, validate)
+export const envOrConfig = _envOrConfig (true)
+export const env = (key, validate) => _envOrConfig (true) (null, null, key, validate)
+export const envOptional = (key, validate) => _envOrConfig (false) (null, null, key, validate)
 
 export const lookupOn = recurry (2) (
   o => k => o [k],
@@ -80,7 +92,6 @@ export const lookupEitherOn = recurry (2) (
   ),
 )
 
-// --- @future would be nicer to put f at the end.
 // --- @future versions which take yes/no functions.
 
 export const lookupOnOr = recurry (3) (
@@ -306,3 +317,84 @@ export const thenWhen = recurry (3) (
 export const thenWhenTrue = recurry (3) (
   (x) => thenWhen (() => x === true)
 )
+
+export const mapLookupOn = recurry (2) (
+  (o) => (k) => o.get (k),
+)
+export const mapLookup = recurry (2) (
+  (k) => (o) => mapLookupOn (o, k),
+)
+export const mapLookupEitherOnWith = recurry (3) (
+  msg => o => k => mapLookupOn (o, k) | ifOk (
+    Right, () => Left (msg),
+  ),
+)
+export const mapLookupEitherOn = recurry (2) (
+  o => k => mapLookupEitherOnWith (
+    "Can't find key " + String (k),
+  ) (o, k),
+)
+export const mapLookupOnOr = recurry (3) (
+  (f) => (o) => (k) => mapLookupOn (o, k) | ifUndefined (f, id),
+)
+export const mapLookupOr = recurry (3) (
+  (f) => (k) => (o) => mapLookupOnOr (f, o, k),
+)
+export const mapLookupOnOrV = recurry (3) (
+  (x) => mapLookupOnOr (x | always),
+)
+export const mapLookupOrV = recurry (3) (
+  (x) => mapLookupOr (x | always),
+)
+export const mapLookupOrDie = recurry (3) (
+  (msg) => (k) => (o) => mapLookupOnOr (
+    () => die (msg),
+    o, k,
+  )
+)
+export const mapLookupOnOrDie = recurry (3) (
+  (msg) => (o) => (k) => mapLookupOrDie (msg, k, o),
+)
+
+export const reverse = /*#__PURE__*/ xs => xs | reduceRight ((x, acc) => (acc.push (x), acc), [])
+
+// --- see kattenluik for explanation (it's called `traverseEither` there)
+export const traverseListEither = recurry (2) (
+  (f) => (xs) => {
+    const ret = []
+    for (const x of xs) {
+      const fx = f (x)
+      if (fx.isLeft) return fx
+      const [val] = fx.toArray ()
+      ret.push (val)
+    }
+    return Right (ret)
+  }
+)
+
+export const defined = x => x !== void 8
+
+export const pluckZ = recurry (4) (
+  ([validate, msg]) => (keys) => (f) => (o) => {
+    const vals = keys | reduce (
+      (acc, key) => {
+        const val = o [key]
+        if (not (defined (val))) die ('pluckZ: missing value for key ' + key)
+        if (not (validate (val))) die ('pluckZ: invalid value for key ' + key + ', ' + msg)
+        return acc | assocM (key, val)
+      },
+      {},
+    )
+    return f (vals, o)
+  }
+)
+export const pluckOkZ = pluckZ ([ok, 'must not be nil'])
+
+export const pluck1Z = recurry (4) (
+  (validate) => (key) => (f) => (o) => {
+    const g = ([val], o) => f (val, o)
+    return pluckZ (validate, [key], g, o)
+  },
+)
+export const pluck1OkZ = pluck1Z ([ok, 'must not be nil'])
+
