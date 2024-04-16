@@ -12,7 +12,7 @@ import { Strategy as JWTStrategy, } from 'passport-jwt'
 
 import { allP, recover, rejectP, resolveP, startP, then, } from 'alleycat-js/es/async'
 import {
-  getN, post, postN, send, sendStatus, sendStatusEmpty,
+  post, postN, send, sendStatus, sendStatusEmpty,
   use,
   methodWithMiddlewares, methodNWithMiddlewares, method3WithMiddlewares,
 } from 'alleycat-js/es/express'
@@ -338,7 +338,7 @@ const init = ({
   const useAuthMiddleware = composeManyRight (
     // --- all routes with the passport 'jwt' middleware return 499 if either the JWT is missing
     // or invalid, or if the user inside the JWT is not logged in, and 200 if the user is logged in.
-    getN (routeHello, [
+    postN (routeHello, [
       authMiddleware (authorizeDataDefault),
       (req, res) => {
         const { user, } = req

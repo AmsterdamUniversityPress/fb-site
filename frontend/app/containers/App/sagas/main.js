@@ -91,6 +91,9 @@ function *hello (first=false) {
   yield call (doApiCall, {
     // url: '/api/hello',
     url: getIPDisableAuthorizeURL ('/api/hello'),
+    optsMerge: {
+      method: 'POST',
+    },
     resultsModify: map (prop ('data')),
     continuation: EffSaga (done),
     request: requestJSONStdOpts ({
