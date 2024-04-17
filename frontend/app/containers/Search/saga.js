@@ -23,6 +23,7 @@ function *s_execute (query) {
     url: '/api/search/autocomplete-query/' + query,
     resultsModify: map (prop ('results')),
     continuation: EffAction (a_executeCompleted),
+    oops: toastError,
   })
 }
 

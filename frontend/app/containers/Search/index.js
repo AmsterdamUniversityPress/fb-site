@@ -145,7 +145,10 @@ export default container (
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
     const results = useMemo (
-      () => resultsRequest | requestResults ({ onLoading: noop, }),
+      () => resultsRequest | requestResults ({
+        onLoading: noop,
+        onError: noop,
+      }),
       [resultsRequest],
     )
     const [suggestions, setSuggestions] = useState (results)
@@ -190,26 +193,28 @@ export default container (
           onChange={(event) => onChange (event)}
           onClear={onClear}
           onSelect={onSelect}
-          // suggestions={results}
           suggestions={suggestions}
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
+      {/*
+      // @todo remove redundant code
       <div className='x__results-wrapper'>
         {showResults && <div className='x__results'>
           <DropDown
             open={false}
             contentsStyle={{ minHeight: '300px', height: '100%', }}
           >
-            {results | mapX (
-              (word, idx) =>
-                <div key={idx} className='x__result'>
-                  <Result word={word}/>
-                </div>
+                {results | mapX (
+                  (word, idx) =>
+            <div key={idx} className='x__result'>
+            <Result word={word}/>
+                  </div>
             )}
           </DropDown>
         </div>}
       </div>
+          */}
     </SearchS>
   }
 )
