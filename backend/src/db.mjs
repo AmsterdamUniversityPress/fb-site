@@ -1,13 +1,12 @@
 import {
   pipe, compose, composeRight,
-  tryCatch, id, die,
-  whenPredicate, noop, lets,
+  tryCatch, id, die, noop, lets,
   map, ok, compact, tap,
 } from 'stick-js/es'
 
 import { dirname, } from 'node:path'
 
-import { Left, Right, isLeft, fold, } from 'alleycat-js/es/bilby'
+import { Left, Right, } from 'alleycat-js/es/bilby'
 import { S, SB, getApi, } from 'alleycat-js/es/bsqlite3'
 import configure from 'alleycat-js/es/configure'
 import { decorateRejection, logWith, } from 'alleycat-js/es/general'
@@ -15,7 +14,7 @@ import { info, yellow, } from 'alleycat-js/es/io'
 
 import { config as configUser, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
-import { doEither, epochMs, ifEqualsZero, } from './util.mjs'
+import { doEither, epochMs, ifEqualsZero, foldWhenLeft, } from './util.mjs'
 import { runMigrations, } from './db-migrations.mjs'
 
 const configTop = configUser | configure.init
@@ -25,9 +24,6 @@ const { dbPath, } = tryCatch (
   decorateRejection ("Couldn't load user config: ") >> errorX,
   () => configTop.gets ('dbPath')
 )
-
-// --- @todo put somewhere else / reuse ?
-const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
 
 let sqliteApi
 
@@ -147,6 +143,14 @@ export const sessionRemove = (email, sessionId) => doEither (
     () => Left ('sessionRemove (): failed to remove any rows'),
     () => Right (null),
   ),
+)
+
+export const staleSessionsClear = (ms) => lets (
+  () => epochMs () - ms,
+  (cutoff) => sqliteApi.run (SB (
+    `delete from session where lastRefreshed < ?`,
+    cutoff,
+  )),
 )
 
 export const usersGet = () => sqliteApi.all (S (`

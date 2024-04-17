@@ -5,7 +5,7 @@ import {
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF,
-  list, ifNo, tap, ok,
+  whenPredicate, list, ifNo, tap, ok, noop,
 } from 'stick-js/es'
 
 import path from 'node:path'
@@ -13,7 +13,7 @@ import { fileURLToPath, } from 'node:url'
 import util from 'node:util'
 
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
-import { flatMap, foldMaybe, Left, Right, } from 'alleycat-js/es/bilby'
+import { flatMap, fold, foldMaybe, isLeft, Left, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, decorateRejection, setTimeoutOn, } from 'alleycat-js/es/general'
 import { ifArray, ifUndefined, } from 'alleycat-js/es/predicate'
 
@@ -403,3 +403,6 @@ export const ifString = ifPredicate (isString)
 export const epochMs = () => Date.now ()
 
 export const ifEqualsZero = eq (0) | ifPredicate
+
+// --- @todo put somewhere else / reuse ?
+export const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))

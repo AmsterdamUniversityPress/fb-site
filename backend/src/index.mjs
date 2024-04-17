@@ -33,6 +33,7 @@ import { config as configFb, } from './config-fb.mjs'
 import { config as configUser, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import {
+  staleSessionsClear as dbStaleSessionsClear,
   init as dbInit,
   initUsers as dbInitUsers,
   privilegesGet as dbPrivilegesGet,
@@ -55,6 +56,7 @@ import {
   toListCollapseNil,
   flatten,
   thenWhenTrue,
+  foldWhenLeft,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -88,7 +90,7 @@ import {
 } from './alleycat-express-jwt/index.mjs'
 
 const configUserTop = configUser | configure.init
-const configFbTop = configFb | configure.init
+const configFbTop = configFb () | configure.init
 
 const appEnv = lets (
   () => [
@@ -113,17 +115,21 @@ const { authorizeByIP, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getR
   ),
 )
 
-const { activateTokenExpireSecs, activateTokenLength, cookieMaxAgeMs, minimumPasswordScore, schemaVersion, } = tryCatch (
+const { activateTokenExpireSecs, activateTokenLength, cookieMaxAgeMs, getStaleSessionSecs, minimumPasswordScore, schemaVersion, staleSessionCheckTimeoutMs, } = tryCatch (
   id,
   decorateRejection ("Couldn't load FB config: ") >> errorX,
   () => configFbTop.gets (
     'activateTokenExpireSecs',
     'activateTokenLength',
     'cookieMaxAgeMs',
+    'getStaleSessionSecs',
     'minimumPasswordScore',
     'schemaVersion',
+    'staleSessionCheckTimeoutMs',
   ),
 )
+
+const staleSessionSecs = getStaleSessionSecs ()
 
 // --- `envOrConfig` here, because this is where we create cookieSecret and
 // jwtSecret, and config is useful for development.
@@ -737,6 +743,13 @@ const opt = yargs.argv
 if (opt._.length !== 0)
   yargs.showHelp (error)
 
+const clearStaleSessions = (ms) => {
+  info ('clearing stale sessions')
+  dbStaleSessionsClear (ms) | foldWhenLeft (
+    warn << decorateRejection ('Unable to clear stale sessions: '),
+  )
+}
+
 const initRedis = async () => redisInit (redisURL, 1000)
   | recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
 const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.forceReindexElastic, })
@@ -746,10 +759,12 @@ await initRedis ()
 await initElastic ()
 
 dbInit (schemaVersion, allowDestructiveMigrations)
+staleSessionCheckTimeoutMs | setTimeoutOn (
+  () => clearStaleSessions (staleSessionSecs * 1000),
+)
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
 if (schemaVersion !== 0) dbInitUsers (encrypt, users ?? [])
 
 init ({ port: serverPort, })
-
