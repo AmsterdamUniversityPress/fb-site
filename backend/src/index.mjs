@@ -298,11 +298,13 @@ const alleycatAuth = authFactory.create ().init ({
     return authIP.checkProxyIP (req)
   },
   jwtSecret,
+  onHello: async (email, { session: { sessionId, }}) => {
+  },
   // --- arg 2 = { username, userinfo, session=null, }
-  onLogin: async (email, { session: { sessionId }}) => {
+  onLogin: async (email, { session: { sessionId, }}) => {
     addLoggedIn (email, sessionId)
   },
-  onLogout: async (email, { sessionId, }) => {
+  onLogout: async (email, { session: { sessionId, }}) => {
     decorateAndRethrow (
       [email, sessionId] | sprintfN (
         'Unexpected, unable to look up session for email=%s session id=%s: ',

@@ -286,6 +286,7 @@ const init = ({
   isLoggedInBeforeJWT=null,
   isLoggedInAfterJWT=null,
   jwtSecret,
+  onHello=noopP,
   onLogin=noopP,
   onLogout=noopP,
   routeHello='/hello',
@@ -355,9 +356,11 @@ const init = ({
         if (!user || !user.userinfo || !user.username) return res | sendStatus (serverErrorJSONCode, {
           imsg: routeHello + ': missing user info',
         })
+        const { userinfo, username, } = user
         const cookie = doCookie (req)
-        res | cookie.set (mkJwt (user.username, session, jwtSecret))
-        return res | send ({ data: user.userinfo, })
+        res | cookie.set (mkJwt (username, session, jwtSecret))
+        onHello (username, { username, userinfo, session, })
+        return res | send ({ data: userinfo, })
       },
       customErrorHandler,
     ]),
@@ -381,7 +384,7 @@ const init = ({
         const { username, userinfo, session=null, ... _ } = data
         res | cookie.set (mkJwt (username, session, jwtSecret))
         // --- not expected to return anything
-        onLogin (username, data)
+        onLogin (username, { username, userinfo, session, })
           | recover (rejectP << decorateRejection ('onLogin: '))
           | recover ((e) => {
             warn (e)
@@ -400,12 +403,12 @@ const init = ({
       (req, res) => {
         doCookie (req).clear (res)
         if (nil (req.alleycat)) iwarn ('Unexpected, req.alleycat does not exist (4)')
-        const { user: { username, }, session=null, } = req.alleycat
-        if (!username) return res | sendStatus (serverErrorJSONCode, {
-          imsg: 'req.alleycat.user.username was empty',
+        const { user: { username, userinfo }, session=null, } = req.alleycat
+        if (!username || !userinfo) return res | sendStatus (serverErrorJSONCode, {
+          imsg: 'req.alleycat.user.username/userinfo was empty',
         })
         // --- not expected to return anything
-        onLogout (username, session)
+        onLogout (username, { username, userinfo, session, })
           | recover (rejectP << decorateRejection ('onLogout: '))
           | recover ((e) => {
             warn (e)
