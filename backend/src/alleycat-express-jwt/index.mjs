@@ -16,7 +16,7 @@ import {
   use,
   methodWithMiddlewares, methodNWithMiddlewares, method3WithMiddlewares,
 } from 'alleycat-js/es/express'
-import { between, composeManyRight, decorateRejection, logWith, } from 'alleycat-js/es/general'
+import { between, composeManyRight, decorateRejection, iwarn, logWith, } from 'alleycat-js/es/general'
 import { warn, } from 'alleycat-js/es/io'
 
 import { foldContinuation, mkPromise, startContinuation, } from './auth-continuation.mjs'
@@ -114,16 +114,17 @@ const passportAuthenticateJWT = (isAuthorized=always (Promise.resolve ([true, nu
     isAuthorized (username, req)
     | then (([authorized, reason]) => authorized | ifTrue (
       () => {
+        if (req.alleycat) iwarn ('Unexpected, req.alleycat exists (1)')
         // --- logged in and authorized.
-        // - merge `reqData` into `req` if provided
-        // - merge `{ user: { username, userinfo, }}` into `req`
-        // --- @todo don't store these directly in request (use a namespace)
-        // - merge `{ session, }` into `req` if `session` is not nil
-        [
+        // - make an object `req.alleycat`, containing:
+        // - `reqData` (may be nil)
+        // - `user: { username, userinfo, }`
+        // - `session` (may be ni)
+        req.alleycat = {
           reqData,
-          session | whenOk (() => ({ session, })),
-          { user: { username, userinfo, }},
-        ] | map (whenOk (mergeToM (req)))
+          ... { user: { username, userinfo, }},
+          session,
+        }
         return next (null)
       },
       () => next ({ status: 499, umsg: 'Unauthorized: ' + (reason ?? '(reason unknown)'), sendObject: true, }),
@@ -147,8 +148,11 @@ const requestAuthenticate = (getUserinfoRequest, isLoggedInRequest, isAuthorized
   | then (() => isAuthorized (null, req))
   | then (([authorized, reason]) => authorized | ifTrue (
     () => {
-      // --- note that we don't have reqData or session in this case (request-based authorization)
-      req.user = { userinfo, username: null, }
+      if (req.alleycat) iwarn ('Unexpected, req.alleycat exists (2)')
+      req.alleycat = {
+        // --- note that we don't have reqData or session in this case (request-based authorization)
+        user: { userinfo, username: null, },
+      }
       return next ()
     },
     () => next ({ status: 499, umsg: 'Not authorized: ' + (reason ?? '(no reason)'), sendObject: true, }),
@@ -243,6 +247,11 @@ const initPassportStrategies = ({
   ))
 }
 
+const mkJwt = (username, session, secret) => lets (
+  () => ({ session, username, }),
+  (payload) => jwtModule.sign (payload, secret),
+)
+
 /*
  * `getUserinfoLogin` (required) gets the info for a user who logs in with
  * username and password. It takes the username and must return { password,
@@ -255,8 +264,8 @@ const initPassportStrategies = ({
  * The `userinfo` object will be sent to the frontend in the response to
  * the /hello, /login, and other secured routes.
  *
- * The structure { username, userinfo, } will be made available to the
- * middleware/routing functions as `req.user` after the JWT is successfully
+ * Session, reqData and userinfo will be made availabe to middleware/routing
+ * functions in the `req.alleycat` structure after the JWT is successfully
  * decoded.
  *
  * Note that this is not what is stored in the JWT. Currently only the
@@ -341,10 +350,13 @@ const init = ({
     postN (routeHello, [
       authMiddleware (authorizeDataDefault),
       (req, res) => {
-        const { user, } = req
-        if (!user.userinfo) return res | sendStatus (serverErrorJSONCode, {
+        if (nil (req.alleycat)) iwarn ('Unexpected, req.alleycat does not exist (3)')
+        const { user, session=null, } = req.alleycat
+        if (!user || !user.userinfo || !user.username) return res | sendStatus (serverErrorJSONCode, {
           imsg: routeHello + ': missing user info',
         })
+        const cookie = doCookie (req)
+        res | cookie.set (mkJwt (user.username, session, jwtSecret))
         return res | send ({ data: user.userinfo, })
       },
       customErrorHandler,
@@ -367,9 +379,7 @@ const init = ({
           umsg: 'Invalid login: ' + message,
         })
         const { username, userinfo, session=null, ... _ } = data
-        const jwtPayload = { session, username, }
-        const jwt = jwtModule.sign (jwtPayload, jwtSecret)
-        res | cookie.set (jwt)
+        res | cookie.set (mkJwt (username, session, jwtSecret))
         // --- not expected to return anything
         onLogin (username, data)
           | recover (rejectP << decorateRejection ('onLogin: '))
@@ -389,10 +399,10 @@ const init = ({
       passportAuthenticateJWT (),
       (req, res) => {
         doCookie (req).clear (res)
-        const username = req.user.username
-        const { session=null, } = req
+        if (nil (req.alleycat)) iwarn ('Unexpected, req.alleycat does not exist (4)')
+        const { user: { username, }, session=null, } = req.alleycat
         if (!username) return res | sendStatus (serverErrorJSONCode, {
-          imsg: 'req.user.username was empty',
+          imsg: 'req.alleycat.user.username was empty',
         })
         // --- not expected to return anything
         onLogout (username, session)
