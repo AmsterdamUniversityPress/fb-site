@@ -35,14 +35,15 @@ import { dataTst, dataAcc, dataPrd, } from './data.mjs'
 import {
   init as dbInit,
   initUsers as dbInitUsers,
+  privilegesGet as dbPrivilegesGet,
+  sessionAdd as dbSessionAdd,
+  sessionGet as dbSessionGet,
+  sessionRefresh as dbSessionRefresh,
+  sessionRemove as dbSessionRemove,
   userAdd as dbUserAdd,
-  userRemove as dbUserRemove,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
-  sessionAdd as dbSessionAdd,
-  sessionRemove as dbSessionRemove,
-  sessionGet as dbSessionGet,
-  privilegesGet as dbPrivilegesGet,
+  userRemove as dbUserRemove,
   usersGet as dbUsersGet,
 } from './db.mjs'
 import { errorX, warn, } from './io.mjs'
@@ -187,6 +188,7 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
 // --- these all @throw
 const getLoggedIn = (email) => doDbCall (dbSessionGet, [email])
 const addLoggedIn = (email, sessionId) => doDbCall (dbSessionAdd, [email, sessionId])
+const refreshSession = (email, sessionId) => doDbCall (dbSessionRefresh, [email, sessionId])
 const removeLoggedIn = (email, sessionId) => doDbCall (dbSessionRemove, [email, sessionId])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
@@ -299,6 +301,12 @@ const alleycatAuth = authFactory.create ().init ({
   },
   jwtSecret,
   onHello: async (email, { session: { sessionId, }}) => {
+    decorateAndRethrow (
+      [email, sessionId] | sprintfN (
+        'Unable to look up session for email=%s session id=%s: ',
+      ),
+      () => refreshSession (email, sessionId),
+    )
   },
   // --- arg 2 = { username, userinfo, session=null, }
   onLogin: async (email, { session: { sessionId, }}) => {
@@ -307,7 +315,7 @@ const alleycatAuth = authFactory.create ().init ({
   onLogout: async (email, { session: { sessionId, }}) => {
     decorateAndRethrow (
       [email, sessionId] | sprintfN (
-        'Unexpected, unable to look up session for email=%s session id=%s: ',
+        'Unable to look up session for email=%s session id=%s: ',
       ),
       () => removeLoggedIn (email, sessionId),
     )

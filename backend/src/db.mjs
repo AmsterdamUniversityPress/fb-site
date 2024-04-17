@@ -126,12 +126,20 @@ const sessionGetId = (email) => sqliteApi.getPluck (
 
 export const sessionGet = sessionGetId >> map (ok)
 
-const sessionGetUserId = (email) => sqliteApi.getPluck (
+const sessionGetUserIdFail = (email) => sqliteApi.getPluckFail (
   SB ('select u.id from user u left join session s on u.id = s.userId where u.email = ?', email)
 )
 
+export const sessionRefresh = (email, sessionId) => doEither (
+  () => sessionGetUserIdFail (email),
+  (userId) => sqliteApi.run (SB (
+    `update session set lastRefreshed = ? where userId = ? and sessionId = ?`,
+    [epochMs (), userId, sessionId],
+  )),
+)
+
 export const sessionRemove = (email, sessionId) => doEither (
-  () => sessionGetUserId (email),
+  () => sessionGetUserIdFail (email),
   (userId) => sqliteApi.run (
     SB (`delete from session where userId = ? and sessionId = ?`, [userId, sessionId]),
   ),
