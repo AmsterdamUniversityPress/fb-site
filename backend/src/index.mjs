@@ -22,7 +22,7 @@ import nodemailer from 'nodemailer'
 import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
 import { fold, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
-import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
+import { get, listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
 import { decorateRejection, length, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
 import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
@@ -594,13 +594,41 @@ const init = ({ port, }) => express ()
       return res | sendStatus (200, { results, })
     },
   ))
-  | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
+
+// @todo this works. Not a huge problem if this is a post, instead of a get, but it's still a
+// weird bug.
+  | securePost (privsUser) ('/search/autocomplete-query/', getAndValidateBodyParams ([
       basicStringValidator ('query'),
     ], async ({ res }, query) => {
       const results = await completeQueries (10, query)
       return res | sendStatus (200, { results, })
     },
   ))
+
+/*
+  original; breaks on sending query = 'w' (all other letters work)
+  sends a 499 from alleycat-jwt, a problem with authentication.
+  funny thing is, if we don't use the secureGet, but regular get, the
+  Error remains the same (but it shouldn't be authenticating then, so why the error?)
+  Could it be something related to cache?
+*/
+
+  // | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
+      // basicStringValidator ('query'),
+    // ], async ({ res }, query) => {
+      // const results = await completeQueries (10, query)
+      // return res | sendStatus (200, { results, })
+    // },
+  // ))
+
+  // this also doesn't work
+  // | get ('/search/autocomplete-query/:query', (res, req) => {
+      // const query = req.query
+      // const results = ['hello', 'hollow']
+      // return res | sendStatus (200, { results, })
+    // },
+  // )
+
   // --- @todo should we also require a token here?
   | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
       basicEmailValidator ('email'),

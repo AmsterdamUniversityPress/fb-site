@@ -18,9 +18,25 @@ import { selectQuery, } from './selectors'
 
 import { doApiCall, saga, toastError, } from '../../common'
 
+// @todo this API call gives problems with query 'w', see backend/index
+// function *s_execute (query) {
+  // yield call (doApiCall, {
+    // url: '/api/search/autocomplete-query/' + query,
+    // resultsModify: map (prop ('results')),
+    // continuation: EffAction (a_executeCompleted),
+    // oops: toastError,
+  // })
+// }
+
 function *s_execute (query) {
   yield call (doApiCall, {
-    url: '/api/search/autocomplete-query/' + query,
+    url: '/api/search/autocomplete-query/',
+    optsMerge: {
+      method: 'POST',
+      body: JSON.stringify ({
+        data: { query, },
+      }),
+    },
     resultsModify: map (prop ('results')),
     continuation: EffAction (a_executeCompleted),
     oops: toastError,
