@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  rangeTo, prop,
+  rangeTo, prop, remapTuples,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, concatTo, recurry, ifOk, ifNil, noop, take,
   repeatF, dot, dot1, dot2, join, appendM, path,
@@ -61,9 +61,7 @@ import {
   thenWhenTrue,
   foldWhenLeft,
   effects,
-  inspect,
-  iterTake,
-  setValues,
+  takeUnique,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -89,6 +87,7 @@ import {
   // --- @todo should we check periodically / check for broken connection?
   // checkConnection as esCheckConnection,
   search as esSearch,
+  searchPhrasePrefixNoContext as esSearchPhrasePrefixNoContext,
 } from './elastic.mjs'
 
 import {
@@ -365,14 +364,11 @@ const fields = [
   'type_organisatie',
 ]
 
-// --- @todo recover
-const search = (max, query) => esSearch (query)
+const search = (max, query) => esSearch (max, query)
   | then ((results) => {
-    const hits = results | path (['hits', 'hits'])
-    if (nil (hits)) rejectP ('Invalid return')
     const ret = []
     let idx = -1
-    hits | take (max) | each ((result) => {
+    results | each ((result) => {
       const { _source: fonds, highlight, } = result
       const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
       const match = highlight | values | flatten (1)
@@ -385,7 +381,7 @@ const search = (max, query) => esSearch (query)
         match: theMatch,
       }))
     })
-    return ret | take (max)
+    return ret
   })
 
 const completeQueriesSimple = invoke (() => {

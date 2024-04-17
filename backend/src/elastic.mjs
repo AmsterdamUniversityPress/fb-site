@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, sprintfN, die,
+  sprintf1, sprintfN, die, tap,
   map, tryCatch, id,
-  ok, not, path, join, prop,
+  ok, not, path, join, prop, take,
 } from 'stick-js/es'
 
 import { Client, } from '@elastic/elasticsearch'
@@ -11,10 +11,13 @@ import { info, warn, } from 'alleycat-js/es/io'
 
 import { allP, recover, then, startP, rejectP, resolveP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, } from './util.mjs'
+import { logWith, } from 'alleycat-js/es/general'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, takeUnique, thenWhenTrue, } from './util.mjs'
 
 const indexMain = 'main'
 const indexAutocomplete = 'autocomplete'
+
+const inspectResults = false
 
 let esClient
 
@@ -71,9 +74,10 @@ const initIndexAutocomplete = (data) => startP ()
   )
   | then (() => info ('done building main index'))
 
-export const search = (query) => startP ()
+export const search = (max, query) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
+    size: max,
     query: {
       bool: {
         // --- i.e., 'OR'
@@ -101,7 +105,49 @@ export const search = (query) => startP ()
       },
     },
   }))
+  | then (({ hits: { hits, }}) => hits)
   | recover (decorateAndReject ('Error with esClient.search: '))
+
+export const searchPhrasePrefixNoContext = (max, query) => {
+  const numWords = (query.match (/\S+/g) ?? []).length
+  return startP ()
+  | then (() => esClient.search ({
+    index: indexMain,
+    // --- don't include the whole source document in result
+    _source: false,
+    // --- can include these in result, but not necessary if all we want is
+    // the matched value, which we extract using highlight
+    // fields: ['doelstelling', 'naam_organisatie'],
+    query: {
+      // --- combine using OR
+      bool: {
+        should: [
+          // --- phrase search where the last word can be partia
+          { match_phrase_prefix: { doelstelling: query, }},
+          { match_phrase_prefix: { naam_organisatie: query, }},
+        ],
+      },
+    },
+    // --- ideally this would just be `max`, but there may be a lot of
+    // duplicates.
+    size: max * 3,
+    highlight: {
+      // --- this means the highlight field will contain exactly the
+      // term/phrase that was matched.
+      fragment_size: numWords,
+      pre_tags: '',
+      post_tags: '',
+      fields: {
+        '*': {},
+      },
+    },
+  }))
+  | thenWhenTrue (inspectResults) ((x) => x | tap (inspect >> logWith ('results')))
+  // --- @future it would be more efficient to have elastic return unique
+  // values -- this should be possible with aggregations
+  | then (({ hits: { hits, }}) => hits)
+  | recover (decorateAndReject ('Error with esClient.search: '))
+}
 
 // --- e.g. for doelstelling and naam_organisatie
 export const searchWithWildcards = (max, query) => {
