@@ -10,6 +10,9 @@ import {
 
 import crypto from 'node:crypto'
 
+import descend from 'ramda/es/descend'
+import sortWith from 'ramda/es/sortWith'
+
 import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
@@ -387,25 +390,35 @@ const search = (max, query) => esSearch (query)
 
 const completeQueriesSimple = invoke (() => {
   const minChars = 3
-  // const words = new Set ()
-  const lookup = new Map ()
+  const lookup = new Map
+  // let x = 0
   for (const fonds of data) {
     for (const field of fields) {
       const value = String (fonds [field] ?? '')
       for (const word of (value.match (/\w+/g) ?? [])) {
         if (word.length < minChars) continue
-        // words.add (word)
         for (const n of (minChars | rangeTo (100))) {
           const fragment = word.slice (0, n)
-          const l = lookup.get (fragment) ?? new Set ()
-          l.add (word)
+          const l = lookup.get (fragment) ?? new Map
+          const numOccurs = l.get (word) ?? 0
+          l.set (word, numOccurs + 1)
           lookup.set (fragment, l)
         }
       }
     }
   }
-  return async (max, query) => lookup.get (query) | ifOk (
-    iterTake (max) << setValues,
+  // --- sort on numOccurs
+  const sorted = new Map
+  const elementAt = prop
+  for (const [fragment, l] of lookup.entries ()) {
+    // --- [[word, numOccurs], [word, numOccurs], ...]
+    const data = Array.from (l.entries ())
+      | sortWith ([descend (elementAt (1))])
+      | map (elementAt (0))
+    sorted.set (fragment, data)
+  }
+  return async (max, query) => sorted.get (query) | ifOk (
+    take (max),
     () => [],
   )
 })
@@ -565,7 +578,7 @@ const init = ({ port, }) => express ()
       | recover (
         decorateRejection ('Error with elastic search: ') >> effects ([
           warn,
-          die,
+          () => res | sendStatusEmpty (500),
         ]),
       )
     },
@@ -576,14 +589,25 @@ const init = ({ port, }) => express ()
   | securePost (privsUser) ('/search/autocomplete-query/', getAndValidateBodyParams ([
       basicStringValidator ('query'),
     ], ({ res }, query) => {
-      completeQueriesSimple (10, query)
-      | then ((results) => {
+      // --- if the query doesn't contain any upper-case characters,
+      // transform all hits to lowercase.
+      const transformCase = lets (
+        () => query.match (/\p{Uppercase}/u),
+        (hasUpper) => hasUpper ? id : dot ('toLowerCase'),
+      )
+      esSearchPhrasePrefixNoContext (10, query)
+      | then ((hits) => {
+        const results = hits | flatMap (
+          ({ highlight, }) => highlight | values | flatMap (
+            (x) => x | map (transformCase),
+          ),
+        ) | takeUnique (10)
         res | sendStatus (200, { results, })
       })
       | recover (
         decorateRejection ('Error with completeQueriesSimple (): ') >> effects ([
           warn,
-          die,
+          () => res | sendStatusEmpty (500),
         ]),
       )
     },
