@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke, addIndex, not, eq,
+  map, spreadTo, lets, flip, invoke, addIndex, not, eq, dot,
   sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
@@ -406,3 +406,27 @@ export const ifEqualsZero = eq (0) | ifPredicate
 
 // --- @todo put somewhere else / reuse ?
 export const foldWhenLeft = p => whenPredicate (isLeft) (fold (p, noop))
+
+// --- like `each` but with an array of functions and one value (see common.js)
+export const effects = recurry (2) (
+  (fs) => (x) => {
+    let last
+    for (const f of fs)
+      last = f (x)
+    return last
+  }
+)
+
+export const iterTake = recurry (2) (
+  (n) => (iter) => {
+    const ret = []
+    let m = 0
+    for (const x of iter) {
+      if (++m > n) break
+      ret.push (x)
+    }
+    return ret
+  }
+)
+
+export const setValues = dot ('values')

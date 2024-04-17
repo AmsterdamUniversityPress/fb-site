@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  rangeTo,
+  rangeTo, prop,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, concatTo, recurry, ifOk, ifNil, noop, take,
   repeatF, dot, dot1, dot2, join, appendM, path,
@@ -20,7 +20,7 @@ import yargsMod from 'yargs'
 import nodemailer from 'nodemailer'
 
 import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
-import { fold, } from 'alleycat-js/es/bilby'
+import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { get, listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
@@ -57,6 +57,10 @@ import {
   flatten,
   thenWhenTrue,
   foldWhenLeft,
+  effects,
+  inspect,
+  iterTake,
+  setValues,
 } from './util.mjs'
 import {
   getAndValidateQuery,
@@ -79,9 +83,9 @@ import {
 } from './util-redis.mjs'
 import {
   init as esInit,
-  checkConnection as esCheckConnection,
+  // --- @todo should we check periodically / check for broken connection?
+  // checkConnection as esCheckConnection,
   search as esSearch,
-  waitConnection as esWaitConnection,
 } from './elastic.mjs'
 
 import {
@@ -285,7 +289,7 @@ const alleycatAuth = authFactory.create ().init ({
   getUserinfoLogin,
   getUserinfoRequest,
   initSession,
-  isAuthorized: async (email, req, privileges=null) => {
+  isAuthorized: async (email, _req, privileges=null) => {
     // --- `privileges` may be null, but we want to make sure it's always explicitly set to
     // something (we use the empty set to mean no / open authorization)
     if (nil (privileges)) die ('isAuthorized (): privileges is nil')
@@ -293,8 +297,7 @@ const alleycatAuth = authFactory.create ().init ({
       return [false, 'missing privileges for this route']
     return [true]
   },
-  isLoggedIn: async (email, _, req) => {
-    const { path, } = req.route
+  isLoggedIn: async (email, _, _req) => {
     if (!getLoggedIn (email)) return [false, 'not logged in']
     return [true]
   },
@@ -358,45 +361,8 @@ const fields = [
   'naam_organisatie',
   'type_organisatie',
 ]
-const manualSearch = invoke (() => {
-  const contextLeft = 20
-  const contextRight = contextLeft
-  return async (max, query) => {
-    let n = 0
-    let matchKey = 0
-    const results = []
-    for (const fonds of data) {
-      for (const field of fields) {
-        const values = fonds [field] | toListCollapseNil
-        for (const value of values) {
-          const idx = value.indexOf (query)
-          if (idx === -1) continue
-          results.push ({
-            // --- for e.g. react key
-            matchKey: ++matchKey,
-            uuid: fonds.uuid,
-            name: fonds.naam_organisatie,
-            type: fonds.type_organisatie,
-            categories: fonds.categories,
-            match: lets (
-              () => query.length,
-              () => Math.max (0, idx - contextLeft),
-              (ql, begin) => [
-                value.substring (begin, idx),
-                value.substring (idx, idx + ql),
-                value.substr (idx + ql, contextRight),
-              ],
-            ),
-          })
-          if (++n === max) return results
-        }
-      }
-    }
-    return results
-  }
-})
 
-// const search = manualSearch
+// --- @todo recover
 const search = (max, query) => esSearch (query)
   | then ((results) => {
     const hits = results | path (['hits', 'hits'])
@@ -419,25 +385,29 @@ const search = (max, query) => esSearch (query)
     return ret | take (max)
   })
 
-const completeQueries = invoke (() => {
+const completeQueriesSimple = invoke (() => {
   const minChars = 3
-  const words = new Set ()
+  // const words = new Set ()
   const lookup = new Map ()
   for (const fonds of data) {
     for (const field of fields) {
       const value = String (fonds [field] ?? '')
       for (const word of (value.match (/\w+/g) ?? [])) {
         if (word.length < minChars) continue
-        words.add (word)
+        // words.add (word)
         for (const n of (minChars | rangeTo (100))) {
-          const l = lookup.get (word.slice (0, n)) ?? new Set ()
+          const fragment = word.slice (0, n)
+          const l = lookup.get (fragment) ?? new Set ()
           l.add (word)
-          lookup.set (word.slice (0, n), l)
+          lookup.set (fragment, l)
         }
       }
     }
   }
-  return (max, query) => take (max, [... (lookup.get (query) ?? new Set ()).values ()])
+  return async (max, query) => lookup.get (query) | ifOk (
+    iterTake (max) << setValues,
+    () => [],
+  )
 })
 
 const reduceEmail = (contents) => lets (
@@ -589,9 +559,15 @@ const init = ({ port, }) => express ()
   ))
   | secureGet (privsUser) ('/search/search/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
-    ], async ({ res }, query) => {
-      const results = await search (3, query)
-      return res | sendStatus (200, { results, })
+    ], ({ res }, query) => {
+      search (3, query)
+      | then ((results) => res | sendStatus (200, { results, }))
+      | recover (
+        decorateRejection ('Error with elastic search: ') >> effects ([
+          warn,
+          die,
+        ]),
+      )
     },
   ))
 
@@ -599,9 +575,17 @@ const init = ({ port, }) => express ()
 // weird bug.
   | securePost (privsUser) ('/search/autocomplete-query/', getAndValidateBodyParams ([
       basicStringValidator ('query'),
-    ], async ({ res }, query) => {
-      const results = await completeQueries (10, query)
-      return res | sendStatus (200, { results, })
+    ], ({ res }, query) => {
+      completeQueriesSimple (10, query)
+      | then ((results) => {
+        res | sendStatus (200, { results, })
+      })
+      | recover (
+        decorateRejection ('Error with completeQueriesSimple (): ') >> effects ([
+          warn,
+          die,
+        ]),
+      )
     },
   ))
 
@@ -781,7 +765,7 @@ const clearStaleSessions = (ms) => {
 const initRedis = async () => redisInit (redisURL, 1000)
   | recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
 const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.forceReindexElastic, })
-| recover (error << decorateRejection ('Fatal error connecting to elastic.'))
+  | recover (error << decorateRejection ('Fatal error connecting to elastic: '))
 
 await initRedis ()
 await initElastic ()
