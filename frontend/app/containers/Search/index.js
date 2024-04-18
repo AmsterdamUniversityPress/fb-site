@@ -187,10 +187,11 @@ export const Search = container (
               },
             },
           }}
+          closeOnSelected={true}
+          suggestions={suggestions}
           onChange={(event) => onChange (event)}
           onClear={onClear}
           onSelect={onSelect}
-          suggestions={suggestions}
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
