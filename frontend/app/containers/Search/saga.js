@@ -10,30 +10,30 @@ import { requestJSON, defaultOpts, resultFoldMap, resultFold, } from 'alleycat-j
 import { EffAction, EffSaga, EffNoEffect, } from 'alleycat-js/es/saga'
 
 import {
-  execute as a_execute,
-  executeCompleted as a_executeCompleted,
+  autocompleteFetch as a_autocompleteFetch,
+  autocompleteFetchCompleted as a_autocompleteFetchCompleted,
   queryUpdated as a_queryUpdated,
 } from './actions'
 
 import { doApiCall, saga, toastError, } from '../../common'
 
-function *s_execute (query) {
+function *s_autocompleteFetch (query) {
   yield call (doApiCall, {
     url: '/api/search/autocomplete-query/' + query,
     resultsModify: map (prop ('results')),
-    continuation: EffAction (a_executeCompleted),
+    continuation: EffAction (a_autocompleteFetchCompleted),
     oops: toastError,
   })
 }
 
 function *s_queryUpdated (query) {
   if (query === '') return
-  yield put (a_execute (query))
+  yield put (a_autocompleteFetch (query))
 }
 
 export default function *sagaRoot () {
   yield all ([
-    saga (takeLatest, a_execute, s_execute),
+    saga (takeLatest, a_autocompleteFetch, s_autocompleteFetch),
     saga (takeLatest, a_queryUpdated, s_queryUpdated),
   ])
 }

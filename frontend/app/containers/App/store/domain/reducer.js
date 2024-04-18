@@ -12,8 +12,6 @@ import {
   fondsenFetch,
   fondsenFetchCompleted,
   halt,
-  searchFetch,
-  searchFetchCompleted,
 } from '../../actions/main'
 
 import { rcompleteToResults, reducer, } from '../../../../common'
@@ -26,7 +24,6 @@ export const initialState = {
   // at the beginning of each request, because we don't want the pagination component (which selects
   // on this) to flicker.
   numFondsen: Nothing,
-  searchResults: RequestInit,
 }
 
 const reducerTable = makeReducer (
@@ -40,12 +37,6 @@ const reducerTable = makeReducer (
       RequestCompleteError: id,
       RequestCompleteSuccess: (results) => always (Just (results.metadata.totalAvailable)),
     })),
-  ),
-  searchFetch, () => assoc (
-    'searchResults', RequestLoading (Nothing),
-  ),
-  searchFetchCompleted, (rcomplete) => assoc (
-    'searchResults', rcomplete | rcompleteToResults,
   ),
 )
 

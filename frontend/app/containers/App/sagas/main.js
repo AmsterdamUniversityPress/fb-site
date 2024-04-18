@@ -25,8 +25,6 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   resetPassword as a_resetPassword,
-  searchFetch as a_searchFetch,
-  searchFetchCompleted as a_searchFetchCompleted,
   sendResetEmail as a_sendResetEmail,
   sendResetEmailCompleted as a_sendResetEmailCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
@@ -38,6 +36,10 @@ import {
   usersFetch as a_usersFetch,
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
+import {
+  searchFetch as a_searchFetch,
+  searchFetchCompleted as a_searchFetchCompleted,
+} from '../../Search/actions'
 import {
   setPage as a_setPage,
   setNumPerPageIdx as a_setNumPerPageIdx,

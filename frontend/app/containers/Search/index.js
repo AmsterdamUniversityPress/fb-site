@@ -21,15 +21,10 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { queryUpdated, } from './actions'
-import { searchFetch } from '../App/actions/main'
+import { queryUpdated, searchFetch, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
-import { selectResults, } from './selectors'
-
-import {
-  selectSearchResults,
-} from '../App/store/domain/selectors'
+import { selectResultsAutocomplete, selectResultsSearch, } from './selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
@@ -121,7 +116,7 @@ export const Search = container (
       searchFetchDispatch: searchFetch,
     },
     {
-      results: selectResults,
+      results: selectResultsAutocomplete,
     },
   ],
   (props) => {
@@ -250,7 +245,7 @@ const SearchResultsS = styled.div`
 export const SearchResults = container2 (
   ['SearchResults'],
   () => {
-    const searchResults = useSelector (selectSearchResults)
+    const searchResults = useSelector (selectResultsSearch)
     return <>
       <div className='x__search'>
         <Search/>

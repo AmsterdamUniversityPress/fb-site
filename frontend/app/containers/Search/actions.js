@@ -15,12 +15,27 @@ export const queryUpdated = action (
   'queryUpdated',
 )
 
-export const execute = action (
+export const autocompleteFetch = action (
   (query) => query,
-  'execute',
+  'autocompleteFetch',
 )
 
-export const executeCompleted = action (
+export const autocompleteFetchCompleted = action (
   (rcomplete) => rcomplete,
-  'executeCompleted',
+  'autocompleteFetchCompleted',
+)
+
+export const executeAutocompleteCompleted = action (
+  (rcomplete) => rcomplete,
+  'executeAutocompleteCompleted',
+)
+
+export const searchFetch = action (
+  (query) => query,
+  'searchFetch',
+)
+
+export const searchFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'searchFetchCompleted',
 )

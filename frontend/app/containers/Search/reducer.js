@@ -8,15 +8,22 @@ import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alle
 import { trim, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
-import { execute, executeCompleted, } from './actions'
+import { autocompleteFetch, autocompleteFetchCompleted, searchFetch, searchFetchCompleted, } from './actions'
 import { rcompleteToResults, reducer, } from '../../common'
 
 export const initialState = {
-  results: RequestInit,
+  resultsAutocomplete: RequestInit,
+  resultsSearch: RequestInit,
 }
 
 const reducerTable = makeReducer (
-  executeCompleted, (rcomplete) => assoc ('results', rcompleteToResults (rcomplete)),
+  autocompleteFetchCompleted, (rcomplete) => assoc ('resultsAutocomplete', rcompleteToResults (rcomplete)),
+  searchFetch, () => assoc (
+    'resultsSearch', RequestLoading (Nothing),
+  ),
+  searchFetchCompleted, (rcomplete) => assoc (
+    'resultsSearch', rcomplete | rcompleteToResults,
+  ),
 )
 
 export default reducer ('Search', initialState, reducerTable)

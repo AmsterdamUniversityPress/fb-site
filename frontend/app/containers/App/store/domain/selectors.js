@@ -35,13 +35,3 @@ export const selectFondsen = select (
 )
 
 export const selectNumFondsen = selectVal ('numFondsen')
-
-// --- @todo consistent naming for selectors involving a request
-
-const _selectSearchResults = selectVal ('searchResults')
-
-export const selectSearchResults = select (
-  'searchResults',
-  _selectSearchResults,
-  (searchResultRequest) => searchResultRequest | map (prop ('results'))
-)

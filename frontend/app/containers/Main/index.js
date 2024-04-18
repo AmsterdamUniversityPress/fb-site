@@ -42,7 +42,6 @@ import {
 import {
   selectFondsen,
   selectNumFondsen,
-  selectSearchResults,
 } from '../App/store/domain/selectors'
 import {
   selectPasswordUpdated,
