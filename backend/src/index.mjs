@@ -579,9 +579,7 @@ const init = ({ port, }) => express ()
     },
   ))
 
-// @todo this works. Not a huge problem if this is a post, instead of a get, but it's still a
-// weird bug.
-  | securePost (privsUser) ('/search/autocomplete-query/', getAndValidateBodyParams ([
+  | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
     ], ({ res }, query) => {
       // --- if the query doesn't contain any upper-case characters,
@@ -616,30 +614,6 @@ const init = ({ port, }) => express ()
       )
     },
   ))
-
-/*
-  original; breaks on sending query = 'w' (all other letters work)
-  sends a 499 from alleycat-jwt, a problem with authentication.
-  funny thing is, if we don't use the secureGet, but regular get, the
-  Error remains the same (but it shouldn't be authenticating then, so why the error?)
-  Could it be something related to cache?
-*/
-
-  // | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
-      // basicStringValidator ('query'),
-    // ], async ({ res }, query) => {
-      // const results = await completeQueries (10, query)
-      // return res | sendStatus (200, { results, })
-    // },
-  // ))
-
-  // this also doesn't work
-  // | get ('/search/autocomplete-query/:query', (res, req) => {
-      // const query = req.query
-      // const results = ['hello', 'hollow']
-      // return res | sendStatus (200, { results, })
-    // },
-  // )
 
   // --- @todo should we also require a token here?
   | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
