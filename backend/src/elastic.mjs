@@ -14,6 +14,7 @@ import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, 
 
 // --- debug / analyze
 const analyze = false
+const analyzeText = `Het Joods Jongerenfonds (JJF) oftewel 't Fonds dat gaat over het boek van taken en nog een taak met Dhr. Vos en Zoon`
 const inspectResults = false
 
 const indexMain = 'main'
@@ -26,6 +27,10 @@ const customDutchFilter = {
   dutch_stop: {
     type:       'stop',
     stopwords:  '_dutch_',
+  },
+  dutch_stop_extra: {
+    type:       'stop',
+    stopwords:  ['t'],
   },
   dutch_keywords: {
     type:       'keyword_marker',
@@ -61,6 +66,7 @@ const customDutchAnalyzer = {
   filter: [
     'lowercase',
     'dutch_stop',
+    'dutch_stop_extra',
     'dutch_keywords',
     'dutch_override',
     'dutch_stemmer'
@@ -106,7 +112,7 @@ const initIndexMain = (data) => startP ()
   | recover (decorateAndReject ('Error with esClient.indices.create for ' + indexMain + ' : '))
   | thenWhenTrue (analyze) (() => esClient.indices.analyze ({
     index: indexMain,
-    text: 'Het Joods Jongerenfonds (JJF) Dhr. Vos aan het boek en Zoon',
+    text: analyzeText,
   }) | then (logWith ('analysis: ')))
   | then (
     () => data | eachP ((fonds) => esClient.index ({
