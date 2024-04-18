@@ -9,14 +9,14 @@ import React, { useCallback, useEffect, useMemo, useState, } from 'react'
 import styled from 'styled-components'
 
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
-import { logWith, min, max, warn, } from 'alleycat-js/es/general'
+import { logWith, min, max, warn, trim, } from 'alleycat-js/es/general'
 import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { Input as InputDefault, } from '../Input'
 import { DropDown, } from '../../shared'
-import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
+import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, isNotEmptyString, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
 
 const InputWithAutocompleteS = styled.div`
   text-align: left;
@@ -86,14 +86,15 @@ export default component (
     // --- -1 means use the value, >= 0 means that idx of the suggestions.
     const [selectedIdx, setSelectedIdx] = useState (-1)
     const onChangeInput = useCallback ((event) => {
-      setValue (event.target.value)
-      setEnteredValue (event.target.value)
-      setShowSuggestions (true)
+      const { value, } = event.target
+      setValue (value)
+      setEnteredValue (value)
+      setShowSuggestions (value | trim | isNotEmptyString)
       onChangeProp (event)
     }, [onChangeProp])
     const _onSelect = useCallback (
       (theValue) => {
-        onSelectProp (theValue)
+        if (theValue !== '') onSelectProp (theValue)
         if (closeOnSelected) setShowSuggestions (false)
       },
       [onSelectProp, closeOnSelected],
