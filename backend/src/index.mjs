@@ -56,19 +56,16 @@ import {
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
   retryPDefaultMessage,
-  toListCollapseNil,
-  flatten,
   thenWhenTrue,
   foldWhenLeft,
   effects,
   takeUnique,
-  takeUniqueWith,
 } from './util.mjs'
 import {
-  getAndValidateQuery,
-  getAndValidateBodyParams,
-  getAndValidateRequestParams,
-  getAndValidateCombine,
+  gvQuery,
+  gvBodyParams,
+  gvRequestParams,
+  gv2,
   basicBase64StringValidator,
   basicEmailValidator,
   basicPasswordValidator,
@@ -552,7 +549,7 @@ const init = ({ port, }) => express ()
     res.set ('Cache-control', cacheExpireSecs | sprintf1 ('max-age=%d'))
     next ()
   })
-  | secureGet (privsUser) ('/fondsen', getAndValidateQuery ([
+  | secureGet (privsUser) ('/fondsen', gvQuery ([
       basicValidator ('beginIdx', isNonNegativeInt, Number),
       basicValidator ('number', isPositiveInt, Number),
     ],
@@ -561,25 +558,25 @@ const init = ({ port, }) => express ()
       results: data.slice (beginIdx, beginIdx + number),
     }),
   ))
-  | secureGet (privsUser) ('/fonds', getAndValidateQuery ([
+  | secureGet (privsUser) ('/fonds', gvQuery ([
       basicUUIDValidator ('uuid'),
-    ], ({ res }, uuid) => res | sendStatus (
+    ],
+    ({ res }, uuid) => res | sendStatus (
       ... dataByUuid | ifMapHas (uuid) (
         (fonds) => [200, { results: fonds, }],
         () => [499, { umsg: 'No such uuid ' + uuid, }],
       ),
     ),
   ))
-  | secureGet (privsUser) ('/search/search/:query', getAndValidateCombine (
-    [
-      getAndValidateRequestParams ([
-        basicStringValidator ('query'),
-      ]),
-      getAndValidateQuery ([
-        basicValidator ('pageSize', isPositiveInt, Number),
-        basicValidator ('pageNum', isNonNegativeInt, Number),
-      ]),
-    ], ({ res }, query, pageSize, pageNum) => {
+  | secureGet (privsUser) ('/search/search/:query', gv2 (
+    gvRequestParams ([
+      basicStringValidator ('query'),
+    ]),
+    gvQuery ([
+      basicValidator ('pageSize', isPositiveInt, Number),
+      basicValidator ('pageNum', isNonNegativeInt, Number),
+    ]),
+    ({ res }, query, pageSize, pageNum) => {
       search (query, pageSize, pageNum)
       | then ((results) => res | sendStatus (200, { results, }))
       | recover (
@@ -590,9 +587,10 @@ const init = ({ port, }) => express ()
       )
     },
   ))
-  | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
+  | secureGet (privsUser) ('/search/autocomplete-query/:query', gvRequestParams ([
       basicStringValidator ('query'),
-    ], ({ res }, query) => {
+    ],
+    ({ res }, query) => {
       // --- if the query doesn't contain any upper-case characters,
       // transform all hits to lowercase.
       const transformCase = lets (
@@ -627,11 +625,12 @@ const init = ({ port, }) => express ()
   ))
 
   // --- @todo should we also require a token here?
-  | securePatch (privsUser) ('/user', getAndValidateBodyParams ([
+  | securePatch (privsUser) ('/user', gvBodyParams ([
       basicEmailValidator ('email'),
       basicStringValidator ('oldPassword'),
       basicPasswordValidator (minimumPasswordScore) ('newPassword'),
-    ], ({ res }, email, oldPassword, newPassword) => {
+    ],
+    ({ res }, email, oldPassword, newPassword) => {
       const knownHashed = getUserPassword (email)
       if (nil (knownHashed)) return res | sendStatus (499, {
         umsg: 'Ongeldige gebruiker',
@@ -655,19 +654,21 @@ const init = ({ port, }) => express ()
       )
     },
   ))
-  | secureDelete (privsAdminUser) ('/user-admin/:email', getAndValidateRequestParams ([
+  | secureDelete (privsAdminUser) ('/user-admin/:email', gvRequestParams ([
       basicEmailValidator ('email'),
-    ], ({ res, }, email) => {
+    ],
+    ({ res, }, email) => {
       doDbCall (dbUserRemove, [email])
       return res | sendStatus (200, null)
     }),
   )
-  | securePut (privsAdminUser) ('/user-admin/', getAndValidateBodyParams ([
+  | securePut (privsAdminUser) ('/user-admin/', gvBodyParams ([
       basicEmailValidator ('email'),
       basicStringValidator ('firstName'),
       basicStringValidator ('lastName'),
       basicStringListValidator ('privileges')
-    ], ({ res, }, email, firstName, lastName, privileges) => {
+    ],
+    ({ res, }, email, firstName, lastName, privileges) => {
       doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
       return sendInfoEmail (email, 'welcome')
       | then ((_mailInfo) => res | sendStatus (200, null))
@@ -680,45 +681,45 @@ const init = ({ port, }) => express ()
       })
     },
   ))
-  | post ('/user/reset-password', getAndValidateBodyParams ([
+  | post ('/user/reset-password', gvBodyParams ([
     basicEmailValidator ('email'),
     basicPasswordValidator (minimumPasswordScore) ('password'),
     basicBase64StringValidator ('token'),
   ],
-    ({ res }, email, password, token) => {
-      const userError = (imsg) => res | sendStatus (499, {
-        imsg,
-        umsg: 'Deze activatielink is verlopen of ongeldig',
-      })
-      // --- usually we can just throw an exception using die, and express
-      // will send a response of 500, but during a promise chain that causes
-      // a crash.
-      const serverError = (msg) => {
-        warn (msg)
-        res | sendStatus (599, { imsg: 'Error with /user/reset-password', })
-      }
-      redisGetFail (redisKey ('activate', email))
-      | then (ifPasswordMatchesPlaintext (token) (
-        () => {
-          allP ([
-            updateUserPassword (email, password),
-            redisDelete (redisKey ('activate', email))
-          ])
-          | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
-          | then (() => sendInfoEmail (email, 'password-changed')
-            | then (() => res | sendStatus (200, null))
-            | recover ((e) => {
-              warn ('/user/reset-password: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
-              res | sendStatus (201, null)
-            })
-          )
-        },
-        () => userError ('No match for token'),
-      ))
-      | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
+  ({ res }, email, password, token) => {
+    const userError = (imsg) => res | sendStatus (499, {
+      imsg,
+      umsg: 'Deze activatielink is verlopen of ongeldig',
+    })
+    // --- usually we can just throw an exception using die, and express
+    // will send a response of 500, but during a promise chain that causes
+    // a crash.
+    const serverError = (msg) => {
+      warn (msg)
+      res | sendStatus (599, { imsg: 'Error with /user/reset-password', })
     }
+    redisGetFail (redisKey ('activate', email))
+    | then (ifPasswordMatchesPlaintext (token) (
+      () => {
+        allP ([
+          updateUserPassword (email, password),
+          redisDelete (redisKey ('activate', email))
+        ])
+        | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
+        | then (() => sendInfoEmail (email, 'password-changed')
+          | then (() => res | sendStatus (200, null))
+          | recover ((e) => {
+            warn ('/user/reset-password: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
+            res | sendStatus (201, null)
+          })
+        )
+      },
+      () => userError ('No match for token'),
+    ))
+    | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
+  }
   ))
-  | securePost (privsAdminUser) ('/user/send-welcome-email', getAndValidateBodyParams ([
+  | securePost (privsAdminUser) ('/user/send-welcome-email', gvBodyParams ([
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
@@ -730,7 +731,7 @@ const init = ({ port, }) => express ()
       })
     },
   ))
-  | post ('/user/send-reset-email', getAndValidateBodyParams ([
+  | post ('/user/send-reset-email', gvBodyParams ([
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {

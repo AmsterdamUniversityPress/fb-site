@@ -1,7 +1,8 @@
 import {
   pipe, compose, composeRight,
-  id, recurry, sprintf1,
+  id, recurry, sprintf1, head,
   againstAll, allAgainst, T, ok, not, join,
+  reduce,
 } from 'stick-js/es'
 
 import zxcvbn from 'zxcvbn'
@@ -70,38 +71,53 @@ export const _getAndValidate = recurry (6) (
   },
 )
 
-export const getAndValidateQuery = _getAndValidate ((req) => req.query)
-export const getAndValidateRequestParams = _getAndValidate ((req) => req.params)
+export const gvQuery = _getAndValidate ((req) => req.query)
+export const gvRequestParams = _getAndValidate ((req) => req.params)
 // --- note that req.body.data is hardcoded.
 // (the extra '.data' is just a convention we use in our frontend)
-export const getAndValidateBodyParams = _getAndValidate ((req) => req.body.data)
+export const gvBodyParams = _getAndValidate ((req) => req.body.data)
 
 /* Usage:
  *
- *  secureGet (privsUser) ('/path/:query', getAndValidateCombine (
+ *  secureGet (privsUser) ('/path/:query', gv (
  *    [
- *      getAndValidateRequestParams ([
+ *      gvRequestParams ([
  *        basicStringValidator ('query'),
  *      ]),
- *      getAndValidateQuery ([
+ *      gvQuery ([
  *        basicValidator ('pageSize', isPositiveInt, Number),
  *        basicValidator ('pageNum', isNonNegativeInt, Number),
  *      ]),
  *    ], ({ res }, query, pageSize, pageNum) => ...
  */
 
-// --- @todo make generic (currently expects exactly 2 'getAndValidate' functions
-export const getAndValidateCombine = recurry (5) (
+const getAndValidate = recurry (5) (
   (getAndValidates) => (cont) => (req) => (res) => (next) => {
-    const [gandv1, gandv2] = getAndValidates
-    const f = (reqResNext, ... params1) => {
-      const g = (_reqResNext2, ... params2) => {
-        return cont (reqResNext, ... params1, ... params2)
-      }
-      return gandv2 (g, req, res, next)
-    }
-    return gandv1 (f, req, res, next)
+    const [params, reqResNexts] = getAndValidates | reduce (
+      ([collectParams, reqResNexts], gandv) => {
+        // --- reqResNext is the same at each step, any one will do
+        const f = (reqResNext, ... params) => {
+          reqResNexts.push (reqResNext)
+          collectParams.push (... params)
+        }
+        gandv (f, req, res, next)
+        return [collectParams, reqResNexts]
+      },
+      [[], []],
+    )
+    return cont (reqResNexts | head, ... params)
   },
+)
+
+export const gvN = getAndValidate
+export const gv = recurry (5) (
+  (gvf1) => gvN ([gvf1]),
+)
+export const gv2 = recurry (6) (
+  (gvf1) => (gvf2) => gvN ([gvf1, gvf2]),
+)
+export const gv3 = recurry (7) (
+  (gvf1) => (gvf2) => (gvf3) => gvN ([gvf1, gvf2, gvf3]),
 )
 
 export const basicValidator = (param, validate=T, transform=id, preValidate=T) => [
