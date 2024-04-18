@@ -14,8 +14,12 @@ import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, 
 
 // --- debug / analyze
 const analyze = false
-const analyzeText = `Het Joods Jongerenfonds (JJF) oftewel 't Fonds dat gaat over het boek van taken en nog een taak met Dhr. Vos en Zoon`
-const inspectResults = false
+const analyzeText = `
+Het Joods Jongerenfonds (JJF) oftewel 't Fonds dat gaat over het boek van taken en nog een taak met Dhr. Vos en Zoon
+Het optimaliseren van het welzijn van werknemers in de gehele supply chain is een sleutelonderdeel van klanttevredenheid.
+`
+const inspectResultsAutocomplete = false
+const inspectResultsSearch = false
 
 const indexMain = 'main'
 
@@ -132,12 +136,18 @@ export const search = (query, pageSize, pageNum) => startP ()
       bool: {
         // --- i.e., 'OR'
         should: [
-          { term: { categories: query, }},
-          { term: { doelgroep: query, }},
-          { term: { doelstelling: query, }},
-          { term: { naam_organisatie: query, }},
-          { term: { trefwoorden: query, }},
-          { term: { type_organisatie: query, }},
+          // --- we need to use full-text queries (`match` etc.) and not
+          // term-level queries (`term` etc.) because of the stemming &
+          // tokenizing and so on which we do for Dutch.
+          // --- `match_phrase` is like `match` for single words, but if a
+          // phrase is entered it matches the whole phrase instead of doing
+          // OR on the words.
+          { match_phrase: { categories: query, }},
+          { match_phrase: { doelgroep: query, }},
+          { match_phrase: { doelstelling: query, }},
+          { match_phrase: { naam_organisatie: query, }},
+          { match_phrase: { trefwoorden: query, }},
+          { match_phrase: { type_organisatie: query, }},
         ],
       },
     },
@@ -154,6 +164,7 @@ export const search = (query, pageSize, pageNum) => startP ()
       },
     },
   }))
+  | thenWhenTrue (inspectResultsSearch) (tap (inspect >> logWith ('results for search')))
   | then (({ hits: { hits, }}) => hits)
   | recover (decorateAndReject ('Error with esClient.search: '))
 
@@ -191,7 +202,7 @@ export const searchPhrasePrefixNoContext = (max, query) => {
       },
     },
   }))
-  | thenWhenTrue (inspectResults) ((x) => x | tap (inspect >> logWith ('results')))
+  | thenWhenTrue (inspectResultsAutocomplete) (tap (inspect >> logWith ('results for autocomplete')))
   // --- @future it would be more efficient to have elastic return unique
   // values -- this should be possible with aggregations
   | then (({ hits: { hits, }}) => hits)
