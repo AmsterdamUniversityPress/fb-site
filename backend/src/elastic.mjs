@@ -12,21 +12,69 @@ import { info, warn, } from 'alleycat-js/es/io'
 import { allP, recover, then, startP, rejectP, resolveP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, } from 'alleycat-js/es/general'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, takeUnique, thenWhenTrue, } from './util.mjs'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, takeUnique, thenWhenTrue, mapLookupOnOrDie, } from './util.mjs'
+
+// --- debug / analyze
+const analyze = false
+const inspectResults = false
 
 const indexMain = 'main'
-const indexAutocomplete = 'autocomplete'
-
-const inspectResults = false
+// const indexAutocomplete = 'autocomplete'
 
 let esClient
 
-// --- caller must catch rejection
+// --- this is just a manual custom filter which does the same as the filter
+// 'dutch' (see elastic docs), but it lets us tweak things.
+const customDutchFilter = {
+  dutch_stop: {
+    type:       'stop',
+    stopwords:  '_dutch_',
+  },
+  dutch_keywords: {
+    type:       'keyword_marker',
+    // --- what does this do?
+    keywords:   ['voorbeeld'] ,
+  },
+  dutch_stemmer: {
+    type:       'stemmer',
+    language:   'dutch',
+  },
+  dutch_override: {
+    type:       'stemmer_override',
+    rules: [
+      'fiets=>fiets',
+      'bromfiets=>bromfiets',
+      'ei=>eier',
+      'kind=>kinder',
+    ],
+  },
+}
+
+// --- just for testing ('standard' works really well)
+const customTokenizers = {
+  customWordTokenizer: {
+    type: 'simple_pattern',
+    pattern: '\\w+',
+  },
+}
+
+// --- ditto custom filter for Dutch
+const customDutchAnalyzer = {
+  tokenizer: 'standard',
+  filter: [
+    'lowercase',
+    'dutch_stop',
+    'dutch_keywords',
+    'dutch_override',
+    'dutch_stemmer'
+  ],
+}
+
 export const init = (url, data, { forceReindex=false, }={}, ) => {
   esClient = new Client ({ node: url, })
   return waitConnection () | then (allP ([
     xxIndex (indexMain, forceReindex, data),
-    xxIndex (indexAutocomplete, forceReindex, data),
+    // xxIndex (indexAutocomplete, forceReindex, data),
   ]))
 }
 
@@ -42,14 +90,30 @@ const xxIndex = (index, forceReindex, data) => startP ()
   })
   | then ((doInit) => {
     if (!doInit) return
-    const init = index === indexMain ? initIndexMain : index === indexAutocomplete ? initIndexAutocomplete : die ('Invalid: ' + index)
-    return init (data)
+    // const init = index === indexMain ? initIndexMain : index === indexAutocomplete ? initIndexAutocomplete : die ('Invalid: ' + index)
+    // return init (data)
+    return initIndexMain (data)
   })
 
 const initIndexMain = (data) => startP ()
   | then (() => info ('building main index'))
-  | then (() => esClient.indices.create ({ index: indexMain, }))
+  | then (() => esClient.indices.create ({
+    index: indexMain,
+    settings: {
+      analysis: {
+        filter: customDutchFilter,
+        tokenizer: customTokenizers,
+        analyzer: {
+          default: customDutchAnalyzer,
+        },
+      },
+    },
+  }))
   | recover (decorateAndReject ('Error with esClient.indices.create for ' + indexMain + ' : '))
+  | thenWhenTrue (analyze) (() => esClient.indices.analyze ({
+    index: indexMain,
+    text: 'Het Joods Jongerenfonds (JJF) Dhr. Vos aan het boek en Zoon',
+  }) | then (logWith ('analysis: ')))
   | then (
     () => data | eachP ((fonds) => esClient.index ({
       index: indexMain,
@@ -60,19 +124,19 @@ const initIndexMain = (data) => startP ()
   )
   | then (() => info ('done building main index'))
 
-const initIndexAutocomplete = (data) => startP ()
-  | then (() => info ('building autocomplete index'))
-  | then (() => esClient.indices.create ({ index: indexAutocomplete, }))
-  | recover (decorateAndReject ('Error with esClient.indices.create for ' + indexAutocomplete + ' : '))
-  | then (
-    () => data | eachP ((fonds) => esClient.index ({
-      index: indexAutocomplete,
-      id: fonds.uuid,
-      document: fonds,
-    }))
-    | recover (decorateAndReject ('Error with indexing'))
-  )
-  | then (() => info ('done building main index'))
+// const initIndexAutocomplete = (data) => startP ()
+  // | then (() => info ('building autocomplete index'))
+  // | then (() => esClient.indices.create ({ index: indexAutocomplete, }))
+  // | recover (decorateAndReject ('Error with esClient.indices.create for ' + indexAutocomplete + ' : '))
+  // | then (
+    // () => data | eachP ((fonds) => esClient.index ({
+      // index: indexAutocomplete,
+      // id: fonds.uuid,
+      // document: fonds,
+    // }))
+    // | recover (decorateAndReject ('Error with indexing'))
+  // )
+  // | then (() => info ('done building main index'))
 
 export const search = (max, query) => startP ()
   | then (() => esClient.search ({
@@ -92,7 +156,6 @@ export const search = (max, query) => startP ()
       },
     },
     highlight: {
-      // --- @todo
       pre_tags: '<span class="highlight">',
       post_tags: '</span>',
       fields: {
