@@ -171,7 +171,7 @@ export const searchPhrasePrefixNoContext = (max, query) => {
       // --- combine using OR
       bool: {
         should: [
-          // --- phrase search where the last word can be partia
+          // --- phrase search where the last word can be partial
           { match_phrase_prefix: { doelstelling: query, }},
           { match_phrase_prefix: { naam_organisatie: query, }},
         ],
