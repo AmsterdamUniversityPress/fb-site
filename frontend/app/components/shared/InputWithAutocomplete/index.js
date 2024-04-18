@@ -41,21 +41,21 @@ const SuggestionS = styled.div`
 
 const Suggestion = ({
   data,
-  selected: selectedProp=false,
+  selected=false,
   selectedStyle={},
   onSelect,
+  onHoverIn=noop,
+  onHoverOut=noop,
 }) => {
-  const [selected, setSelected] = useState (selectedProp)
-  useEffect (() => { setSelected (selectedProp) }, [selectedProp])
-  const onMouseOver = useCallbackConst (() => setSelected (true))
-  const onMouseOut = useCallbackConst (() => setSelected (selectedProp))
-  const onClick = useCallback (() => onSelect (), [onSelect])
+  const onClick = useCallback (() => {
+    onSelect ()
+  }, [onSelect])
   return <SuggestionS>
     <div
       className={clss ('x__data', selected && 'x--selected')}
       style={selected ? selectedStyle : {}}
-      onMouseOver={onMouseOver}
-      onMouseOut={onMouseOut}
+      onMouseOver={onHoverIn}
+      onMouseOut={onHoverOut}
       onClick={onClick}
     >
       {data}
@@ -85,6 +85,12 @@ export default component (
     const [enteredValue, setEnteredValue] = useState (valueProp)
     // --- -1 means use the value, >= 0 means that idx of the suggestions.
     const [selectedIdx, setSelectedIdx] = useState (-1)
+    // --- for hovering with the mouse, which should highlight the rows in the same way as selecting
+    // one. Note that the user uses the arrow keys, the input changes, but when hovering, it
+    // doesn't. We could make it so that the arrow keys don't change the input either, but this is
+    // just a choice for now. Note also that -1 doesn't make sense for hoverIdx (in contrast to
+    // selectedIdx).
+    const [hoverIdx, setHoverIdx] = useState (null)
     const onChangeInput = useCallback ((event) => {
       const { value, } = event.target
       setValue (value)
@@ -146,6 +152,12 @@ export default component (
         suggestions,
       )
     }, [enteredValue, suggestions])
+    const onSuggestionHoverIn = useCallback (
+      (idx) => () => setHoverIdx (idx)
+    )
+    const onSuggestionHoverOut = useCallback (
+      () => setHoverIdx (null)
+    )
     // --- we do not want to depend on `valueForIdx` here, even though the linter complains.
     useEffect (() => {
       setValue (valueForIdx (selectedIdx))
@@ -176,10 +188,12 @@ export default component (
             // --- @todo better id for key
             key={idx}
             data={result}
-            selected={idx === selectedIdx}
-            onSelect={onSelectWithPointer (idx)}
+            selected={idx === selectedIdx || idx == hoverIdx}
             style={suggestionStyle}
             selectedStyle={selectedSuggestionStyle}
+            onSelect={onSelectWithPointer (idx)}
+            onHoverIn={onSuggestionHoverIn (idx)}
+            onHoverOut={onSuggestionHoverOut}
           />)}
         </DropDown>
       </div>
