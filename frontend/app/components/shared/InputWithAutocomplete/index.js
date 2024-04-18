@@ -105,6 +105,13 @@ export default component (
       },
       [onSelectProp, closeOnSelected],
     )
+    const valueForIdx = useCallback ((idx) => {
+      if (idx === -1) return enteredValue
+      return idx | lookupOnOr (
+        () => warn ('valueForIdx failed for:', String (idx), suggestions),
+        suggestions,
+      )
+    }, [enteredValue, suggestions])
     const onSelectWithPointer = useCallback (
       (idx) => () => {
         setSelectedIdx (idx)
@@ -145,13 +152,6 @@ export default component (
         // setShowSuggestions (false)
       },
     )
-    const valueForIdx = useCallback ((idx) => {
-      if (idx === -1) return enteredValue
-      return idx | lookupOnOr (
-        () => warn ('valueForIdx failed for:', String (idx), suggestions),
-        suggestions,
-      )
-    }, [enteredValue, suggestions])
     const onSuggestionHoverIn = useCallback (
       (idx) => () => setHoverIdx (idx)
     )
