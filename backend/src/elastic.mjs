@@ -117,7 +117,6 @@ const initIndexMain = (data) => startP ()
   | then (
     () => data | eachP ((fonds) => esClient.index ({
       index: indexMain,
-      id: fonds.uuid,
       document: fonds,
     }))
     | recover (decorateAndReject ('Error with indexing'))
