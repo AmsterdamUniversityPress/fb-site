@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   noop, map, whenOk, plus, minus, each,
-  tap,
+  tap, mergeM,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useState, } from 'react'
@@ -78,6 +78,7 @@ export default component (
       onClear=noop,
       onSelect: onSelectProp=noop,
     } = props
+    const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
     const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
     const [value, setValue] = useState (valueProp)
     const [showSuggestions, setShowSuggestions] = useState (true)
@@ -158,12 +159,12 @@ export default component (
     useWhy ('InputWithAutocomplete', props)
     return <InputWithAutocompleteS>
       <Input
-        {... inputWrapperProps}
+        inputProps={inputProps | mergeM ({ value, })}
+        {... restInputWrapperProps}
         onChange={onChangeInput}
         onClear={onClear}
         onKeyDown={onKeyDownInput}
         onBlur={onBlur}
-        value={value}
       />
       <div className='x__dropdown-wrapper'>
         <DropDown
