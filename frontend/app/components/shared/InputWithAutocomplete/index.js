@@ -75,7 +75,7 @@ export default component (
       selectedSuggestionStyle={},
       onBlur: onBlurProp=noop,
       onChange: onChangeProp=noop,
-      onClear=noop,
+      onClear: onClearProp=noop,
       onSelect: onSelectProp=noop,
     } = props
     const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
@@ -105,6 +105,10 @@ export default component (
       },
       [onSelectProp, closeOnSelected],
     )
+    const onClear = useCallback (() => {
+      setValue ('')
+      onClearProp ()
+    }, [onClearProp])
     const valueForIdx = useCallback ((idx) => {
       if (idx === -1) return enteredValue
       return idx | lookupOnOr (
