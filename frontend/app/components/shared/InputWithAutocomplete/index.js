@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   noop, map, whenOk, plus, minus, each,
+  tap,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useState, } from 'react'
@@ -170,6 +171,7 @@ export default component (
           contentsStyle={{ minHeight: '300px', height: '100%', padding: '0px', paddingTop: '10px', paddingBottom: '10px', }}
         >
           {suggestions | mapX ((result, idx) => <Suggestion
+            // --- @todo better id for key
             key={idx}
             data={result}
             selected={idx === selectedIdx}

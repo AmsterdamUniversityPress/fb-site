@@ -123,10 +123,11 @@ const initIndexMain = (data) => startP ()
   )
   | then (() => info ('done building main index'))
 
-export const search = (max, query) => startP ()
+export const search = (query, pageSize, pageNum) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
-    size: max,
+    size: pageSize,
+    from: pageNum * pageSize,
     query: {
       bool: {
         // --- i.e., 'OR'

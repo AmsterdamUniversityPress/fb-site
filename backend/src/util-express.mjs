@@ -76,6 +76,34 @@ export const getAndValidateRequestParams = _getAndValidate ((req) => req.params)
 // (the extra '.data' is just a convention we use in our frontend)
 export const getAndValidateBodyParams = _getAndValidate ((req) => req.body.data)
 
+/* Usage:
+ *
+ *  secureGet (privsUser) ('/path/:query', getAndValidateCombine (
+ *    [
+ *      getAndValidateRequestParams ([
+ *        basicStringValidator ('query'),
+ *      ]),
+ *      getAndValidateQuery ([
+ *        basicValidator ('pageSize', isPositiveInt, Number),
+ *        basicValidator ('pageNum', isNonNegativeInt, Number),
+ *      ]),
+ *    ], ({ res }, query, pageSize, pageNum) => ...
+ */
+
+// --- @todo make generic (currently expects exactly 2 'getAndValidate' functions
+export const getAndValidateCombine = recurry (5) (
+  (getAndValidates) => (cont) => (req) => (res) => (next) => {
+    const [gandv1, gandv2] = getAndValidates
+    const f = (reqResNext, ... params1) => {
+      const g = (_reqResNext2, ... params2) => {
+        return cont (reqResNext, ... params1, ... params2)
+      }
+      return gandv2 (g, req, res, next)
+    }
+    return gandv1 (f, req, res, next)
+  },
+)
+
 export const basicValidator = (param, validate=T, transform=id, preValidate=T) => [
   param,
   validate,

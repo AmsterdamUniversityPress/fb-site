@@ -62,11 +62,13 @@ import {
   foldWhenLeft,
   effects,
   takeUnique,
+  takeUniqueWith,
 } from './util.mjs'
 import {
   getAndValidateQuery,
   getAndValidateBodyParams,
   getAndValidateRequestParams,
+  getAndValidateCombine,
   basicBase64StringValidator,
   basicEmailValidator,
   basicPasswordValidator,
@@ -356,14 +358,17 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
-const search = (max, query) => esSearch (max, query)
+// --- max * 3 is just a guess, to try to have enough results after
+// duplicates have been removed.
+const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
   | then ((results) => {
     const ret = []
     let idx = -1
     results | each ((result) => {
       const { _source: fonds, highlight, } = result
       const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
-      const match = highlight | values | flatten (1)
+      // --- @todo ... but which one
+      const match = highlight | values | take (1)
       match | each ((theMatch) => ret.push ({
         matchKey: ++idx,
         uuid,
@@ -565,10 +570,17 @@ const init = ({ port, }) => express ()
       ),
     ),
   ))
-  | secureGet (privsUser) ('/search/search/:query', getAndValidateRequestParams ([
-      basicStringValidator ('query'),
-    ], ({ res }, query) => {
-      search (3, query)
+  | secureGet (privsUser) ('/search/search/:query', getAndValidateCombine (
+    [
+      getAndValidateRequestParams ([
+        basicStringValidator ('query'),
+      ]),
+      getAndValidateQuery ([
+        basicValidator ('pageSize', isPositiveInt, Number),
+        basicValidator ('pageNum', isNonNegativeInt, Number),
+      ]),
+    ], ({ res }, query, pageSize, pageNum) => {
+      search (query, pageSize, pageNum)
       | then ((results) => res | sendStatus (200, { results, }))
       | recover (
         decorateRejection ('Error with elastic search: ') >> effects ([
@@ -578,7 +590,6 @@ const init = ({ port, }) => express ()
       )
     },
   ))
-
   | secureGet (privsUser) ('/search/autocomplete-query/:query', getAndValidateRequestParams ([
       basicStringValidator ('query'),
     ], ({ res }, query) => {

@@ -2,6 +2,7 @@ import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
   id, ifOk, concatTo, tap, join,
+  sprintfN,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
@@ -283,9 +284,15 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
   )
 }
 
+// --- @todo move to Search?
 function *s_searchFetch (query) {
+  // --- @todo
+  const pageNum = 0
+  const pageSize = 27
   yield call (doApiCall, {
-    url: '/api/search/search/' + query,
+    url: [query, pageNum, pageSize] | sprintfN (
+      '/api/search/search/%s?pageNum=%d&pageSize=%d',
+    ),
     continuation: EffAction (a_searchFetchCompleted),
     oops: toastError,
   })
