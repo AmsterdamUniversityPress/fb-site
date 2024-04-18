@@ -27,7 +27,7 @@ import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { get, listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, logWith, setTimeoutOn, composeManyRight, } from 'alleycat-js/es/general'
+import { decorateRejection, length, logWith, setIntervalOn, composeManyRight, } from 'alleycat-js/es/general'
 import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
 
 
@@ -784,7 +784,7 @@ await initRedis ()
 await initElastic ()
 
 dbInit (schemaVersion, allowDestructiveMigrations)
-staleSessionCheckTimeoutMs | setTimeoutOn (
+staleSessionCheckTimeoutMs | setIntervalOn (
   () => clearStaleSessions (staleSessionSecs * 1000),
 )
 // --- @future separate script to manage users
