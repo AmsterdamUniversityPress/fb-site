@@ -122,6 +122,7 @@ export const Search = container (
   (props) => {
     const { queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
     const [query, setQuery] = useState ('')
+    // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
       queryUpdatedDispatch,
@@ -132,10 +133,11 @@ export const Search = container (
       setSuggestions ([])
     })
     const navigate = useNavigate ()
-    const onSelect = useCallback (() => {
-      searchFetchDispatch (query)
+    const onSelect = useCallback ((value) => {
+      setQuery (value)
+      searchFetchDispatch (value)
       navigate ('/searchResults')
-    }, [searchFetchDispatch, query, navigate, onClear])
+    }, [searchFetchDispatch, navigate, onClear])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
