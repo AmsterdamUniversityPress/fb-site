@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  rangeTo, prop, remapTuples,
+  rangeTo, prop, remapTuples, xReplace,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, concatTo, recurry, ifOk, ifNil, noop, take,
   repeatF, dot, dot1, dot2, join, appendM, path,
@@ -27,7 +27,7 @@ import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { get, listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
+import { decorateRejection, length, logWith, setTimeoutOn, composeManyRight, } from 'alleycat-js/es/general'
 import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
 
 
@@ -356,14 +356,6 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
-const fields = [
-  'doelstelling',
-  'doelgroep',
-  'categories',
-  'naam_organisatie',
-  'type_organisatie',
-]
-
 const search = (max, query) => esSearch (max, query)
   | then ((results) => {
     const ret = []
@@ -385,6 +377,13 @@ const search = (max, query) => esSearch (max, query)
   })
 
 const completeQueriesSimple = invoke (() => {
+  const fields = [
+    'doelstelling',
+    'doelgroep',
+    'categories',
+    'naam_organisatie',
+    'type_organisatie',
+  ]
   const minChars = 3
   const lookup = new Map
   // let x = 0
@@ -591,11 +590,20 @@ const init = ({ port, }) => express ()
         () => query.match (/\p{Uppercase}/u),
         (hasUpper) => hasUpper ? id : dot ('toLowerCase'),
       )
+      // --- for some reason '(JJF)' comes out as '(JJF' in the
+      // highlighting, even though tokenizing works properly ('JJF').
+      // --- so we do an extra check here for parentheses at the beginning
+      // or end.
+      // --- @future get rid of this
+      const filterPunctuation = composeManyRight (
+        xReplace (/^[()]/, ''),
+        xReplace (/[()]$/, ''),
+      )
       esSearchPhrasePrefixNoContext (10, query)
       | then ((hits) => {
         const results = hits | flatMap (
           ({ highlight, }) => highlight | values | flatMap (
-            (x) => x | map (transformCase),
+            (x) => x | map (filterPunctuation >> transformCase),
           ),
         ) | takeUnique (10)
         res | sendStatus (200, { results, })
