@@ -1,25 +1,22 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, sprintfN, die, tap,
-  map, tryCatch, id,
-  ok, not, path, join, prop, take,
+  tap, map, ok, not, path, join, prop,
 } from 'stick-js/es'
 
 import { Client, } from '@elastic/elasticsearch'
 
 import { info, warn, } from 'alleycat-js/es/io'
 
-import { allP, recover, then, startP, rejectP, resolveP, } from 'alleycat-js/es/async'
+import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, } from 'alleycat-js/es/general'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, takeUnique, thenWhenTrue, mapLookupOnOrDie, } from './util.mjs'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, } from './util.mjs'
 
 // --- debug / analyze
 const analyze = false
 const inspectResults = false
 
 const indexMain = 'main'
-// const indexAutocomplete = 'autocomplete'
 
 let esClient
 
@@ -72,13 +69,12 @@ const customDutchAnalyzer = {
 
 export const init = (url, data, { forceReindex=false, }={}, ) => {
   esClient = new Client ({ node: url, })
-  return waitConnection () | then (allP ([
-    xxIndex (indexMain, forceReindex, data),
-    // xxIndex (indexAutocomplete, forceReindex, data),
-  ]))
+  return waitConnection () | then (
+    () => mkIndex (indexMain, initIndexMain, forceReindex, data),
+  )
 }
 
-const xxIndex = (index, forceReindex, data) => startP ()
+const mkIndex = (index, initIndex, forceReindex, data) => startP ()
   | then (() => esClient.indices.exists ({ index, }))
   | recover (decorateAndReject ('Error with esClient.indices.exists for ' + index + ' : '))
   | then ((exists) => {
@@ -90,9 +86,7 @@ const xxIndex = (index, forceReindex, data) => startP ()
   })
   | then ((doInit) => {
     if (!doInit) return
-    // const init = index === indexMain ? initIndexMain : index === indexAutocomplete ? initIndexAutocomplete : die ('Invalid: ' + index)
-    // return init (data)
-    return initIndexMain (data)
+    return initIndex (data)
   })
 
 const initIndexMain = (data) => startP ()
@@ -123,20 +117,6 @@ const initIndexMain = (data) => startP ()
     | recover (decorateAndReject ('Error with indexing'))
   )
   | then (() => info ('done building main index'))
-
-// const initIndexAutocomplete = (data) => startP ()
-  // | then (() => info ('building autocomplete index'))
-  // | then (() => esClient.indices.create ({ index: indexAutocomplete, }))
-  // | recover (decorateAndReject ('Error with esClient.indices.create for ' + indexAutocomplete + ' : '))
-  // | then (
-    // () => data | eachP ((fonds) => esClient.index ({
-      // index: indexAutocomplete,
-      // id: fonds.uuid,
-      // document: fonds,
-    // }))
-    // | recover (decorateAndReject ('Error with indexing'))
-  // )
-  // | then (() => info ('done building main index'))
 
 export const search = (max, query) => startP ()
   | then (() => esClient.search ({
