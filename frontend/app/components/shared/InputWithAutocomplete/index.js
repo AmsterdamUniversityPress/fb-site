@@ -162,6 +162,9 @@ export default component (
     useEffect (() => {
       setValue (valueForIdx (selectedIdx))
     }, [selectedIdx])
+    useEffect (() => {
+      setSelectedIdx (-1)
+    }, [suggestions])
     const dropdownOpen = allV (
       showSuggestions,
       suggestions | isNotEmptyList,
