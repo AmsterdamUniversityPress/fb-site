@@ -135,7 +135,6 @@ export const Search = container (
     const onSelect = useCallback (() => {
       searchFetchDispatch (query)
       navigate ('/searchResults')
-      onClear ()
     }, [searchFetchDispatch, query, navigate, onClear])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
