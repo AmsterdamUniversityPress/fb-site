@@ -8,19 +8,14 @@ import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alle
 import { trim, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
-import { queryUpdated, execute, executeCompleted, } from './actions'
-import { ifIsEmptyString, rcompleteToResults, reducer, } from '../../common'
+import { execute, executeCompleted, } from './actions'
+import { rcompleteToResults, reducer, } from '../../common'
 
 export const initialState = {
-  query: Nothing,
   results: RequestInit,
 }
 
-// minor: this value is already trimmed in the component.
 const reducerTable = makeReducer (
-  queryUpdated, (query) => assoc ('query', query | trim | ifIsEmptyString (
-    () => Nothing, Just,
-  )),
   // execute, () => assoc ('results', RequestLoading (Nothing)),
   executeCompleted, (rcomplete) => assoc ('results', rcomplete | cata ({
       RequestCompleteError: (e) => RequestError (e),

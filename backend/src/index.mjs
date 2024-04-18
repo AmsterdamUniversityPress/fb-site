@@ -609,7 +609,7 @@ const init = ({ port, }) => express ()
         res | sendStatus (200, { results, })
       })
       | recover (
-        decorateRejection ('Error with completeQueriesSimple (): ') >> effects ([
+        decorateRejection ('Error with searchPhrasePrefixNoContext (): ') >> effects ([
           warn,
           () => res | sendStatusEmpty (500),
         ]),

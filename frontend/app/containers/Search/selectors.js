@@ -13,5 +13,4 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-export const selectQuery = selectVal ('query')
 export const selectResults = selectVal ('results')
