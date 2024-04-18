@@ -54,7 +54,7 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
-import Search from '../../containers/Search'
+import { Search, SearchResults, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -875,64 +875,6 @@ const Fondsen = container (
       </>,
     })}
   </FondsenS>,
-)
-
-const SearchResultsS = styled.div`
-  background: white;
-  width: 80%;
-  min-width: 100px;
-  > .x__wrapper {
-    padding: 3%;
-    > .x__name {
-      font-weight: bold;
-      font-size: 25px;
-      display: inline-block;
-    }
-    > .x__type {
-      display: inline-block;
-      font-weight: bold;
-      font-size: 25px;
-    }
-    > .x__match {
-      text-align: centre;
-      > .highlight {
-        background: yellow;
-      }
-    }
-
-  }
-`
-
-const SearchResults = container (
-  ['SearchResults', {}, {
-    searchResults: selectSearchResults,
-  }],
-  ({ searchResults, }) => {
-    return <>
-      <div className='x__search'>
-        <Search/>
-      </div>
-      <SearchResultsS>
-        {searchResults | requestResults ({
-          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
-            onError: noop,
-            onResults: (results) => <>
-              {results | map (
-                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
-                  <div className='x__name'>{name}</div>
-                  {/* @todo is this a good way to get some spaces here? */}
-                  <div className='x__type'>&nbsp;{[type] | sprintfN ("(%s)")}</div>
-                  <div
-                    className='x__match'
-                    dangerouslySetInnerHTML={{__html: match}}
-                  />
-                </div>
-              )}
-            </>
-        })}
-      </SearchResultsS>
-    </>
-  }
 )
 
 const UserPage = container (

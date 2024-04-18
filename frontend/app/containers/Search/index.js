@@ -1,16 +1,14 @@
 import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not,
+  sprintfN,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, } from 'react-router-dom'
-
-import { FormattedMessage, } from 'react-intl'
-import { connect, useDispatch, } from 'react-redux'
-import { createStructuredSelector, } from 'reselect'
 import { useNavigate, } from 'react-router-dom'
+
+import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -29,11 +27,15 @@ import reducer from './reducer'
 import saga from './saga'
 import { selectResults, } from './selectors'
 
+import {
+  selectSearchResults,
+} from '../App/store/domain/selectors'
+
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import { DropDown, } from '../../components/shared'
 
-import { container, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
+import { component, container, container2, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
 import config from '../../config'
 
 const targetValue = path (['target', 'value'])
@@ -112,17 +114,16 @@ const Result = ({ word, }) => <ResultS>
   <div className='x__word'>{word}</div>
 </ResultS>
 
-const dispatchTable = {
-  queryUpdatedDispatch: queryUpdated,
-  searchFetchDispatch: searchFetch,
-}
-
-const selectorTable = {
-  results: selectResults,
-}
-
-export default container (
-  ['Search', dispatchTable, selectorTable],
+export const Search = container (
+  ['Search',
+    {
+      queryUpdatedDispatch: queryUpdated,
+      searchFetchDispatch: searchFetch,
+    },
+    {
+      results: selectResults,
+    },
+  ],
   (props) => {
     const { queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
     const [query, setQuery] = useState ('')
@@ -140,7 +141,7 @@ export default container (
       searchFetchDispatch (query)
       navigate ('/searchResults')
       onClear ()
-    }, [onClear, query, searchFetchDispatch])
+    }, [searchFetchDispatch, query, navigate, onClear])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -216,5 +217,63 @@ export default container (
       </div>
           */}
     </SearchS>
+  }
+)
+
+const SearchResultsS = styled.div`
+  background: white;
+  width: 80%;
+  min-width: 100px;
+  > .x__wrapper {
+    padding: 3%;
+    > .x__name {
+      font-weight: bold;
+      font-size: 25px;
+      display: inline-block;
+    }
+    > .x__type {
+      display: inline-block;
+      margin-left: 4px;
+      font-weight: bold;
+      font-size: 25px;
+    }
+    > .x__match {
+      text-align: centre;
+      > .highlight {
+        background: yellow;
+      }
+    }
+
+  }
+`
+
+export const SearchResults = container2 (
+  ['SearchResults'],
+  () => {
+    const searchResults = useSelector (selectSearchResults)
+    return <>
+      <div className='x__search'>
+        <Search/>
+      </div>
+      <SearchResultsS>
+        {searchResults | requestResults ({
+          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+            onError: noop,
+            onResults: (results) => <>
+              {results | map (
+                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
+                  <div className='x__name'>{name}</div>
+                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
+                  <div
+                    className='x__match'
+                    // --- @todo
+                    dangerouslySetInnerHTML={{__html: match}}
+                  />
+                </div>
+              )}
+            </>
+        })}
+      </SearchResultsS>
+    </>
   }
 )

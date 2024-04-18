@@ -35,12 +35,7 @@ const reducerTable = makeReducer (
     'fondsen', RequestLoading (Nothing),
   ),
   fondsenFetchCompleted, (rcomplete) => composeManyRight (
-    assoc ('fondsen', rcomplete | cata ({
-      RequestCompleteError: (e) => RequestError (e),
-      RequestCompleteSuccess: (results) => {
-        return RequestResults (results)
-      },
-    })),
+    assoc ('fondsen', rcomplete | rcompleteToResults),
     update ('numFondsen', rcomplete | cata ({
       RequestCompleteError: id,
       RequestCompleteSuccess: (results) => always (Just (results.metadata.totalAvailable)),
@@ -50,10 +45,7 @@ const reducerTable = makeReducer (
     'searchResults', RequestLoading (Nothing),
   ),
   searchFetchCompleted, (rcomplete) => assoc (
-    'searchResults', rcomplete | cata ({
-      RequestCompleteError: (e) => RequestError (e),
-      RequestCompleteSuccess: (results) => RequestResults (results)
-    }),
+    'searchResults', rcomplete | rcompleteToResults,
   ),
 )
 

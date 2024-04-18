@@ -16,12 +16,7 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
-  // execute, () => assoc ('results', RequestLoading (Nothing)),
-  executeCompleted, (rcomplete) => assoc ('results', rcomplete | cata ({
-      RequestCompleteError: (e) => RequestError (e),
-      RequestCompleteSuccess: (results) => RequestResults (results),
-    }),
-    )
+  executeCompleted, (rcomplete) => assoc ('results', rcompleteToResults (rcomplete)),
 )
 
 export default reducer ('Search', initialState, reducerTable)

@@ -330,3 +330,6 @@ export const effects = recurry (2) (
     return last
   }
 )
+
+// --- actually the same as a component, but with a different name so it's easy to see what it's for
+export const container2 = component
