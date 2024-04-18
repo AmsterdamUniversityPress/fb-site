@@ -15,10 +15,10 @@ import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 
 import { setNumPerPageIdx, setPage, } from './actions'
-import reducer from './reducer'
+import mkReducer from './reducer'
 import { createReducer, } from '../../../redux'
-import saga from './saga'
-import { selectNumsPerPageComponent, selectPageComponent, } from './selectors'
+import mkSaga from './saga'
+import { init as initSelectors, } from './selectors'
 
 import { component, container, useWhy, } from '../../../common'
 
@@ -197,26 +197,35 @@ const PaginationInner = component ([
 })
 
 // --- a function which returns a React component (a Redux container)
-export default container ([
-  'Pagination',
-  {
-    setNumPerPageIdxDispatch: setNumPerPageIdx,
-    setPageDispatch: setPage,
-  },
-  {
-    numsPerPage: selectNumsPerPageComponent,
-    page: selectPageComponent,
-  },
-], (props) => {
+export default (key='Pagination') => {
+  const {
+    // selectNumsPerPage,
+    // selectPage,
+    selectNumsPerPageComponent,
+    // selectNumPerPage,
+    selectPageComponent,
+  } = initSelectors (key)
+
+  return container ([
+    key,
+    {
+      setNumPerPageIdxDispatch: setNumPerPageIdx,
+      setPageDispatch: setPage,
+    },
+    {
+      numsPerPage: selectNumsPerPageComponent,
+      page: selectPageComponent,
+    },
+  ], (props) => {
     const {
       setNumPerPageIdxDispatch, setPageDispatch, numsPerPage, page,
       numItems, textNumber, textPage,
       ... restProps
     } = props
 
-    useWhy ('Pagination', props)
-    useReduxReducer ({ createReducer, reducer, key: 'Pagination', })
-    useSaga ({ saga, key: 'Pagination', })
+    useWhy (key, props)
+    useReduxReducer ({ createReducer, reducer: mkReducer (key), key, })
+    useSaga ({ saga: mkSaga (key), key, })
 
     return <PaginationInner
       {... restProps}
@@ -227,5 +236,5 @@ export default container ([
       textNumber={textNumber}
       textPage={textPage}
     />
-  },
-)
+  })
+}

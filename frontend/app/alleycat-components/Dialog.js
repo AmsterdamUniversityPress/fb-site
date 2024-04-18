@@ -20,10 +20,10 @@ import config from '../config'
 const configTop = config | configure.init
 
 const {
-  'general.appElement': appElement,
+  'app.element': appElement,
   'general.appWrapperSelector': appWrapperSelector,
 } = configTop.gets (
-  'general.appElement',
+  'app.element',
   'general.appWrapperSelector',
 )
 Modal.setAppElement (appElement)

@@ -25,11 +25,6 @@ export const autocompleteFetchCompleted = action (
   'autocompleteFetchCompleted',
 )
 
-export const executeAutocompleteCompleted = action (
-  (rcomplete) => rcomplete,
-  'executeAutocompleteCompleted',
-)
-
 export const searchFetch = action (
   (query) => query,
   'searchFetch',

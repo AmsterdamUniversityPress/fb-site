@@ -57,7 +57,7 @@ import { Search, SearchResults, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
-import Pagination from '../../containers/shared/Pagination'
+import mkPagination from '../../containers/shared/Pagination'
 
 import {
   component, container, foldWhenJust, isNotEmptyString, useWhy,
@@ -72,6 +72,7 @@ const configGeneral = configTop.focus ('general')
 const configIcons = configTop.focus ('icons')
 const configImages = configTop.focus ('images')
 
+const paginationKey = configTop.get ('app.keys.Pagination')
 const iconLogin = configIcons.get ('login')
 const iconLogout = configIcons.get ('logout')
 const iconUpdate = configIcons.get ('update')
@@ -835,6 +836,8 @@ const PaginationWrapperS = styled.div`
   .x__main {
   }
 `
+
+const Pagination = mkPagination (paginationKey)
 
 const PaginationWrapper = ({ numItems, textNumber, textPage, }) => <PaginationWrapperS>
   <div className='x__main'>

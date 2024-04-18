@@ -47,13 +47,17 @@ import {
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 
-import { selectNumPerPage, selectPage, } from '../../shared/Pagination/selectors'
+import { init as initSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, lookupOnOrDie, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import config from '../../../config'
 
 const configTop = configure.init (config)
+
 const helloInterval = configTop.get ('general.helloInterval')
+const paginationKey = configTop.get ('app.keys.Pagination')
+
+const { selectNumPerPage, selectPage, } = initSelectors (paginationKey)
 
 // --- @temporary, for testing
 const mkURL = (base='/') => lets (

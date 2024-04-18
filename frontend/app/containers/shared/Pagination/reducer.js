@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  assoc,
+  assoc, nil, die,
 } from 'stick-js/es'
 
 import { makeReducer, } from 'alleycat-js/es/redux'
@@ -19,4 +19,7 @@ const reducerTable = makeReducer (
   setPage, (page) => assoc ('page', page),
 )
 
-export default reducer ('Pagination', initialState, reducerTable)
+export default (key) => {
+  if (nil (key)) die ('need key')
+  return reducer (key, initialState, reducerTable)
+}

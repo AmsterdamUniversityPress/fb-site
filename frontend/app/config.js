@@ -50,6 +50,12 @@ const getMainFontCss = () => join ('\n\n', [
 ])
 
 export default {
+  app: {
+    keys: {
+      Pagination: 'FondsenPagination',
+    },
+    element: '#app',
+  },
   debug: {
     render: debugRenders && {
       Main: true,
@@ -60,14 +66,11 @@ export default {
     },
     selectors: debugSelectors && {
       domain: {
-        counter: true,
         error: true,
-        countedSeven: true,
       },
     },
   },
   general: {
-    appElement: '#app',
     // --- for selecting everything other than the modal dialog
     appWrapperSelector: '[class*=AppWrapper]',
     alwaysMobile: false,

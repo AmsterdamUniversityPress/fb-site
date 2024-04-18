@@ -5,10 +5,13 @@ import {
 import { all, call, put, select, takeEvery, takeLatest, } from 'redux-saga/effects'
 
 import {} from './actions'
-import {} from './selectors'
+import { init as initSelectors, } from './selectors'
 
-export default function *sagaRoot () {
-  yield all ([
-  ])
+export default (key) => {
+  const selectors = initSelectors (key)
+  return function *sagaRoot () {
+    yield all ([
+    ])
+  }
 }
 
