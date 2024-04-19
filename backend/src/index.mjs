@@ -59,7 +59,7 @@ import {
   thenWhenTrue,
   foldWhenLeft,
   effects,
-  takeUnique,
+  takeMapUnique,
 } from './util.mjs'
 import {
   gvQuery,
@@ -608,11 +608,15 @@ const init = ({ port, }) => express ()
       )
       esSearchPhrasePrefixNoContext (10, query)
       | then ((hits) => {
-        const results = hits | flatMap (
+        const results = hits
+        | flatMap (
           ({ highlight, }) => highlight | values | flatMap (
             (x) => x | map (filterPunctuation >> transformCase),
           ),
-        ) | takeUnique (10)
+        )
+        // --- split result into [result, react-key], and we can simply
+        // use result as the React key since it's unique.
+        | takeMapUnique ((result) => [result, result], 10)
         res | sendStatus (200, { results, })
       })
       | recover (

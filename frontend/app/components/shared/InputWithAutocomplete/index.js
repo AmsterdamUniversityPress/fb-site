@@ -16,7 +16,7 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { Input as InputDefault, } from '../Input'
 import { DropDown, } from '../../shared'
-import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, isNotEmptyString, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
+import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, elementAt, isNotEmptyString, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
 
 const InputWithAutocompleteS = styled.div`
   text-align: left;
@@ -91,7 +91,6 @@ export default component (
     // just a choice for now. Note also that -1 doesn't make sense for hoverIdx (in contrast to
     // selectedIdx).
     const [hoverIdx, setHoverIdx] = useState (null)
-    console.log ('hoverIdx', hoverIdx)
 
     const dropdownOpen = allV (
       showSuggestions,
@@ -122,7 +121,7 @@ export default component (
       return idx | lookupOnOr (
         () => warn ('valueForIdx failed for:', String (idx), suggestions),
         suggestions,
-      )
+      ) | whenOk (elementAt (0))
     }, [enteredValue, suggestions])
     const onSelectWithPointer = useCallback (
       (idx) => () => {
@@ -195,10 +194,9 @@ export default component (
           open={dropdownOpen}
           contentsStyle={{ minHeight: '300px', height: '100%', padding: '0px', paddingTop: '10px', paddingBottom: '10px', }}
         >
-          {suggestions | mapX ((result, idx) => <Suggestion
-            // --- @todo better id for key
-            key={idx}
-            data={result}
+          {suggestions | mapX (([result, key], idx) => <Suggestion
+            key={key}
+            data={result | tap (logWith ('result'))}
             selected={idx === selectedIdx || idx == hoverIdx}
             style={suggestionStyle}
             selectedStyle={selectedSuggestionStyle}
