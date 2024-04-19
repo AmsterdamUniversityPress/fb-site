@@ -432,20 +432,26 @@ export const iterTake = recurry (2) (
 export const setValues = dot ('values')
 export const mapKeys = dot ('keys')
 
-export const takeUniqueWith = recurry (3) (
-  (f) => (n) => (xs) => {
+export const takeMapUniqueWith = recurry (4) (
+  (g) => (f) => (n) => (xs) => {
     const ret = []
     const seen = new Set
     let m = 0
     for (const x of xs) {
-      const y = f (x)
+      const y = g (x)
       if (seen.has (y)) continue
       seen.add (y)
-      ret.push (x)
+      ret.push (f (x))
       if (++m >= n) break
     }
     return ret
-  }
+  },
 )
+
+export const takeUniqueWith = recurry (3) (
+  (g) => takeMapUniqueWith (g, id)
+)
+
+export const takeMapUnique = takeMapUniqueWith (id)
 
 export const takeUnique = takeUniqueWith (id)
