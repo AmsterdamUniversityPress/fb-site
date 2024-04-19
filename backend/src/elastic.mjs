@@ -183,8 +183,12 @@ export const searchPhrasePrefixNoContext = (max, query) => {
       bool: {
         should: [
           // --- phrase search where the last word can be partial
+          { match_phrase_prefix: { categories: query, }},
+          { match_phrase_prefix: { doelgroep: query, }},
           { match_phrase_prefix: { doelstelling: query, }},
           { match_phrase_prefix: { naam_organisatie: query, }},
+          { match_phrase_prefix: { trefwoorden: query, }},
+          { match_phrase_prefix: { type_organisatie: query, }},
         ],
       },
     },
