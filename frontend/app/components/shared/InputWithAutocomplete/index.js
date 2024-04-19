@@ -196,7 +196,7 @@ export default component (
         >
           {suggestions | mapX (([result, key], idx) => <Suggestion
             key={key}
-            data={result | tap (logWith ('result'))}
+            data={result}
             selected={idx === selectedIdx || idx == hoverIdx}
             style={suggestionStyle}
             selectedStyle={selectedSuggestionStyle}
