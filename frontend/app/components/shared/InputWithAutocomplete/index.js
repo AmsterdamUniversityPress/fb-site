@@ -91,6 +91,13 @@ export default component (
     // just a choice for now. Note also that -1 doesn't make sense for hoverIdx (in contrast to
     // selectedIdx).
     const [hoverIdx, setHoverIdx] = useState (null)
+
+    const dropdownOpen = allV (
+      showSuggestions,
+      suggestions | isNotEmptyList,
+    )
+    const canKeyboard = dropdownOpen
+
     const onChangeInput = useCallback ((event) => {
       const { value, } = event.target
       setValue (value)
@@ -169,11 +176,6 @@ export default component (
     useEffect (() => {
       setSelectedIdx (-1)
     }, [suggestions])
-    const dropdownOpen = allV (
-      showSuggestions,
-      suggestions | isNotEmptyList,
-    )
-    const canKeyboard = dropdownOpen
 
     useEffect (() => { setValue (valueProp) }, [valueProp])
     useWhy ('InputWithAutocomplete', props)
