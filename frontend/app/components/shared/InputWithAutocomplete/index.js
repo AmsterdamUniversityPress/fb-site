@@ -91,6 +91,7 @@ export default component (
     // just a choice for now. Note also that -1 doesn't make sense for hoverIdx (in contrast to
     // selectedIdx).
     const [hoverIdx, setHoverIdx] = useState (null)
+    console.log ('hoverIdx', hoverIdx)
 
     const dropdownOpen = allV (
       showSuggestions,
@@ -175,6 +176,7 @@ export default component (
     }, [selectedIdx])
     useEffect (() => {
       setSelectedIdx (-1)
+      setHoverIdx (null)
     }, [suggestions])
 
     useEffect (() => { setValue (valueProp) }, [valueProp])
