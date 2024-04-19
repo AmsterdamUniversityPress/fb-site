@@ -81,7 +81,7 @@ export default component (
     const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
     const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
     const [value, setValue] = useState (valueProp)
-    const [showSuggestions, setShowSuggestions] = useState (true)
+    const [showSuggestions, setShowSuggestions] = useState (false)
     const [enteredValue, setEnteredValue] = useState (valueProp)
     // --- -1 means use the value, >= 0 means that idx of the suggestions.
     const [selectedIdx, setSelectedIdx] = useState (-1)
