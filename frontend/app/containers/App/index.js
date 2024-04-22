@@ -38,7 +38,10 @@ import { Main, } from '../../containers/Main/Loadable'
 import NotFoundPage from '../../containers/NotFoundPage'
 import Toast from '../../components/Toast'
 
-import { againstNone, notContainedInV, container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
+import { container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
+import {
+  againstNone, notContainedInV,
+} from '../../util-general'
 import config from '../../config'
 
 const configTop = config | configure.init

@@ -60,11 +60,14 @@ import CloseIcon from '../../components/svg/CloseIcon'
 import mkPagination from '../../containers/shared/Pagination'
 
 import {
-  component, container, foldWhenJust, isNotEmptyString, useWhy,
-  lookupOn, lookupOnOrDie,
+  component, container,
+  useWhy,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults,
 } from '../../common'
+import {
+  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie,
+} from '../../util-general'
 import config from '../../config'
 
 const configTop = configure.init (config)

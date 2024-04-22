@@ -12,7 +12,8 @@ import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, withDisplayName, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
-import { mediaPhone, mediaPhoneOnly, mediaTablet, mediaDesktop, isNotEmptyList, isNotEmptyString, } from '../../../common'
+import { mediaPhone, mediaPhoneOnly, mediaTablet, mediaDesktop, } from '../../../common'
+import { isNotEmptyString, isNotEmptyList, } from '../../../util-general'
 
 import config from '../../../config'
 

@@ -49,7 +49,8 @@ import {} from '../store/domain/selectors'
 
 import { init as initSelectors, } from '../../shared/Pagination/selectors'
 
-import { doApiCall, lookupOnOrDie, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
+import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
+import { lookupOnOrDie, } from '../../../util-general'
 import config from '../../../config'
 
 const configTop = configure.init (config)

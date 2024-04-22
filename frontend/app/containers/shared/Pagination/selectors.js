@@ -7,7 +7,8 @@ import { logWith, } from 'alleycat-js/es/general'
 
 import { initialState, } from './reducer'
 
-import { initSelectors, mapX, } from '../../../common'
+import { initSelectors, } from '../../../common'
+import { mapX, } from '../../../util-general'
 
 export const init = (key) => {
   const { select, selectTop, selectVal, } = initSelectors (key, initialState)

@@ -42,10 +42,11 @@ import { Input, } from '../../components/shared/Input'
 import { spinner, } from '../../alleycat-components'
 
 import {
-  component, container, useWhy, isNotEmptyString,
+  component, container, useWhy,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults, toastInfo,
 } from '../../common'
+import { isNotEmptyString, } from '../../util-general'
 import config from '../../config'
 import Dialog from '../../alleycat-components/Dialog'
 

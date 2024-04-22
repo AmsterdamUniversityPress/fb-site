@@ -16,7 +16,10 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { Input as InputDefault, } from '../Input'
 import { DropDown, } from '../../shared'
-import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, effects, elementAt, isNotEmptyString, isNotEmptyList, lookupOnOr, mapX, } from '../../../common'
+import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, } from '../../../common'
+import {
+  effects, elementAt, isNotEmptyString, isNotEmptyList, lookupOnOr, mapX,
+} from '../../../util-general'
 
 const InputWithAutocompleteS = styled.div`
   text-align: left;
@@ -163,10 +166,10 @@ export default component (
         // setShowSuggestions (false)
       },
     )
-    const onSuggestionHoverIn = useCallback (
-      (idx) => () => setHoverIdx (idx)
+    const onSuggestionHoverIn = useCallbackConst (
+      (idx) => () => setHoverIdx (idx),
     )
-    const onSuggestionHoverOut = useCallback (
+    const onSuggestionHoverOut = useCallbackConst (
       () => setHoverIdx (null)
     )
     // --- we do not want to depend on `valueForIdx` here, even though the linter complains.

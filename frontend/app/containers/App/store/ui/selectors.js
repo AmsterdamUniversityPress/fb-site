@@ -11,7 +11,8 @@ import { requestIsResults, } from 'alleycat-js/es/fetch'
 
 import { initialState, } from './reducer'
 
-import { initSelectors, nullMap, } from '../../../../common'
+import { initSelectors, } from '../../../../common'
+import { nullMap, } from '../../../../util-general'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'ui',

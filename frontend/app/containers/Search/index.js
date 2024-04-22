@@ -30,7 +30,11 @@ import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import { DropDown, } from '../../components/shared'
 
-import { component, container, container2, effects, isNotEmptyString, useWhy, whenIsNotEmptyString, requestIsLoading, requestResults, mapX, } from '../../common'
+import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
+import {
+  effects, isNotEmptyString, whenIsNotEmptyString,
+} from '../../util-general'
+
 import config from '../../config'
 
 const targetValue = path (['target', 'value'])
@@ -137,7 +141,7 @@ export const Search = container (
       setQuery (value)
       searchFetchDispatch (value)
       navigate ('/searchResults')
-    }, [searchFetchDispatch, navigate, onClear])
+    }, [searchFetchDispatch, navigate])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 

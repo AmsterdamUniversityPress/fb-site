@@ -12,6 +12,8 @@ import styled from 'styled-components'
 import SpinnerTextblocksC from './SpinnerText'
 import SpinnerCometC from './SpinnerComet'
 
+import { lookupOnOrDie, } from '../util-general'
+
 const ButtonS = styled.button`
   border: 1px solid black;
   border-radius: 2px;
