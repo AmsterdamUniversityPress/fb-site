@@ -20,3 +20,4 @@ export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
 
 export const selectResultsSearch = selectVal ('resultsSearch')
 export const selectNumResultsSearch = selectVal ('numResultsSearch')
+export const selectQuery = selectVal ('querySearch')

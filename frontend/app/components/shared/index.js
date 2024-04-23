@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
-  prop, sprintf1, ifNil, noop,
+  prop, sprintf1, ifNil, noop, lets,
+  sprintfN, tap,
 } from 'stick-js/es'
 
 import React, { useState, } from 'react'
@@ -15,6 +16,7 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 import { clss, } from 'alleycat-js/es/dom'
 
 import { mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, } from '../../common'
+import { mapLookupOnOr, } from '../../util-general'
 
 import Dialog from '../../alleycat-components/Dialog'
 
@@ -352,18 +354,27 @@ const PaginationWrapperS = styled.div`
   text-align: center;
 `
 
-export const PaginationWrapper = ({ numItems, Pagination, }) => {
-  const [show, setShow] = useState (true)
-  const onUpdateNeedPagination = useCallbackConst ((show) => {
-    setShow (show)
-  })
-  return show && <PaginationWrapperS>
+export const PaginationWrapper = ({ numItems, showTotal, Pagination, }) => {
+  const textTotal = (numItems, first, last) => lets (
+    () => numItems | mapLookupOnOr (
+      () => [first, last, numItems] | sprintfN (
+        'Resultaten %d t/m %d (uit %d) worden getoond.',
+      ),
+      new Map ([
+        [0, 'Geen resultaten.'],
+        [1, [first, numItems] | sprintfN (
+          'Resultaat %d (uit %d) wordt getoond.',
+        )],
+      ]),
+    ),
+  )
+  return <PaginationWrapperS>
     <div className='x__main'>
       <Pagination
         numItems={numItems}
+        textTotal={showTotal ? textTotal : noop}
         textNumber='Aantal per pagina:'
         textPage=''
-        onUpdateNeedPagination={onUpdateNeedPagination}
       />
     </div>
   </PaginationWrapperS>

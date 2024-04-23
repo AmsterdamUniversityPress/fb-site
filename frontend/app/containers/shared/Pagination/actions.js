@@ -6,6 +6,11 @@ import {
 import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
+export const setNumItems = action (
+  (key, n) => ({ key, n, }),
+  'setNumItems',
+)
+
 export const setNumPerPageIdx = action (
   (key, n) => ({ key, n, }),
   'setNumPerPageIdx',

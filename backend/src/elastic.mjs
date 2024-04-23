@@ -165,7 +165,7 @@ export const search = (query, pageSize, pageNum) => startP ()
     },
   }))
   | thenWhenTrue (inspectResultsSearch) (tap (inspect >> logWith ('results for search')))
-  | then (({ hits: { hits, }}) => hits)
+  | then (({ hits: { total: { value: numHits }, hits, }}) => ({ hits, numHits, }))
   | recover (decorateAndReject ('Error with esClient.search: '))
 
 export const searchPhrasePrefixNoContext = (max, query) => {

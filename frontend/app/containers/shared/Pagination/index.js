@@ -1,20 +1,21 @@
 import {
   pipe, compose, composeRight,
-  map, find, prop, eq, last,
-  lets, not, compact, noop,
+  map, find, prop, eq, last, tap,
+  lets, not, compact, noop, whenOk,
+  defaultToV,
 } from 'stick-js/es'
 
-import React, { useCallback, useMemo, } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, } from 'react'
 
 import styled from 'styled-components'
 
 import { clss, } from 'alleycat-js/es/dom'
-import {} from 'alleycat-js/es/general'
+import { logWith, } from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 
-import { setNumPerPageIdx, setPage, } from './actions'
+import { setNumItems, setNumPerPageIdx, setPage, } from './actions'
 import mkReducer from './reducer'
 import { createReducer, } from '../../../redux'
 import mkSaga from './saga'
@@ -22,7 +23,7 @@ import { init as initSelectors, } from './selectors'
 
 import { component, container, useWhy, } from '../../../common'
 
-const PaginationS = styled.div`
+const PaginationInnerS = styled.div`
   line-height: 2em;
 
   >.x__num-per-page {
@@ -73,22 +74,18 @@ const PaginationS = styled.div`
     }
   }
   >.x__cur-page {
-    // display: flex;
     > * {
       display: inline-block;
       vertical-align: middle;
     }
     > *:nth-child(1) {
-      // flex: 0 0 50px;
     }
     > *:nth-child(2) {
-      // flex: 1 0 50px;
     }
     >.x__page {
       display: inline-block;
       overflow-x: auto;
       overflow-y: hidden;
-      // width: 650px;
       width: 150px;
       height: 57px;
       white-space: nowrap !important;
@@ -102,10 +99,9 @@ const PaginationInner = component ([
   const {
     numItems,
     numsPerPage, page,
-    setNumPerPageIdxDispatch, setPageDispatch,
+    setNumItemsDispatch, setNumPerPageIdxDispatch, setPageDispatch,
     textNumber='Number per page:',
     textPage='Page:',
-    onUpdateNeedPagination,
   } = props
 
   const onClickNpp = useCallbackConst (
@@ -128,9 +124,11 @@ const PaginationInner = component ([
 
   useWhy ('PaginationInner', props)
 
+  // --- note that the following assumes `page` is not empty (we don't render this component if it
+  // is).
+
   // --- @todo selector
   const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
-
   const lastIdx = last (page).idx
   const [isFirst, isLast] = [selectedIdx === 0, selectedIdx === lastIdx]
   const [canLeft, canRight] = [not (isFirst), not (isLast)]
@@ -157,8 +155,9 @@ const PaginationInner = component ([
     () => canRight && onClicksPage [nextIdx] (),
     [canRight, onClicksPage, nextIdx],
   )
-
-  const numsPerPageDisplay = useMemo (() => compact (numsPerPage | map (({ n, idx, selected, }) => {
+  // @todo memoize
+  // const numsPerPageDisplay = useMemo (() => compact (numsPerPage | map (({ n, idx, selected, }) => {
+  const numsPerPageDisplay = compact (numsPerPage | map (({ n, idx, selected, }) => {
     // --- e.g. if there are 11 items total, show 10 and 50 as options, but not 100
     // --- @todo ugly to refer to previous element during map
     if (idx !== 0)
@@ -170,11 +169,12 @@ const PaginationInner = component ([
       <div className='x__cursor'/>
       {n}
     </div>
-  })), [numsPerPage, onClicksNpp])
+  }))
+  // })), [numsPerPage, numItems, onClicksNpp])
 
-  onUpdateNeedPagination (numsPerPageDisplay.length > 1)
+  useEffect (() => { setNumItemsDispatch (numItems) }, [setNumItemsDispatch, numItems])
 
-  return <PaginationS>
+  return <PaginationInnerS>
     {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
       {textNumber}
       {numsPerPageDisplay}
@@ -204,7 +204,7 @@ const PaginationInner = component ([
         ⇥
       </div>
     </div>}
-  </PaginationS>
+  </PaginationInnerS>
 })
 
 // --- a function which returns a React component (a Redux container)
@@ -212,40 +212,53 @@ export default (key='Pagination') => {
   const {
     selectNumsPerPageComponent,
     selectPageComponent,
+    selectRange,
   } = initSelectors (key)
 
   return container ([
     key,
     {
+      setNumItemsDispatch: (n) => setNumItems (key, n),
       setNumPerPageIdxDispatch: (n) => setNumPerPageIdx (key, n),
       setPageDispatch: (n) => setPage (key, n),
     },
     {
       numsPerPage: selectNumsPerPageComponent,
       page: selectPageComponent,
+      range: selectRange,
     },
   ], (props) => {
     const {
-      setNumPerPageIdxDispatch, setPageDispatch, numsPerPage, page,
-      numItems, textNumber, textPage,
-      onUpdateNeedPagination=noop,
+      setNumItemsDispatch, setNumPerPageIdxDispatch, setPageDispatch,
+      numsPerPage, page, range,
+      numItems, textNumber, textPage, textTotal: mkTextTotal,
       ... restProps
     } = props
+
+    const [textTotal, setTextTotal] = useState ('')
 
     useWhy (key, props)
     useReduxReducer ({ createReducer, reducer: mkReducer (key), key, })
     useSaga ({ saga: mkSaga (key), key, })
 
-    return <PaginationInner
-      {... restProps}
-      setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
-      setPageDispatch={setPageDispatch}
-      numItems={numItems}
-      numsPerPage={numsPerPage}
-      page={page (numItems)}
-      onUpdateNeedPagination={onUpdateNeedPagination}
-      textNumber={textNumber}
-      textPage={textPage}
-    />
+    // --- @todo intentionally doing this too often for now: we need a way to force refresh
+    const [_numItems, first, last] = range
+    const newText = mkTextTotal (numItems, first, Math.min (last, numItems))
+    if (textTotal !== newText) setTextTotal (newText)
+
+    return <>
+      {textTotal}
+      {Boolean (numItems) && <PaginationInner
+        {... restProps}
+        setNumItemsDispatch={setNumItemsDispatch}
+        setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
+        setPageDispatch={setPageDispatch}
+        numItems={numItems}
+        numsPerPage={numsPerPage}
+        page={page (numItems)}
+        textNumber={textNumber}
+        textPage={textPage}
+      />}
+    </>
   })
 }

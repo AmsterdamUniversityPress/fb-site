@@ -46,7 +46,7 @@ import {
 } from '../../shared/Pagination/actions'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
-
+import { selectQuery as selectSearchQuery, } from '../../../containers/Search/selectors'
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
@@ -334,16 +334,17 @@ function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
   if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email + '.')
 }
 
-// @xxx
 function *s_setNumPerPageIdx ({ key, ... _}) {
-  yield put (a_setPage (0))
+  yield put (a_setPage (key, 0))
+  const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  else if (key === paginationKeySearch) yield put (a_searchFetch ('lokale'))
+  else if (key === paginationKeySearch) yield put (a_searchFetch (query))
 }
 
 function *s_setPage ({ key, ... _}) {
+  const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  else if (key === paginationKeySearch) yield put (a_searchFetch ('lokale'))
+  else if (key === paginationKeySearch) yield put (a_searchFetch (query))
 }
 
 function *s_userAdd ({ email, firstName, lastName, privileges }) {

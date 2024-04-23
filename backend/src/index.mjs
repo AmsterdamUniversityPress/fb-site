@@ -358,16 +358,15 @@ const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
 const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
-  | then ((results) => {
-    const ret = { matches: [], numHits: 0, }
+  | then (({ hits, numHits, }) => {
+    const matches = []
     let idx = -1
-    results | each ((result) => {
+    hits | each ((result) => {
       const { _source: fonds, highlight, } = result
       const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
       // --- @todo ... but which one
       const match = highlight | values | take (1)
-      ret.numHits += 1
-      match | each ((theMatch) => ret.matches.push ({
+      match | each ((theMatch) => matches.push ({
         matchKey: ++idx,
         uuid,
         categories,
@@ -376,7 +375,7 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
         match: theMatch,
       }))
     })
-    return ret
+    return { matches, numHits, }
   })
 
 const completeQueriesSimple = invoke (() => {

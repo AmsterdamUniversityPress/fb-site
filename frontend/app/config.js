@@ -71,6 +71,7 @@ export default {
       domain: {
         error: true,
       },
+      Pagination: true,
     },
   },
   general: {

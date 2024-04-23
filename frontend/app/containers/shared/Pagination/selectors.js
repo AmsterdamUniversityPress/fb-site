@@ -14,6 +14,8 @@ export const init = (key) => {
   // --- note that these currently won't get logged by the initSelectorsTell / debugSelectors
   // method.
   const { select, selectTop, selectVal, } = initSelectors (key, getInitialState (key))
+
+  const selectNumItems = selectVal ('numItems')
   const selectNumPerPageIdx = selectVal ('numPerPageIdx')
   const selectNumsPerPage = selectVal ('numsPerPage')
   const selectPage = selectVal ('page')
@@ -50,11 +52,22 @@ export const init = (key) => {
     })),
   )
 
+  // --- returns numItems and 1-based range: [numItems, first, last]
+  const selectRange = select (
+    'range',
+    [selectNumItems, selectPage, selectNumPerPage],
+    (numItems, page, n) => lets (
+      () => page * n,
+      (m) => [numItems, m + 1, m + n],
+    ),
+  )
+
   return {
     selectNumsPerPage,
     selectPage,
     selectNumsPerPageComponent,
     selectNumPerPage,
     selectPageComponent,
+    selectRange,
   }
 }

@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not,
-  sprintfN, nil,
+  sprintfN, nil, tap,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -209,7 +209,7 @@ export const Search = container (
     const onSelect = useCallback ((value) => {
       setQuery (value)
       startSearch (value)
-    }, [searchFetchDispatch, startSearch, navigate])
+    }, [searchFetchDispatch, startSearch])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -222,7 +222,6 @@ export const Search = container (
     )
     const [suggestions, setSuggestions] = useState (results)
     useEffect (() => { setSuggestions (results) }, [results])
-    const hasResults = ok (results) && not (isEmptyList (results))
     const isLoading = useMemo (
       () => resultsRequest | requestIsLoading,
       [resultsRequest],
@@ -232,13 +231,13 @@ export const Search = container (
       [query],
     )
     const showResults = useMemo (
-      () => allV (showResultsProp, hasQuery, hasResults || isLoading),
-      [hasQuery, hasResults, isLoading],
+      () => allV (showResultsProp, hasQuery),
+      [showResultsProp, hasQuery, isLoading],
     )
     useEffect (() => {
       if (nil (queryProp)) return
       searchFetchDispatch (decodeURIComponent (queryProp))
-    }, [queryProp])
+    }, [queryProp, searchFetchDispatch])
 
     useWhy ('Search', props)
     useReduxReducer ({ createReducer, reducer, key: 'Search', })
@@ -272,7 +271,7 @@ export const Search = container (
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
       {showResults && <div className='x__search-results-wrapper'>
-        <PaginationWrapper numItems={numResultsSearch} Pagination={Pagination}/>
+        <PaginationWrapper showTotal={true} numItems={numResultsSearch} Pagination={Pagination}/>
         <SearchResults/>
       </div>}
     </SearchS>

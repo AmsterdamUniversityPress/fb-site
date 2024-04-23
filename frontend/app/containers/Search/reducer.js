@@ -13,7 +13,8 @@ import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../comm
 
 export const initialState = {
   resultsAutocomplete: RequestInit,
-  // --- query
+  querySearch: null,
+  // --- request results
   resultsSearch: RequestInit,
   // --- simple value
   // (note, not the length of `resultsSearch`, which may contain several snippets per document).
@@ -22,8 +23,9 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   autocompleteFetchCompleted, (rcomplete) => assoc ('resultsAutocomplete', rcompleteToResults (rcomplete)),
-  searchFetch, () => assoc (
-    'resultsSearch', RequestLoading (Nothing),
+  searchFetch, (query) => composeManyRight (
+    assoc ('resultsSearch', RequestLoading (Nothing)),
+    assoc ('querySearch', query),
   ),
   searchFetchCompleted, (rcomplete) => composeManyRight (
     assoc ('resultsSearch', rcomplete | rcompleteToResults | map (prop ('results'))),

@@ -839,6 +839,7 @@ const Fondsen = container (
   ({ fondsen, numFondsenMb, }) => <FondsenS>
     {numFondsenMb | foldWhenJust (
       (numItems) => <PaginationWrapper
+        showTotal={false}
         numItems={numItems}
         Pagination={Pagination}
       />,
@@ -1125,6 +1126,7 @@ const Contents = container (
                 linkStyle={{
                   fontVariant: 'small-caps',
                   position: 'relative',
+                  fontSize: '100%',
                   top: '0px',
                 }}
               />

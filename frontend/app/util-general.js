@@ -8,7 +8,7 @@ import {
   map, addIndex, ifTrue, ifPredicate, whenPredicate,
 } from 'stick-js/es'
 
-import { fold, } from 'alleycat-js/es/bilby'
+import { fold, Right, Left, } from 'alleycat-js/es/bilby'
 import {
   doApiCall as _doApiCall, requestCompleteFold,
   RequestInit, RequestLoading, RequestError, RequestResults,
@@ -95,3 +95,41 @@ export const effects = recurry (2) (
 )
 
 export const elementAt = prop
+
+export const mapLookupOn = recurry (2) (
+  (o) => (k) => o.get (k),
+)
+export const mapLookup = recurry (2) (
+  (k) => (o) => mapLookupOn (o, k),
+)
+export const mapLookupEitherOnWith = recurry (3) (
+  msg => o => k => mapLookupOn (o, k) | ifOk (
+    Right, () => Left (msg),
+  ),
+)
+export const mapLookupEitherOn = recurry (2) (
+  o => k => mapLookupEitherOnWith (
+    "Can't find key " + String (k),
+  ) (o, k),
+)
+export const mapLookupOnOr = recurry (3) (
+  (f) => (o) => (k) => mapLookupOn (o, k) | ifUndefined (f, id),
+)
+export const mapLookupOr = recurry (3) (
+  (f) => (k) => (o) => mapLookupOnOr (f, o, k),
+)
+export const mapLookupOnOrV = recurry (3) (
+  (x) => mapLookupOnOr (x | always),
+)
+export const mapLookupOrV = recurry (3) (
+  (x) => mapLookupOr (x | always),
+)
+export const mapLookupOrDie = recurry (3) (
+  (msg) => (k) => (o) => mapLookupOnOr (
+    () => die (msg),
+    o, k,
+  )
+)
+export const mapLookupOnOrDie = recurry (3) (
+  (msg) => (o) => (k) => mapLookupOrDie (msg, k, o),
+)
