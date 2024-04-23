@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, find, prop, eq, last,
-  lets, not,
+  lets, not, compact, noop,
 } from 'stick-js/es'
 
 import React, { useCallback, useMemo, } from 'react'
@@ -100,10 +100,12 @@ const PaginationInner = component ([
   'PaginationInner',
 ], (props) => {
   const {
+    numItems,
     numsPerPage, page,
     setNumPerPageIdxDispatch, setPageDispatch,
     textNumber='Number per page:',
     textPage='Page:',
+    onUpdateNeedPagination,
   } = props
 
   const onClickNpp = useCallbackConst (
@@ -137,7 +139,7 @@ const PaginationInner = component ([
   ]
   const pageRange = lets (
     () => isLast ? [1, 2] : [0, 3],
-    ([n, m]) => page.slice (prevIdx - n, prevIdx + m),
+    ([n, m]) => page.slice (Math.max (prevIdx - n, 0), prevIdx + m),
   )
   const onClickLeft2 = useCallback (
     () => canLeft && onClicksPage [0] (),
@@ -156,18 +158,27 @@ const PaginationInner = component ([
     [canRight, onClicksPage, nextIdx],
   )
 
-  return <PaginationS>
-    <div className='x__num-per-page'>
-      {textNumber}
-      {numsPerPage | map (({ n, idx, selected, }) => {
-        const onClick = { onClick: onClicksNpp [idx], }
-        const cls = clss ('x__num', selected && 'x--selected')
-        return <div key={idx} className={cls} {... selected || onClick}>
-          <div className='x__cursor'/>
-          {n}
-        </div>
-      })}
+  const numsPerPageDisplay = useMemo (() => compact (numsPerPage | map (({ n, idx, selected, }) => {
+    // --- e.g. if there are 11 items total, show 10 and 50 as options, but not 100
+    // --- @todo ugly to refer to previous element during map
+    if (idx !== 0)
+      if (numsPerPage [idx - 1].n >= numItems)
+        return
+    const onClick = { onClick: onClicksNpp [idx], }
+    const cls = clss ('x__num', selected && 'x--selected')
+    return <div key={idx} className={cls} {... selected || onClick}>
+      <div className='x__cursor'/>
+      {n}
     </div>
+  })), [numsPerPage, onClicksNpp])
+
+  onUpdateNeedPagination (numsPerPageDisplay.length > 1)
+
+  return <PaginationS>
+    {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
+      {textNumber}
+      {numsPerPageDisplay}
+    </div>}
     {page.length > 1 && <div className='x__cur-page'>
       <div>{textPage}</div>
       <div className={clss ('x__arrow', 'x__left2', canLeft || 'x--disabled')} onClick={onClickLeft2}>
@@ -199,10 +210,7 @@ const PaginationInner = component ([
 // --- a function which returns a React component (a Redux container)
 export default (key='Pagination') => {
   const {
-    // selectNumsPerPage,
-    // selectPage,
     selectNumsPerPageComponent,
-    // selectNumPerPage,
     selectPageComponent,
   } = initSelectors (key)
 
@@ -220,6 +228,7 @@ export default (key='Pagination') => {
     const {
       setNumPerPageIdxDispatch, setPageDispatch, numsPerPage, page,
       numItems, textNumber, textPage,
+      onUpdateNeedPagination=noop,
       ... restProps
     } = props
 
@@ -231,8 +240,10 @@ export default (key='Pagination') => {
       {... restProps}
       setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
       setPageDispatch={setPageDispatch}
+      numItems={numItems}
       numsPerPage={numsPerPage}
       page={page (numItems)}
+      onUpdateNeedPagination={onUpdateNeedPagination}
       textNumber={textNumber}
       textPage={textPage}
     />

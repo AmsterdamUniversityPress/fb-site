@@ -842,15 +842,22 @@ const PaginationWrapperS = styled.div`
 
 const Pagination = mkPagination (paginationKey)
 
-const PaginationWrapper = ({ numItems, textNumber, textPage, }) => <PaginationWrapperS>
-  <div className='x__main'>
-    <Pagination
-      numItems={numItems}
-      textNumber={textNumber}
-      textPage={textPage}
-    />
-  </div>
-</PaginationWrapperS>
+const PaginationWrapper = ({ numItems, textNumber, textPage, }) => {
+  const [show, setShow] = useState (true)
+  const onUpdateNeedPagination = useCallbackConst ((show) => {
+    setShow (show)
+  })
+  return show && <PaginationWrapperS>
+    <div className='x__main'>
+      <Pagination
+        numItems={numItems}
+        textNumber={textNumber}
+        textPage={textPage}
+        onUpdateNeedPagination={onUpdateNeedPagination}
+      />
+    </div>
+  </PaginationWrapperS>
+}
 
 const Fondsen = container (
   ['Fondsen', {}, {
