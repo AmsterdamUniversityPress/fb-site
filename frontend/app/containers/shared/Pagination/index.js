@@ -217,8 +217,8 @@ export default (key='Pagination') => {
   return container ([
     key,
     {
-      setNumPerPageIdxDispatch: setNumPerPageIdx,
-      setPageDispatch: setPage,
+      setNumPerPageIdxDispatch: (n) => setNumPerPageIdx (key, n),
+      setPageDispatch: (n) => setPage (key, n),
     },
     {
       numsPerPage: selectNumsPerPageComponent,

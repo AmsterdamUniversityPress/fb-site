@@ -3,13 +3,14 @@ import {
   prop, sprintf1, ifNil, noop,
 } from 'stick-js/es'
 
-import React from 'react'
+import React, { useState, } from 'react'
 import styled from 'styled-components'
 import { Link, } from 'react-router-dom'
 
 import configure from 'alleycat-js/es/configure'
 import { logWith, } from 'alleycat-js/es/general'
 import { ifTrueV, } from 'alleycat-js/es/predicate'
+import { useCallbackConst, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 import { clss, } from 'alleycat-js/es/dom'
 
@@ -340,3 +341,30 @@ export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle=
     </div>}
   </div>
 </DropDownS>
+
+const PaginationWrapperS = styled.div`
+  width: 460px;
+  margin: auto;
+  margin-bottom: 30px;
+  padding: 20px;
+  font-size: 20px;
+  background: white;
+  text-align: center;
+`
+
+export const PaginationWrapper = ({ numItems, Pagination, }) => {
+  const [show, setShow] = useState (true)
+  const onUpdateNeedPagination = useCallbackConst ((show) => {
+    setShow (show)
+  })
+  return show && <PaginationWrapperS>
+    <div className='x__main'>
+      <Pagination
+        numItems={numItems}
+        textNumber='Aantal per pagina:'
+        textPage=''
+        onUpdateNeedPagination={onUpdateNeedPagination}
+      />
+    </div>
+  </PaginationWrapperS>
+}

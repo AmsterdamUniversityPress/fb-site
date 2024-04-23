@@ -47,7 +47,7 @@ import {
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 
-import { init as initSelectors, } from '../../shared/Pagination/selectors'
+import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import { lookupOnOrDie, } from '../../../util-general'
@@ -56,9 +56,11 @@ import config from '../../../config'
 const configTop = configure.init (config)
 
 const helloInterval = configTop.get ('general.helloInterval')
-const paginationKey = configTop.get ('app.keys.Pagination')
+const paginationKeyFondsen = configTop.get ('app.keys.Pagination.fonds')
+const paginationKeySearch = configTop.get ('app.keys.Pagination.search')
 
-const { selectNumPerPage, selectPage, } = initSelectors (paginationKey)
+const { selectNumPerPage: selectNumFondsenPerPage, selectPage: selectFondsenPage, } = initPaginationSelectors (paginationKeyFondsen)
+const { selectNumPerPage: selectNumSearchResultsPerPage, selectPage: selectSearchResultsPage, } = initPaginationSelectors (paginationKeySearch)
 
 // --- @temporary, for testing
 const mkURL = (base='/') => lets (
@@ -88,7 +90,7 @@ function *callForever (delayMs, f, ... args) {
 }
 
 function *fondsenRefresh (resetResults=true) {
-  const pageNum = yield select (selectPage)
+  const pageNum = yield select (selectFondsenPage)
   yield put (a_fondsenFetch (pageNum, resetResults))
 }
 
@@ -179,7 +181,7 @@ function *s_appMounted () {
 }
 
 function *s_fondsenFetch ({ pageNum, ... _ }) {
-  const pageLength = yield select (selectNumPerPage)
+  const pageLength = yield select (selectNumFondsenPerPage)
   const beginIdx = pageNum * pageLength
   const url = mkURL ()
   url.pathname = '/api/fondsen'
@@ -293,9 +295,8 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 
 // --- @todo move to Search?
 function *s_searchFetch (query) {
-  // --- @todo
-  const pageNum = 0
-  const pageSize = 27
+  const pageSize = yield select (selectNumSearchResultsPerPage)
+  const pageNum = yield select (selectSearchResultsPage)
   yield call (doApiCall, {
     url: [query, pageNum, pageSize] | sprintfN (
       '/api/search/search/%s?pageNum=%d&pageSize=%d',
@@ -333,13 +334,16 @@ function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
   if (ok) toastInfo ('Welkomst e-mail opnieuw verstuurd naar ' + email + '.')
 }
 
-function *s_setNumPerPageIdx () {
+// @xxx
+function *s_setNumPerPageIdx ({ key, ... _}) {
   yield put (a_setPage (0))
-  yield call (fondsenRefresh, true)
+  if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
+  else if (key === paginationKeySearch) yield put (a_searchFetch ('lokale'))
 }
 
-function *s_setPage () {
-  yield call (fondsenRefresh, true)
+function *s_setPage ({ key, ... _}) {
+  if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
+  else if (key === paginationKeySearch) yield put (a_searchFetch ('lokale'))
 }
 
 function *s_userAdd ({ email, firstName, lastName, privileges }) {

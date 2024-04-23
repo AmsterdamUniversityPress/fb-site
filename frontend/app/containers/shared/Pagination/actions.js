@@ -7,11 +7,11 @@ import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
 export const setNumPerPageIdx = action (
-  (n) => n,
+  (key, n) => ({ key, n, }),
   'setNumPerPageIdx',
 )
 
 export const setPage = action (
-  (page) => page,
+  (key, page) => ({ key, page, }),
   'setPage',
 )

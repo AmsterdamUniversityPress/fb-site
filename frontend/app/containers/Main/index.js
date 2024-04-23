@@ -54,7 +54,7 @@ import Admin from '../Admin'
 import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import { Search, } from '../../containers/Search'
-import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationWrapper, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 import mkPagination from '../../containers/shared/Pagination'
@@ -829,35 +829,7 @@ const FondsenS = styled.div`
   }
 `
 
-const PaginationWrapperS = styled.div`
-  width: 460px;
-  margin: auto;
-  margin-bottom: 30px;
-  padding: 20px;
-  font-size: 20px;
-  background: white;
-  .x__main {
-  }
-`
-
 const Pagination = mkPagination (paginationKey)
-
-const PaginationWrapper = ({ numItems, textNumber, textPage, }) => {
-  const [show, setShow] = useState (true)
-  const onUpdateNeedPagination = useCallbackConst ((show) => {
-    setShow (show)
-  })
-  return show && <PaginationWrapperS>
-    <div className='x__main'>
-      <Pagination
-        numItems={numItems}
-        textNumber={textNumber}
-        textPage={textPage}
-        onUpdateNeedPagination={onUpdateNeedPagination}
-      />
-    </div>
-  </PaginationWrapperS>
-}
 
 const Fondsen = container (
   ['Fondsen', {}, {
@@ -868,8 +840,7 @@ const Fondsen = container (
     {numFondsenMb | foldWhenJust (
       (numItems) => <PaginationWrapper
         numItems={numItems}
-        textNumber='Aantal per pagina:'
-        textPage=''
+        Pagination={Pagination}
       />,
     )}
     {fondsen | requestResults ({

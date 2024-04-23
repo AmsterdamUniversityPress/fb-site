@@ -24,10 +24,11 @@ import { createReducer, } from '../../redux'
 import { queryUpdated, searchFetch, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
-import { selectResultsAutocomplete, selectResultsSearch, } from './selectors'
+import { selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch, } from './selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
+import { PaginationWrapper, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
@@ -176,6 +177,7 @@ export const Search = container (
     },
     {
       results: selectResultsAutocomplete,
+      numResultsSearch: selectNumResultsSearch,
     },
   ],
   (props) => {
@@ -184,6 +186,7 @@ export const Search = container (
       showResults: showResultsProp,
       results: resultsRequest,
       queryUpdatedDispatch, searchFetchDispatch,
+      numResultsSearch,
     } = props
     const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
@@ -268,12 +271,10 @@ export const Search = container (
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
-      {
-        /*
-          <Pagination
-      */
-      }
-      {showResults && <SearchResults/>}
+      {showResults && <div className='x__search-results-wrapper'>
+        <PaginationWrapper numItems={numResultsSearch} Pagination={Pagination}/>
+        <SearchResults/>
+      </div>}
     </SearchS>
   }
 )

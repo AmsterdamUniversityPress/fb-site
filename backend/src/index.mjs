@@ -359,14 +359,15 @@ const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 // duplicates have been removed.
 const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
   | then ((results) => {
-    const ret = []
+    const ret = { matches: [], numHits: 0, }
     let idx = -1
     results | each ((result) => {
       const { _source: fonds, highlight, } = result
       const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
       // --- @todo ... but which one
       const match = highlight | values | take (1)
-      match | each ((theMatch) => ret.push ({
+      ret.numHits += 1
+      match | each ((theMatch) => ret.matches.push ({
         matchKey: ++idx,
         uuid,
         categories,
@@ -578,7 +579,10 @@ const init = ({ port, }) => express ()
     ]),
     ({ res }, query, pageSize, pageNum) => {
       search (query, pageSize, pageNum)
-      | then ((results) => res | sendStatus (200, { results, }))
+      | then (({ matches, numHits, }) => res | sendStatus (
+        200,
+        { results: matches, metadata: { numHits }},
+      ))
       | recover (
         decorateRejection ('Error with elastic search: ') >> effects ([
           warn,

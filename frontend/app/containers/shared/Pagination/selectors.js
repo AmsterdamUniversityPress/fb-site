@@ -5,13 +5,15 @@ import {
 
 import { logWith, } from 'alleycat-js/es/general'
 
-import { initialState, } from './reducer'
+import { getInitialState, } from './reducer'
 
 import { initSelectors, } from '../../../common'
 import { mapX, } from '../../../util-general'
 
 export const init = (key) => {
-  const { select, selectTop, selectVal, } = initSelectors (key, initialState)
+  // --- note that these currently won't get logged by the initSelectorsTell / debugSelectors
+  // method.
+  const { select, selectTop, selectVal, } = initSelectors (key, getInitialState (key))
   const selectNumPerPageIdx = selectVal ('numPerPageIdx')
   const selectNumsPerPage = selectVal ('numsPerPage')
   const selectPage = selectVal ('page')
