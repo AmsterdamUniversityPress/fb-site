@@ -51,7 +51,7 @@ import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
-import { spinner, } from '../../alleycat-components'
+import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import { Search, SearchResults, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
@@ -1028,6 +1028,7 @@ const FondsMainS = styled.div`
   width: 100%;
   > .x__search {
     width: 1000px;
+    height: 75%;
     margin: auto;
     flex: 0 0 104px;
     text-align: center;
@@ -1068,13 +1069,38 @@ const ContentsS = styled.div`
   .x__main {
     // --- @todo
     flex: 1 0 calc(100vw - 300px);
-    // overflow-y: auto;
     > .x__logo {
       margin-top: 50px;
       position: relative;
       left: 50%;
       transform: translateX(-50%);
       width: 600px;
+    }
+    > .x__contents-wrapper {
+      // --- @todo just a guess, fix when mock-ups are complete
+      min-height: 77%;
+    }
+    > .x__footer-wrapper {
+      // --- 300px = sidebar.
+      // width: calc(100% - 300px);
+      > .x__footer {
+        width: 440px;
+        margin: auto;
+        // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
+        // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
+        // and double padding.
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: 50px;
+        > .x__inner {
+          overflow: hidden;
+          box-shadow: 1px 1px 2px 1px;
+          height: 30px;
+          background: white;
+          padding-top: 0px;
+          padding-bottom: 0px;
+        }
+      }
     }
   }
 `
@@ -1102,7 +1128,31 @@ const Contents = container (
         <div className='x__logo'>
           <Logo/>
         </div>
-        {element ()}
+        <div className='x__contents-wrapper'>
+          {element ()}
+        </div>
+        <div className='x__footer-wrapper'>
+          <div className='x__footer'>
+            <div className='x__inner'>
+              <AlleyCatFooter type='simple'
+                style={{
+                  fontSize: '16px',
+                  paddingBottom: '30px',
+                  color: 'black',
+                }}
+                textStyle={{
+                  position: 'relative',
+                  top: '2px',
+                }}
+                linkStyle={{
+                  fontVariant: 'small-caps',
+                  position: 'relative',
+                  top: '0px',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </ContentsS>
   },
@@ -1154,7 +1204,7 @@ export default container (
         <div className='x__header'>
           <Header isLoggedIn={isLoggedIn}/>
         </div>
-        {true && <Contents isMobile={isMobile} page={page}/>}
+        <Contents isMobile={isMobile} page={page}/>
       </div>
     </MainS>
   },

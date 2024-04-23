@@ -14,6 +14,8 @@ import SpinnerCometC from './SpinnerComet'
 
 import { lookupOnOrDie, } from '../util-general'
 
+import imageCat from './images/cat-red.png'
+
 const ButtonS = styled.button`
   border: 1px solid black;
   border-radius: 2px;
@@ -67,28 +69,74 @@ export const IconFA = ({ icon, style = {}, }) => <IconFAS>
   />
 </IconFAS>
 
-export const Footer = styled.div`
-  font-size: 11px;
+const FooterS = styled.div`
+  font-size: 10px;
   color: black;
+  position: relative;
+  top: 8%;
   margin: auto;
-  width: ${prop ('width') >> ifOk (id) (_ => 'inherit')};
-  height: ${prop ('height') >> ifOk (id) (_ => 'inherit')};
   text-align: center;
   height: 21px;
+  > .x__text {
+    vertical-align: baseline;
+  }
+  > .x__logo {
+    img { width: 60px; }
+    position: absolute;
+    right: -22px;
+    top: -11px;
+  }
+  > .x__separator, .x__separator-outer {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  > .x__link {
+    vertical-align: baseline;
+    display: inline-block;
+    &:hover {
+      border-bottom: 1px solid black;
+    }
+    > a {
+      text-decoration: none;
+      // font-weight: bold;
+      color: black;
+    }
+  }
 `
 
-const alleyCatFooterSimple = (props) => <Footer {...props}>
-  Site by AlleyCat Amsterdam | <a
-    target="_blank"
-    rel="noopener noreferrer"
-    href="http://alleycat.cc"
-  >alleycat.cc</a>
-</Footer>
+const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restProps }) => {
+  const separatorOuter = ['٭', '٭']
+  // const separatorOuter = ['⯨', '⯩']
+  return <FooterS
+    {... restProps}
+    style={style}
+  >
+    <span className='x__separator-outer'>
+      {separatorOuter [0]}
+    </span>
+    <span className='x__text' style={textStyle}>
+      Site by AlleyCat Amsterdam
+    </span>
+    <span className='x__logo'>
+      <img src={imageCat}/>
+    </span>
+    <span className='x__separator'>
+      |
+    </span>
+    <span className='x__link' style={linkStyle}>
+      <a target="_blank" rel="noopener noreferrer" href="https://alleycat.cc" >alleycat.cc</a>
+    </span>
+    <span className='x__separator-outer'>
+      {separatorOuter [1]}
+    </span>
+  </FooterS>
+}
 
-export const alleyCatFooter = condS ([
-  'simple' | eq | guard (() => alleyCatFooterSimple),
-  otherwise | guard (_ => 'simple' | alleyCatFooter),
-])
+// --- only 'simple' for now
+export const AlleyCatFooter = ({ type='simple', ... restProps }) => type | lookupOnOrDie (
+  'bad type ' + type,
+  { simple: <AlleyCatFooterSimple {... restProps}/>, },
+)
 
 const SpinnerWrapperS = styled.div`
   width: 10px;
