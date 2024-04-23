@@ -104,6 +104,7 @@ const InputWrapper = invoke (() => {
   return (props) => {
     const {
       withIcon=[], showCloseIcon=false, inputRef: inputRefProp=null, style={}, width,
+      clear: clearProp={},
       onBlur=noop, onChange=noop, onClear=noop, onKeyDown=noop,
       inputProps={},
     } = props
@@ -115,10 +116,12 @@ const InputWrapper = invoke (() => {
     const onClickIcon = useCallback (() => {
       theInputRef.current | whenOk ((input) => input.focus ())
     }, [theInputRef])
-    const onClickClear = useCallback (() => {
+    const clear = useCallback (() => {
       theInputRef.current.value = ''
       onClear ()
     }, [theInputRef, onClear])
+    const onClickClear = clear
+    clearProp.current = clear
     const showTheCloseIcon = allV (
       showCloseIcon,
       theInputRef.current | whenOk (prop ('value') >> isNotEmptyString)
@@ -161,6 +164,7 @@ const InputWrapper = invoke (() => {
 export const Input = withDisplayName ('InputAuto') (
   (props) => {
     const { theRef, withIcon=[], height='35px', width='100%', padding='10px', border=void 8, } = props
+    // --- @future this is quite messy with the props
     return <InputWrapper
       {...props}
       withIcon={withIcon}

@@ -4,7 +4,7 @@ import {
   tap, mergeM,
 } from 'stick-js/es'
 
-import React, { useCallback, useEffect, useMemo, useState, } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import styled from 'styled-components'
 
@@ -94,6 +94,7 @@ export default component (
     // just a choice for now. Note also that -1 doesn't make sense for hoverIdx (in contrast to
     // selectedIdx).
     const [hoverIdx, setHoverIdx] = useState (null)
+    const clear = useRef (null)
 
     const dropdownOpen = allV (
       showSuggestions,
@@ -155,6 +156,13 @@ export default component (
           'Enter',
           () => onSelectWithKeyboard (),
         ),
+        keyDownListenPreventDefault (
+          // --- @todo doesn't seem to work (but clear.current () does)
+          'Escape',
+          () => {
+            clear.current ()
+          }
+        ),
       ]),
       [canKeyboard, suggestions, onSelectWithKeyboard],
     )
@@ -189,6 +197,7 @@ export default component (
         {... restInputWrapperProps}
         onChange={onChangeInput}
         onClear={onClear}
+        clear={clear}
         onKeyDown={onKeyDownInput}
         onBlur={onBlur}
       />
