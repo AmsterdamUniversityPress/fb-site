@@ -28,7 +28,7 @@ import { selectResultsAutocomplete, selectResultsSearch, } from './selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
-import { DropDown, } from '../../components/shared'
+import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
@@ -36,8 +36,11 @@ import {
 } from '../../util-general'
 
 import config from '../../config'
-
+const configTop = configure.init (config)
+const paginationKey = configTop.get ('app.keys.Pagination.search')
 const targetValue = path (['target', 'value'])
+
+const Pagination = mkPagination (paginationKey)
 
 const SearchS = styled.div`
   > * {
@@ -136,6 +139,7 @@ const SearchResultsS = styled.div`
         background: yellow;
       }
     }
+
   }
 `
 
@@ -143,27 +147,25 @@ const SearchResults = container2 (
   ['SearchResults'],
   () => {
     const searchResults = useSelector (selectResultsSearch)
-    return <>
-      <SearchResultsS>
-        {searchResults | requestResults ({
-          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
-            onError: noop,
-            onResults: (results) => <>
-              {results | map (
-                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
-                  <div className='x__name'>{name}</div>
-                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
-                  <div
-                    className='x__match'
-                    // --- @todo
-                    dangerouslySetInnerHTML={{__html: match}}
-                  />
-                </div>
-              )}
-            </>
-        })}
-      </SearchResultsS>
-    </>
+    return <SearchResultsS>
+      {searchResults | requestResults ({
+        spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+          onError: noop,
+          onResults: (results) => <>
+            {results | map (
+              ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
+                <div className='x__name'>{name}</div>
+                <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
+                <div
+                  className='x__match'
+                  // --- @todo
+                  dangerouslySetInnerHTML={{__html: match}}
+                />
+              </div>
+            )}
+          </>
+      })}
+    </SearchResultsS>
   }
 )
 export const Search = container (
@@ -177,7 +179,12 @@ export const Search = container (
     },
   ],
   (props) => {
-    const { query: queryProp=null, queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
+    const {
+      query: queryProp=null,
+      showResults: showResultsProp,
+      results: resultsRequest,
+      queryUpdatedDispatch, searchFetchDispatch,
+    } = props
     const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
     useEffect (() => {
@@ -222,7 +229,7 @@ export const Search = container (
       [query],
     )
     const showResults = useMemo (
-      () => allV (hasQuery, hasResults || isLoading),
+      () => allV (showResultsProp, hasQuery, hasResults || isLoading),
       [hasQuery, hasResults, isLoading],
     )
     useEffect (() => {
@@ -261,25 +268,12 @@ export const Search = container (
         />
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
-      {/*
-      // @todo remove redundant code
-      <div className='x__results-wrapper'>
-        {showResults && <div className='x__results'>
-          <DropDown
-            open={false}
-            contentsStyle={{ minHeight: '300px', height: '100%', }}
-          >
-                {results | mapX (
-                  (word, idx) =>
-            <div key={idx} className='x__result'>
-            <Result word={word}/>
-                  </div>
-            )}
-          </DropDown>
-        </div>}
-      </div>
-          */}
-      <SearchResults/>
+      {
+        /*
+          <Pagination
+      */
+      }
+      {showResults && <SearchResults/>}
     </SearchS>
   }
 )

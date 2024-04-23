@@ -52,7 +52,10 @@ const getMainFontCss = () => join ('\n\n', [
 export default {
   app: {
     keys: {
-      Pagination: 'FondsenPagination',
+      Pagination: {
+        fonds: 'FondsenPagination',
+        search: 'SearchPagination',
+      },
     },
     element: '#app',
   },

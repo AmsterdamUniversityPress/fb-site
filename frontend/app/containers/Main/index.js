@@ -75,7 +75,7 @@ const configGeneral = configTop.focus ('general')
 const configIcons = configTop.focus ('icons')
 const configImages = configTop.focus ('images')
 
-const paginationKey = configTop.get ('app.keys.Pagination')
+const paginationKey = configTop.get ('app.keys.Pagination.fonds')
 const iconLogin = configIcons.get ('login')
 const iconLogout = configIcons.get ('logout')
 const iconUpdate = configIcons.get ('update')
@@ -1044,7 +1044,7 @@ const FondsMainS = styled.div`
 const FondsMain = () => {
   return <FondsMainS>
     <div className='x__search'>
-      <Search/>
+      <Search query={null} showResults={false}/>
     </div>
     <div className='x__main'>
       <Fondsen/>
@@ -1112,8 +1112,8 @@ const Contents = container (
     const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
-      login: [false, () => <Login isMobile={isMobile} email={params.email ?? ''}/>],
-      search: [true, () => <Search query={params.query ?? null}/>],
+      login: [false, () => <Login isMobile={isMobile} email={params.email}/>],
+      search: [true, () => <Search query={params.query} showResults={true}/>],
       user: [true, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
