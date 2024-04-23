@@ -16,7 +16,7 @@ import { useCallbackConst, } from 'alleycat-js/es/react'
 
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 
-import { setNumItems, setNumPerPageIdx, setPage, } from './actions'
+import { setNumPerPageIdx, setPage, } from './actions'
 import mkReducer from './reducer'
 import { createReducer, } from '../../../redux'
 import mkSaga from './saga'
@@ -100,7 +100,7 @@ const PaginationInner = component ([
   const {
     numItems,
     numsPerPage, page,
-    setNumItemsDispatch, setNumPerPageIdxDispatch, setPageDispatch,
+    setNumPerPageIdxDispatch, setPageDispatch,
     textNumber='Number per page:',
     textPage='Page:',
   } = props
@@ -129,7 +129,9 @@ const PaginationInner = component ([
   // it is).
 
   // --- @todo selector
-  const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
+  // const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
+  const selectedIdx = page | find (prop ('selected') >> eq (true)) | whenOk (prop ('idx'))
+  if (nil (selectedIdx)) warn ('ok this is weird, page was', page)
   const lastIdx = last (page).idx
   const [isFirst, isLast] = [selectedIdx === 0, selectedIdx === lastIdx]
   const [canLeft, canRight] = [not (isFirst), not (isLast)]
@@ -170,8 +172,6 @@ const PaginationInner = component ([
       {n}
     </div>
   }))
-
-  useEffect (() => { setNumItemsDispatch (numItems) }, [setNumItemsDispatch, numItems])
 
   return <PaginationInnerS>
     {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
@@ -217,7 +217,6 @@ export default (key='Pagination') => {
   return container ([
     key,
     {
-      setNumItemsDispatch: (n) => setNumItems (key, n),
       setNumPerPageIdxDispatch: (n) => setNumPerPageIdx (key, n),
       setPageDispatch: (n) => setPage (key, n),
     },
@@ -228,14 +227,14 @@ export default (key='Pagination') => {
     },
   ], (props) => {
     const {
-      setNumItemsDispatch, setNumPerPageIdxDispatch, setPageDispatch,
+      setNumPerPageIdxDispatch, setPageDispatch,
       numsPerPage, page, range,
       numItems, textNumber, textPage, textTotal: mkTextTotal,
       ... restProps
     } = props
 
     // --- @todo intentionally doing this too often for now: we need a way to force refresh
-    const [_numItems, first, last] = range
+    const [first, last] = range
     const textTotal = mkTextTotal (numItems, first, Math.min (last, numItems))
 
     useWhy (key, props)
@@ -246,7 +245,6 @@ export default (key='Pagination') => {
       {textTotal}
       {Boolean (numItems) && <PaginationInner
         {... restProps}
-        setNumItemsDispatch={setNumItemsDispatch}
         setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}
         setPageDispatch={setPageDispatch}
         numItems={numItems}

@@ -5,14 +5,13 @@ import {
 
 import { makeReducer, } from 'alleycat-js/es/redux'
 
-import { setNumItems, setNumPerPageIdx, setPage, } from './actions'
+import { setNumPerPageIdx, setPage, } from './actions'
 import { reducer, } from '../../../common'
 
 const initialStates = {}
 
 const mkInitialState = () => ({
   page: 0,
-  numItems: 0,
   numPerPageIdx: 0,
   numsPerPage: [10, 50, 100],
 })
@@ -22,7 +21,6 @@ const checkKey = (k1, k2) => (reduce) => k1 === k2 ? reduce : id
 // --- @future ugly to check the key on each operation (we could probably make the state object more
 // structured)
 const mkReducerTable = (theKey) => makeReducer (
-  setNumItems, ({ key, n, }) => checkKey (theKey, key) (assoc ('numItems', n)),
   setNumPerPageIdx, ({ key, n, }) => checkKey (theKey, key) (assoc ('numPerPageIdx', n)),
   setPage, ({ key, page, }) => checkKey (theKey, key) (assoc ('page', page)),
 )
