@@ -10,7 +10,7 @@ import { reducer, } from '../../../common'
 
 export const initialState = {
   page: 0,
-  numPerPageIdx: 1,
+  numPerPageIdx: 0,
   numsPerPage: [10, 50, 100],
 }
 
