@@ -53,7 +53,7 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
-import { Search, SearchResults, } from '../../containers/Search'
+import { Search, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -1113,7 +1113,7 @@ const Contents = container (
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email ?? ''}/>],
-      searchresults: [true, () => <SearchResults/>],
+      search: [true, () => <Search query={params.query ?? null}/>],
       user: [true, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],

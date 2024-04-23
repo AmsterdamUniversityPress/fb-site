@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not,
-  sprintfN,
+  sprintfN, nil,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -113,6 +113,59 @@ const Result = ({ word, }) => <ResultS>
   <div className='x__word'>{word}</div>
 </ResultS>
 
+const SearchResultsS = styled.div`
+  background: white;
+  width: 80%;
+  min-width: 100px;
+  > .x__wrapper {
+    padding: 3%;
+    > .x__name {
+      font-weight: bold;
+      font-size: 25px;
+      display: inline-block;
+    }
+    > .x__type {
+      display: inline-block;
+      margin-left: 4px;
+      font-weight: bold;
+      font-size: 25px;
+    }
+    > .x__match {
+      text-align: centre;
+      > .highlight {
+        background: yellow;
+      }
+    }
+  }
+`
+
+const SearchResults = container2 (
+  ['SearchResults'],
+  () => {
+    const searchResults = useSelector (selectResultsSearch)
+    return <>
+      <SearchResultsS>
+        {searchResults | requestResults ({
+          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+            onError: noop,
+            onResults: (results) => <>
+              {results | map (
+                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
+                  <div className='x__name'>{name}</div>
+                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
+                  <div
+                    className='x__match'
+                    // --- @todo
+                    dangerouslySetInnerHTML={{__html: match}}
+                  />
+                </div>
+              )}
+            </>
+        })}
+      </SearchResultsS>
+    </>
+  }
+)
 export const Search = container (
   ['Search',
     {
@@ -124,8 +177,12 @@ export const Search = container (
     },
   ],
   (props) => {
-    const { queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
+    const { query: queryProp=null, queryUpdatedDispatch, searchFetchDispatch, results: resultsRequest, } = props
+    const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
+    useEffect (() => {
+      if (ok (queryProp)) setQuery (decodeURIComponent (queryProp))
+    }, [queryProp])
     // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
@@ -136,12 +193,13 @@ export const Search = container (
       onChangeValue ('')
       setSuggestions ([])
     })
-    const navigate = useNavigate ()
+    const startSearch = useCallback ((value) => {
+      navigate ('/search/' + encodeURIComponent (value))
+    }, [navigate])
     const onSelect = useCallback ((value) => {
       setQuery (value)
-      searchFetchDispatch (value)
-      navigate ('/searchResults')
-    }, [searchFetchDispatch, navigate])
+      startSearch (value)
+    }, [searchFetchDispatch, startSearch, navigate])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -167,6 +225,10 @@ export const Search = container (
       () => allV (hasQuery, hasResults || isLoading),
       [hasQuery, hasResults, isLoading],
     )
+    useEffect (() => {
+      if (nil (queryProp)) return
+      searchFetchDispatch (decodeURIComponent (queryProp))
+    }, [queryProp])
 
     useWhy ('Search', props)
     useReduxReducer ({ createReducer, reducer, key: 'Search', })
@@ -217,64 +279,7 @@ export const Search = container (
         </div>}
       </div>
           */}
+      <SearchResults/>
     </SearchS>
-  }
-)
-
-const SearchResultsS = styled.div`
-  background: white;
-  width: 80%;
-  min-width: 100px;
-  > .x__wrapper {
-    padding: 3%;
-    > .x__name {
-      font-weight: bold;
-      font-size: 25px;
-      display: inline-block;
-    }
-    > .x__type {
-      display: inline-block;
-      margin-left: 4px;
-      font-weight: bold;
-      font-size: 25px;
-    }
-    > .x__match {
-      text-align: centre;
-      > .highlight {
-        background: yellow;
-      }
-    }
-
-  }
-`
-
-export const SearchResults = container2 (
-  ['SearchResults'],
-  () => {
-    const searchResults = useSelector (selectResultsSearch)
-    return <>
-      <div className='x__search'>
-        <Search/>
-      </div>
-      <SearchResultsS>
-        {searchResults | requestResults ({
-          spinnerProps: { color: 'white', size: 60, delayMs: 400, },
-            onError: noop,
-            onResults: (results) => <>
-              {results | map (
-                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
-                  <div className='x__name'>{name}</div>
-                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
-                  <div
-                    className='x__match'
-                    // --- @todo
-                    dangerouslySetInnerHTML={{__html: match}}
-                  />
-                </div>
-              )}
-            </>
-        })}
-      </SearchResultsS>
-    </>
   }
 )
