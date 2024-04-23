@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, find, prop, eq, last, tap,
-  lets, not, compact, noop, whenOk,
+  lets, not, compact, noop, whenOk, nil,
   defaultToV,
 } from 'stick-js/es'
 
@@ -10,7 +10,7 @@ import React, { useCallback, useEffect, useMemo, useState, } from 'react'
 import styled from 'styled-components'
 
 import { clss, } from 'alleycat-js/es/dom'
-import { logWith, } from 'alleycat-js/es/general'
+import { logWith, warn, } from 'alleycat-js/es/general'
 import { isEmptyList, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 

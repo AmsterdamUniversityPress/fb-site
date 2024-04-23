@@ -34,3 +34,8 @@ export const searchFetchCompleted = action (
   (rcomplete) => rcomplete,
   'searchFetchCompleted',
 )
+
+export const searchReset = action (
+  () => {},
+  'searchReset',
+)

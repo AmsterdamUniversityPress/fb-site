@@ -39,6 +39,7 @@ import {
 import {
   searchFetch as a_searchFetch,
   searchFetchCompleted as a_searchFetchCompleted,
+  searchReset as a_searchReset,
 } from '../../Search/actions'
 import {
   setPage as a_setPage,
@@ -306,6 +307,10 @@ function *s_searchFetch (query) {
   })
 }
 
+function *s_searchReset () {
+  yield put (a_setPage (paginationKeySearch, 0))
+}
+
 function *s_sendResetEmail (email) {
   yield call (sendEmail, email, 'reset')
 }
@@ -403,6 +408,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_resetPassword, s_resetPassword),
     saga (takeLatest, a_searchFetch, s_searchFetch),
+    saga (takeLatest, a_searchReset, s_searchReset),
     saga (takeLatest, a_sendResetEmail, s_sendResetEmail),
     saga (takeLatest, a_sendResetEmailCompleted, s_sendResetEmailCompleted),
     saga (takeEvery,  a_sendWelcomeEmail, s_sendWelcomeEmail),

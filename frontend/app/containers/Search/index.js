@@ -21,7 +21,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { queryUpdated, searchFetch, } from './actions'
+import { queryUpdated, searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import { selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch, } from './selectors'
@@ -178,6 +178,7 @@ export const Search = container (
     {
       queryUpdatedDispatch: queryUpdated,
       searchFetchDispatch: searchFetch,
+      searchResetDispatch: searchReset,
     },
     {
       results: selectResultsAutocomplete,
@@ -191,7 +192,7 @@ export const Search = container (
       showResults: showResultsProp,
       results: resultsRequest,
       resultsSearch,
-      queryUpdatedDispatch, searchFetchDispatch,
+      queryUpdatedDispatch, searchFetchDispatch, searchResetDispatch,
       numResultsSearch,
     } = props
     const navigate = useNavigate ()
@@ -218,7 +219,7 @@ export const Search = container (
       setQuery (value)
       startSearch (value)
       setIsNewQuery (true)
-    }, [searchFetchDispatch, startSearch])
+    }, [startSearch])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
@@ -233,14 +234,14 @@ export const Search = container (
     )
     const [suggestions, setSuggestions] = useState (results)
     useEffect (() => { setSuggestions (results) }, [results])
-    const isLoading = useMemo (
-      () => resultsRequest | requestIsLoading,
-      [resultsRequest],
-    )
-    const hasQuery = useMemo (
-      () => query | isNotEmptyString,
-      [query],
-    )
+    // const isLoading = useMemo (
+      // () => resultsRequest | requestIsLoading,
+      // [resultsRequest],
+    // )
+    // const hasQuery = useMemo (
+      // () => query | isNotEmptyString,
+      // [query],
+    // )
     const showResults = useMemo (
       () => allV (
         showResultsProp,
@@ -250,6 +251,7 @@ export const Search = container (
     )
     useEffect (() => {
       if (nil (queryProp)) return
+      searchResetDispatch ()
       searchFetchDispatch (decodeURIComponent (queryProp))
     }, [queryProp, searchFetchDispatch])
 
