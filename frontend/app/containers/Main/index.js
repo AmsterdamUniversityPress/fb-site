@@ -1068,6 +1068,7 @@ const ContentsS = styled.div`
   .x__main {
     // --- @todo
     flex: 1 0 calc(100vw - 300px);
+    // overflow-y: auto;
     > .x__logo {
       margin-top: 50px;
       position: relative;

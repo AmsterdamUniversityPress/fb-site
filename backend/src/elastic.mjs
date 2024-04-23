@@ -230,7 +230,6 @@ export const searchWithWildcards = (max, query) => {
 // --- only here for reference -- the suggestions they give are way too general
 export const suggest = (max, query) => startP ()
   | then (() => esClient.search ({
-    // index: indexAutocomplete,
     index: indexMain,
     // --- we can omit query here since we only want suggestions
     suggest: {
