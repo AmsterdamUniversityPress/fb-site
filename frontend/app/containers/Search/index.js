@@ -146,27 +146,31 @@ const SearchResultsS = styled.div`
 
 const SearchResults = container2 (
   ['SearchResults'],
-  () => {
+  (props) => {
     const searchResults = useSelector (selectResultsSearch)
-    return <SearchResultsS>
+    const numResultsSearch = useSelector (selectNumResultsSearch)
+    return <div>
+      <PaginationWrapper showTotal={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
       {searchResults | requestResults ({
         spinnerProps: { color: 'white', size: 60, delayMs: 400, },
           onError: noop,
           onResults: (results) => <>
-            {results | map (
-              ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
-                <div className='x__name'>{name}</div>
-                <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
-                <div
-                  className='x__match'
-                  // --- @todo
-                  dangerouslySetInnerHTML={{__html: match}}
-                />
-              </div>
-            )}
+            <SearchResultsS>
+              {results | map (
+                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
+                  <div className='x__name'>{name}</div>
+                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
+                  <div
+                    className='x__match'
+                    // --- @todo
+                    dangerouslySetInnerHTML={{__html: match}}
+                  />
+                </div>
+              )}
+            </SearchResultsS>
           </>
       })}
-    </SearchResultsS>
+    </div>
   }
 )
 export const Search = container (
@@ -178,6 +182,7 @@ export const Search = container (
     {
       results: selectResultsAutocomplete,
       numResultsSearch: selectNumResultsSearch,
+      resultsSearch: selectResultsSearch,
     },
   ],
   (props) => {
@@ -185,11 +190,13 @@ export const Search = container (
       query: queryProp=null,
       showResults: showResultsProp,
       results: resultsRequest,
+      resultsSearch,
       queryUpdatedDispatch, searchFetchDispatch,
       numResultsSearch,
     } = props
     const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
+    const [isNewQuery, setIsNewQuery] = useState (false)
     useEffect (() => {
       if (ok (queryProp)) setQuery (decodeURIComponent (queryProp))
     }, [queryProp])
@@ -206,13 +213,17 @@ export const Search = container (
     const startSearch = useCallback ((value) => {
       navigate ('/search/' + encodeURIComponent (value))
     }, [navigate])
+    // --- after choosing autocomplete value or typing query and pressing enter
     const onSelect = useCallback ((value) => {
       setQuery (value)
       startSearch (value)
+      setIsNewQuery (true)
     }, [searchFetchDispatch, startSearch])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
+    // --- the autocomplete results
+    // @todo better name
     const results = useMemo (
       () => resultsRequest | requestResults ({
         onLoading: noop,
@@ -231,13 +242,20 @@ export const Search = container (
       [query],
     )
     const showResults = useMemo (
-      () => allV (showResultsProp, hasQuery),
-      [showResultsProp, hasQuery, isLoading],
+      () => allV (
+        showResultsProp,
+        not (isNewQuery),
+      ),
+      [showResultsProp, isNewQuery],
     )
     useEffect (() => {
       if (nil (queryProp)) return
       searchFetchDispatch (decodeURIComponent (queryProp))
     }, [queryProp, searchFetchDispatch])
+
+    useEffect (() => {
+      setIsNewQuery (false)
+    }, [resultsSearch])
 
     useWhy ('Search', props)
     useReduxReducer ({ createReducer, reducer, key: 'Search', })
@@ -271,7 +289,6 @@ export const Search = container (
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
       {showResults && <div className='x__search-results-wrapper'>
-        <PaginationWrapper showTotal={true} numItems={numResultsSearch} Pagination={Pagination}/>
         <SearchResults/>
       </div>}
     </SearchS>

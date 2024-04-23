@@ -11,6 +11,7 @@ import styled from 'styled-components'
 
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
+import { isEmptyList, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
@@ -124,8 +125,8 @@ const PaginationInner = component ([
 
   useWhy ('PaginationInner', props)
 
-  // --- note that the following assumes `page` is not empty (we don't render this component if it
-  // is).
+  // --- note that the following assumes `page` is not empty (we must not render this component if
+  // it is).
 
   // --- @todo selector
   const selectedIdx = page | find (prop ('selected') >> eq (true)) | prop ('idx')
@@ -156,7 +157,6 @@ const PaginationInner = component ([
     [canRight, onClicksPage, nextIdx],
   )
   // @todo memoize
-  // const numsPerPageDisplay = useMemo (() => compact (numsPerPage | map (({ n, idx, selected, }) => {
   const numsPerPageDisplay = compact (numsPerPage | map (({ n, idx, selected, }) => {
     // --- e.g. if there are 11 items total, show 10 and 50 as options, but not 100
     // --- @todo ugly to refer to previous element during map
@@ -170,7 +170,6 @@ const PaginationInner = component ([
       {n}
     </div>
   }))
-  // })), [numsPerPage, numItems, onClicksNpp])
 
   useEffect (() => { setNumItemsDispatch (numItems) }, [setNumItemsDispatch, numItems])
 
@@ -235,16 +234,13 @@ export default (key='Pagination') => {
       ... restProps
     } = props
 
-    const [textTotal, setTextTotal] = useState ('')
+    // --- @todo intentionally doing this too often for now: we need a way to force refresh
+    const [_numItems, first, last] = range
+    const textTotal = mkTextTotal (numItems, first, Math.min (last, numItems))
 
     useWhy (key, props)
     useReduxReducer ({ createReducer, reducer: mkReducer (key), key, })
     useSaga ({ saga: mkSaga (key), key, })
-
-    // --- @todo intentionally doing this too often for now: we need a way to force refresh
-    const [_numItems, first, last] = range
-    const newText = mkTextTotal (numItems, first, Math.min (last, numItems))
-    if (textTotal !== newText) setTextTotal (newText)
 
     return <>
       {textTotal}

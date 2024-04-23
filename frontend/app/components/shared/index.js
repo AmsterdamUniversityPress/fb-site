@@ -345,12 +345,13 @@ export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle=
 </DropDownS>
 
 const PaginationWrapperS = styled.div`
-  width: 460px;
+  width: 500px;
   margin: auto;
   margin-bottom: 30px;
   padding: 20px;
   font-size: 20px;
   background: white;
+  min-height: 70px;
   text-align: center;
 `
 
@@ -361,7 +362,7 @@ export const PaginationWrapper = ({ numItems, showTotal, Pagination, }) => {
         'Resultaten %d t/m %d (uit %d) worden getoond.',
       ),
       new Map ([
-        [0, 'Geen resultaten.'],
+        [0, ['todo' + Math.floor (Math.random () * 1000)] | sprintfN ('Geen resultaten for %s.')],
         [1, [first, numItems] | sprintfN (
           'Resultaat %d (uit %d) wordt getoond.',
         )],
