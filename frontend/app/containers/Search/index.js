@@ -197,6 +197,12 @@ export const Search = container (
     } = props
     const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
+    // --- we want to distinguish the case of starting a new search, with a new query, and searching
+    // on a different page or page size with the existing query. In the first case we want the text
+    // about the number of results to disappear and get redrawn, and in the second case, we want the
+    // whole pagination component to be as smooth as possible (just the numbers / texts change).
+    // This will cause a slight flicker in the first case, but it's confusing if the old text
+    // suddenly gets replaced by new text when the new results come in.
     const [isNewQuery, setIsNewQuery] = useState (false)
     useEffect (() => {
       if (ok (queryProp)) setQuery (decodeURIComponent (queryProp))
@@ -218,8 +224,8 @@ export const Search = container (
     const onSelect = useCallback ((value) => {
       setQuery (value)
       startSearch (value)
-      setIsNewQuery (true)
-    }, [startSearch])
+      if (value !== query) setIsNewQuery (true)
+    }, [startSearch, query])
     const canSearch = useMemo (() => query | isNotEmptyString, [query])
     const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
 
