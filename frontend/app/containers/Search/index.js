@@ -3,7 +3,7 @@ import {
   path, noop, ok, join, map, not,
   sprintfN, nil, tap,
   ifOk, dot, id, always,
-  prop, whenOk,
+  prop, whenOk, split,
   whenFalse,
 } from 'stick-js/es'
 
@@ -75,7 +75,7 @@ const SearchS = styled.div`
   }
   > .x__search-results-wrapper {
     background: white;
-    width: 100%;
+    width: 95%;
     text-align: left;
     position: relative;
     margin-top: 40px;
@@ -107,6 +107,8 @@ const SearchS = styled.div`
 const ResultsInnerS = styled.div`
   background: white;
   min-width: 100px;
+  display: flex;
+  flex-flow: row wrap;
 `
 
 const ResultsS = styled.div`
@@ -121,6 +123,8 @@ const ResultsS = styled.div`
 `
 
 const ResultS = styled.div`
+  width: 45%;
+  min-width: 550px;
   padding: 3%;
   font-size: 17px;
   display: flex;
@@ -199,7 +203,7 @@ const Result = ({imgSrc, name, type, targetGroup, workingRegion, objective, matc
     </div>
   </div>
   <div className='x__right'>
-    <div className='x__objective'>{[objective | truncate (200)] | sprintfN ("%s")}</div>
+    <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
     <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
     <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
     {targetGroup | whenOk (
