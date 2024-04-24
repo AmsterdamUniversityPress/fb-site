@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   prop, sprintf1, ifNil, noop, lets,
-  sprintfN, tap,
+  sprintfN, tap, not,
 } from 'stick-js/es'
 
 import React, { useState, } from 'react'
@@ -344,7 +344,7 @@ export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle=
   </div>
 </DropDownS>
 
-const PaginationWrapperS = styled.div`
+const PaginationAndExplanationS = styled.div`
   width: 500px;
   margin: auto;
   margin-bottom: 5px;
@@ -355,28 +355,28 @@ const PaginationWrapperS = styled.div`
   text-align: center;
 `
 
-export const PaginationWrapper = ({ numItems, showTotal, Pagination, }) => {
-  const textTotal = (numItems, first, last) => lets (
+export const PaginationAndExplanation = ({ numItems, showExplanation, Pagination, query=null, }) => {
+  const mkExplanation = not (showExplanation) ? noop : (numItems, first, last) => lets (
     () => numItems | mapLookupOnOr (
       () => [first, last, numItems] | sprintfN (
         'Resultaten %d t/m %d (uit %d) worden getoond.',
       ),
       new Map ([
-        [0, ['todo' + Math.floor (Math.random () * 1000)] | sprintfN ('Geen resultaten for %s.')],
+        [0, [query] | sprintfN ('Geen resultaten for “%s”.')],
         [1, [first, numItems] | sprintfN (
           'Resultaat %d (uit %d) wordt getoond.',
         )],
       ]),
     ),
   )
-  return <PaginationWrapperS>
+  return <PaginationAndExplanationS>
     <div className='x__main'>
       <Pagination
         numItems={numItems}
-        textTotal={showTotal ? textTotal : noop}
+        mkExplanation={mkExplanation}
         textNumber='Aantal per pagina:'
         textPage=''
       />
     </div>
-  </PaginationWrapperS>
+  </PaginationAndExplanationS>
 }

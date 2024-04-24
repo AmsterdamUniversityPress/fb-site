@@ -229,20 +229,20 @@ export default (key='Pagination') => {
     const {
       setNumPerPageIdxDispatch, setPageDispatch,
       numsPerPage, page, range,
-      numItems, textNumber, textPage, textTotal: mkTextTotal,
+      numItems, textNumber, textPage, mkExplanation,
       ... restProps
     } = props
 
     // --- @todo intentionally doing this too often for now: we need a way to force refresh
     const [first, last] = range
-    const textTotal = mkTextTotal (numItems, first, Math.min (last, numItems))
+    const explanation = mkExplanation (numItems, first, Math.min (last, numItems))
 
     useWhy (key, props)
     useReduxReducer ({ createReducer, reducer: mkReducer (key), key, })
     useSaga ({ saga: mkSaga (key), key, })
 
     return <>
-      {textTotal}
+      {explanation}
       {Boolean (numItems) && <PaginationInner
         {... restProps}
         setNumPerPageIdxDispatch={setNumPerPageIdxDispatch}

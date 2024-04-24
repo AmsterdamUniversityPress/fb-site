@@ -54,7 +54,7 @@ import Admin from '../Admin'
 import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import { Search, } from '../../containers/Search'
-import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationWrapper, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
 import mkPagination from '../../containers/shared/Pagination'
@@ -839,8 +839,8 @@ const Fondsen = container (
   }],
   ({ fondsen, numFondsenMb, }) => <FondsenS>
     {numFondsenMb | foldWhenJust (
-      (numItems) => <PaginationWrapper
-        showTotal={false}
+      (numItems) => <PaginationAndExplanation
+        showExplanation={false}
         numItems={numItems}
         Pagination={Pagination}
       />,

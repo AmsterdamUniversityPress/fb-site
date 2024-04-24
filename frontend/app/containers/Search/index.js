@@ -28,7 +28,7 @@ import { selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch,
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
-import { PaginationWrapper, } from '../../components/shared'
+import { PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
@@ -175,12 +175,13 @@ const Result = ({ imgSrc, name, type, match, categories=['sport', 'religie', 'st
 const SearchResults = container2 (
   ['SearchResults'],
   (props) => {
+    const { query, } = props
     const searchResults = useSelector (selectResultsSearch)
     const numResultsSearch = useSelector (selectNumResultsSearch)
     const imgSrc = imageEyeWall
     return <ResultsS>
       <div className='x__pagination'>
-        <PaginationWrapper showTotal={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
+        <PaginationAndExplanation query={query} showExplanation={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
         <div className='x__separator'/>
       </div>
       {searchResults | requestResults ({
@@ -227,6 +228,7 @@ export const Search = container (
     } = props
     const navigate = useNavigate ()
     const [query, setQuery] = useState ('')
+    const [querySubmitted, setQuerySubmitted] = useState (null)
     // --- we want to distinguish the case of starting a new search, with a new query, and searching
     // on a different page or page size with the existing query. In the first case we want the text
     // about the number of results to disappear and get redrawn, and in the second case, we want the
@@ -248,6 +250,7 @@ export const Search = container (
       setSuggestions ([])
     })
     const startSearch = useCallback ((value) => {
+      // setQuerySubmitted (value)
       navigate ('/search/' + encodeURIComponent (value))
     }, [navigate])
     // --- after choosing autocomplete value or typing query and pressing enter
@@ -287,6 +290,7 @@ export const Search = container (
     )
     useEffect (() => {
       if (nil (queryProp)) return
+      setQuerySubmitted (queryProp)
       searchResetDispatch ()
       searchFetchDispatch (decodeURIComponent (queryProp))
     }, [queryProp, searchFetchDispatch])
@@ -327,7 +331,7 @@ export const Search = container (
         <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
       </div>
       {showResults && <div className='x__search-results-wrapper'>
-        <SearchResults/>
+        <SearchResults query={querySubmitted}/>
       </div>}
     </SearchS>
   }
