@@ -100,72 +100,91 @@ const SearchS = styled.div`
   }
 `
 
-const ResultS = styled.div`
-  > * {
-    white-space: break-spaces;
-  }
-  .x__word {
-    // text-decoration: underline;
-    // opacity: 0.8;
-  }
-`
+// const ResultS = styled.div`
+  // > * {
+    // white-space: break-spaces;
+  // }
+  // .x__word {
+  // }
+// `
 
-const Result = ({ word, }) => <ResultS>
-  <div className='x__word'>{word}</div>
-</ResultS>
+// const Result = ({ word, }) => <ResultS>
+  // <div className='x__word'>{word}</div>
+// </ResultS>
 
-const SearchResultsS = styled.div`
+const ResultsInnerS = styled.div`
   background: white;
   width: 80%;
   min-width: 100px;
-  > .x__wrapper {
-    padding: 3%;
-    font-size: 20px;
-    > .x__name {
-      font-weight: bold;
-      display: inline-block;
-    }
-    > .x__type {
-      display: inline-block;
-      margin-left: 4px;
-      font-weight: bold;
-    }
-    > .x__match {
-      > .highlight {
-        background: yellow;
-      }
-    }
+`
 
+const ResultsS = styled.div`
+  > .x__pagination {
+    // border: 1px solid #999999;
+    > .x__separator {
+      height: 1px;
+      background: #000;
+      width: 40%;
+      margin: auto;
+    }
   }
 `
+
+const ResultS = styled.div`
+  padding: 3%;
+  font-size: 20px;
+  > .x__name {
+    font-weight: bold;
+    display: inline-block;
+  }
+  > .x__type {
+    display: inline-block;
+    margin-left: 4px;
+    font-weight: bold;
+  }
+  > .x__match {
+    > .highlight {
+      background: yellow;
+    }
+  }
+`
+
+const Result = ({ name, type, match, }) => <ResultS>
+  <div className='x__name'>{name}</div>
+  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
+  <div
+    className='x__match'
+    // --- @todo
+    dangerouslySetInnerHTML={{__html: match}}
+  />
+</ResultS>
 
 const SearchResults = container2 (
   ['SearchResults'],
   (props) => {
     const searchResults = useSelector (selectResultsSearch)
     const numResultsSearch = useSelector (selectNumResultsSearch)
-    return <div>
-      <PaginationWrapper showTotal={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
+    return <ResultsS>
+      <div className='x__pagination'>
+        <PaginationWrapper showTotal={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
+        <div className='x__separator'/>
+      </div>
       {searchResults | requestResults ({
         spinnerProps: { color: 'white', size: 60, delayMs: 400, },
           onError: noop,
           onResults: (results) => <>
-            <SearchResultsS>
+            <ResultsInnerS>
               {results | map (
-                ({ uuid, name, type, match }) => <div className='x__wrapper 'key={uuid}>
-                  <div className='x__name'>{name}</div>
-                  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
-                  <div
-                    className='x__match'
-                    // --- @todo
-                    dangerouslySetInnerHTML={{__html: match}}
-                  />
-                </div>
-              )}
-            </SearchResultsS>
+                ({ uuid, name, type, match }) => <Result
+                  key={uuid}
+                  name={name}
+                  type={type}
+                  match={match}
+                  />)}
+            </ResultsInnerS>
           </>
       })}
-    </div>
+    </ResultsS>
   }
 )
 export const Search = container (

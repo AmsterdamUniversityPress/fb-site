@@ -347,7 +347,7 @@ export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle=
 const PaginationWrapperS = styled.div`
   width: 500px;
   margin: auto;
-  margin-bottom: 30px;
+  margin-bottom: 5px;
   padding: 20px;
   font-size: 20px;
   background: white;
