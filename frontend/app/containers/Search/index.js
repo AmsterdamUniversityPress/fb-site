@@ -47,7 +47,7 @@ const SearchS = styled.div`
   > * {
     vertical-align: middle;
   }
-  > .x__wrapper {
+  > .x__search {
     width: 50%;
     margin: auto;
     position: relative;
@@ -69,18 +69,14 @@ const SearchS = styled.div`
       }
     }
   }
-  > .x__results-wrapper {
+  > .x__search-results-wrapper {
+    background: white;
+    width: 100%;
     text-align: left;
     position: relative;
-    z-index: 2;
-    width: 500px;
-    margin: auto;
-    > .x__results {
-      overflow-x: hidden;
-      overflow-y: hidden;
-      position: absolute;
-      width: 100%;
-      min-height: 500px;
+    margin-top: 40px;
+    padding-top: 20px;
+    /*
       .x__result-wrapper {
         a {
           text-decoration: none;
@@ -99,6 +95,7 @@ const SearchS = styled.div`
           width: 60%;
         }
       }
+    */
     }
   }
 `
@@ -123,19 +120,17 @@ const SearchResultsS = styled.div`
   min-width: 100px;
   > .x__wrapper {
     padding: 3%;
+    font-size: 20px;
     > .x__name {
       font-weight: bold;
-      font-size: 25px;
       display: inline-block;
     }
     > .x__type {
       display: inline-block;
       margin-left: 4px;
       font-weight: bold;
-      font-size: 25px;
     }
     > .x__match {
-      text-align: centre;
       > .highlight {
         background: yellow;
       }
@@ -270,7 +265,7 @@ export const Search = container (
     useSaga ({ saga, key: 'Search', })
 
     return <SearchS>
-      <div className='x__wrapper'>
+      <div className='x__search'>
         <InputWithAutocomplete
           Input={Input}
           inputWrapperProps={{
