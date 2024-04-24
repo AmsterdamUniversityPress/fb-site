@@ -756,12 +756,49 @@ const SidebarS = styled.div`
   padding: 20px;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
+  .x__dropdown-wrapper {
+  }
+  .x__filter {
+    background: white;
+    font-size: 20px;
+    .x__filter-open-char {
+      display: inline-block;
+      font-size: 35px;
+      padding-left: 20px;
+      position: absolute;
+      padding-top: 0px;
+    }
+    .x__filter-close-char {
+      display: inline-block;
+      font-size: 35px;
+      padding-left: 20px;
+      position: absolute;
+      margin-top: -17px;
+    }
+  }
 `
 
-const Sidebar = () => <SidebarS>
-  sidebar (filters etc.)
-  <p>dit is de {process.env.APP_ENV} omgeving</p>
-</SidebarS>
+const Sidebar = () => {
+  const [open, setOpen] = useState (false)
+  const onClick = useCallbackConst (
+    () => setOpen (not),
+  )
+
+  const filterOptions = ['one', 'two']
+  return <SidebarS>
+    <p>dit is de {process.env.APP_ENV} omgeving</p>
+    {open | ifTrue (
+      () => <div onClick={onClick} className='x__filter'>FILTER<div className='x__filter-open-char'>⌃</div></div>,
+      () => <div onClick={onClick} className='x__filter'>FILTER<div className='x__filter-close-char'>⌄</div></div>
+      // <FormS style={{ marginTop: '-20%', }}>
+    )}
+    <div className='x__dropdown-wrapper'>
+      <DropDown open={open}>
+        {filterOptions | map ((o) => <div>{o}</div>)}
+      </DropDown>
+    </div>
+  </SidebarS>
+}
 
 const FondsS = styled.div`
   display: inline-block;
