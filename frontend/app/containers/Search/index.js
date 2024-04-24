@@ -9,7 +9,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { useNavigate, } from 'react-router-dom'
+import { Link, useNavigate, } from 'react-router-dom'
 
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
@@ -128,7 +128,12 @@ const ResultS = styled.div`
   padding: 3%;
   font-size: 17px;
   display: flex;
-  > .x__left {
+  a {
+    color: inherit;
+    text-decoration: inherit;
+    display: inherit;
+  }
+  .x__left {
     flex: 0 0 250px;
     margin-right: 40px;
     > .x__image {
@@ -149,7 +154,7 @@ const ResultS = styled.div`
       text-align: right;
     }
   }
-  > .x__right {
+  .x__right {
     flex: 1 1 0px;
     > div {
       padding: 0.2%;
@@ -190,35 +195,40 @@ const ResultS = styled.div`
 // 'doelstelling', but the snippet is often part of doelstelling. Then text appears double, which
 // you don't want etc etc.
 // @todo we need a better truncate function??
-const Result = ({imgSrc, name, type, targetGroup, workingRegion, objective, match, categories = ['sport', 'religie', 'stuff']}) => <ResultS>
-  <div className='x__left'>
-    <div className='x__image'>
-      <img src={imgSrc} />
-    </div>
-    <div className='x__name'>{name}</div>
-    <div className='x__categories'>
-      {[categories
-          | map (dot ('toUpperCase')) | join (', ')
-          | truncate (55)] | sprintfN ("%s")}
-    </div>
-  </div>
-  <div className='x__right'>
-    <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
-    <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
-    <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
-    {targetGroup | whenOk (
-      () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
-    )}
-    {workingRegion | whenOk (
-      () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
-    )}
-    <div
-      className='x__match'
-      // --- @todo
-      dangerouslySetInnerHTML={{__html: match}}
-    />
-  </div>
-</ResultS>
+const Result = ({imgSrc, uuid, name, type, targetGroup, workingRegion, objective, match, categories = ['sport', 'religie', 'stuff']}) => {
+  const href = '/detail/' + uuid
+  return <ResultS>
+    <Link to={href}>
+      <div className='x__left'>
+        <div className='x__image'>
+          <img src={imgSrc} />
+        </div>
+        <div className='x__name'>{name}</div>
+        <div className='x__categories'>
+          {[categories
+              | map (dot ('toUpperCase')) | join (', ')
+              | truncate (55)] | sprintfN ("%s")}
+        </div>
+      </div>
+      <div className='x__right'>
+        <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
+        <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
+        <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
+        {targetGroup | whenOk (
+          () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
+        )}
+        {workingRegion | whenOk (
+          () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
+        )}
+        <div
+          className='x__match'
+          // --- @todo
+          dangerouslySetInnerHTML={{__html: match}}
+        />
+      </div>
+    </Link>
+  </ResultS>
+}
 
 const SearchResults = container2 (
   ['SearchResults'],
@@ -247,6 +257,7 @@ const SearchResults = container2 (
                   objective={objective}
                   targetGroup={targetGroup}
                   type={type}
+                  uuid={uuid}
                   workingRegion={workingRegion}
                   />)}
             </ResultsInnerS>
