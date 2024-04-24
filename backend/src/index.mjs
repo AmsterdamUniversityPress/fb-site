@@ -363,15 +363,26 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
     let idx = -1
     hits | each ((result) => {
       const { _source: fonds, highlight, } = result
-      const { uuid, naam_organisatie: name, type_organisatie: type, categories, } = fonds
+      const {
+        categories,
+        doelgroep: targetGroup,
+        doelstelling: objective,
+        naam_organisatie: name,
+        type_organisatie: type,
+        uuid,
+        werk_regio: workingRegion,
+      } = fonds
       // --- @todo ... but which one
       const match = highlight | values | take (1)
       match | each ((theMatch) => matches.push ({
         matchKey: ++idx,
-        uuid,
         categories,
         name,
+        objective,
+        targetGroup,
         type,
+        uuid,
+        workingRegion,
         match: theMatch,
       }))
     })

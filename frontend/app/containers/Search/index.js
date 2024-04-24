@@ -2,6 +2,9 @@ import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not,
   sprintfN, nil, tap,
+  ifOk, dot, id, always,
+  prop, whenOk,
+  whenFalse,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -14,7 +17,7 @@ import styled from 'styled-components'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
-import { allV, isEmptyList, } from 'alleycat-js/es/predicate'
+import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -33,7 +36,7 @@ import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
-  effects, isNotEmptyString, whenIsNotEmptyString,
+  effects, isNotEmptyString, truncate, whenIsNotEmptyString,
 } from '../../util-general'
 
 import config from '../../config'
@@ -119,33 +122,56 @@ const ResultsS = styled.div`
 
 const ResultS = styled.div`
   padding: 3%;
-  font-size: 20px;
+  font-size: 17px;
   display: flex;
   > .x__left {
     flex: 0 0 250px;
     margin-right: 40px;
     > .x__image {
-      text-align: center;
+      text-align: right;
       img {
-        width: 200px;
+        width: 250px;
       }
     }
     > .x__name {
+      padding-top: 3%;
       font-family: Lora, serif;
-      text-align: center;
+      text-align: right;
       font-weight: bold;
+    }
+    > .x__categories {
+      font-size: 12px;
+      font-family: Lora, serif;
+      text-align: right;
     }
   }
   > .x__right {
     flex: 1 1 0px;
+    > div {
+      padding: 0.2%;
+    }
+    > .x__objective {
+      padding-bottom: 2%;
+    }
     > .x__type {
+      display: none;
       // display: inline-block;
       margin-right: 4px;
     }
     > .x__categories {
+      display: none;
+    }
+    .x__targetGroup {
+      font-size: 14px;
+      display: inline-block;
+      padding-right: 2%;
+    }
+    > .x__workingRegion {
+      font-size: 14px;
       display: inline-block;
     }
     > .x__match {
+      display: none;
       > .highlight {
         background: yellow;
       }
@@ -154,16 +180,34 @@ const ResultS = styled.div`
 
 `
 
-const Result = ({ imgSrc, name, type, match, categories=['sport', 'religie', 'stuff']}) => <ResultS>
+// @todo: check how the results should be presented, and implement. There are a few display: none
+// fields now, which can be cleaned up eventually. The highlight snippet is commented out: if we use
+// it, we need some way to find out which other fields to show (e.g. we want to show (part of)
+// 'doelstelling', but the snippet is often part of doelstelling. Then text appears double, which
+// you don't want etc etc.
+// @todo we need a better truncate function??
+const Result = ({imgSrc, name, type, targetGroup, workingRegion, objective, match, categories = ['sport', 'religie', 'stuff']}) => <ResultS>
   <div className='x__left'>
     <div className='x__image'>
-      <img src={imgSrc}/>
+      <img src={imgSrc} />
     </div>
     <div className='x__name'>{name}</div>
+    <div className='x__categories'>
+      {[categories
+          | map (dot ('toUpperCase')) | join (', ')
+          | truncate (55)] | sprintfN ("%s")}
+    </div>
   </div>
-    <div className='x__right'>
-    <div className='x__type'>{[type] | sprintfN ("%s")}</div>
+  <div className='x__right'>
+    <div className='x__objective'>{[objective | truncate (200)] | sprintfN ("%s")}</div>
+    <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
     <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
+    {targetGroup | whenOk (
+      () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
+    )}
+    {workingRegion | whenOk (
+      () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
+    )}
     <div
       className='x__match'
       // --- @todo
@@ -190,13 +234,16 @@ const SearchResults = container2 (
           onResults: (results) => <>
             <ResultsInnerS>
               {results | map (
-                ({ uuid, name, type, match, categories, }) => <Result
+                ({ uuid, name, type, workingRegion, objective,  match, categories, targetGroup, }) => <Result
                   key={uuid}
                   imgSrc={imgSrc}
-                  name={name}
-                  type={type}
-                  match={match}
                   categories={categories}
+                  match={match}
+                  name={name}
+                  objective={objective}
+                  targetGroup={targetGroup}
+                  type={type}
+                  workingRegion={workingRegion}
                   />)}
             </ResultsInnerS>
           </>

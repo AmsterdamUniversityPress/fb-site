@@ -6,6 +6,7 @@ import {
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
   againstAny, contains, containsV, flip,
   map, addIndex, ifTrue, ifPredicate, whenPredicate,
+  dot2,
 } from 'stick-js/es'
 
 import { fold, Right, Left, } from 'alleycat-js/es/bilby'
@@ -13,13 +14,16 @@ import {
   doApiCall as _doApiCall, requestCompleteFold,
   RequestInit, RequestLoading, RequestError, RequestResults,
 } from 'alleycat-js/es/fetch'
-import { getQueryParams, } from 'alleycat-js/es/general'
-import { all, allV, ifUndefined, isEmptyString, isEmptyList, whenEquals, } from 'alleycat-js/es/predicate'
+import { length, getQueryParams, } from 'alleycat-js/es/general'
+import { all, allV, ifUndefined, isEmptyString, isEmptyList, ifFalseV, whenEquals, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
 import { initSelectorsTell, } from 'alleycat-js/es/select'
 import { mediaRule, mgt, mlt, } from 'alleycat-js/es/styled'
+
+
+const slice = dot2 ('slice')
 
 // :: (a -> b) -> Maybe a -> b | undefined
 export const foldWhenJust = recurry (2) (
@@ -132,4 +136,12 @@ export const mapLookupOrDie = recurry (3) (
 )
 export const mapLookupOnOrDie = recurry (3) (
   (msg) => (o) => (k) => mapLookupOrDie (msg, k, o),
+)
+
+export const truncate = recurry (2) (
+  (n) => (s) => lets (
+    () => length (s) > n,
+    (doIt) => doIt | ifFalseV (id, slice (0, n) >> concat ('…')),
+    (_, f) => f (s),
+  ),
 )
