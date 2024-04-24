@@ -37,6 +37,9 @@ const Detail = ({ data, }) => <DetailS>
 
 const FondsDetailS = styled.div`
   height: 100%;
+  background: white;
+  margin-top: 1%;
+  padding: 2%;
 `
 
 const dispatchTable = {
