@@ -39,6 +39,7 @@ import {
 import config from '../../config'
 const configTop = configure.init (config)
 const paginationKey = configTop.get ('app.keys.Pagination.search')
+const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
 
 const Pagination = mkPagination (paginationKey)
@@ -100,27 +101,13 @@ const SearchS = styled.div`
   }
 `
 
-// const ResultS = styled.div`
-  // > * {
-    // white-space: break-spaces;
-  // }
-  // .x__word {
-  // }
-// `
-
-// const Result = ({ word, }) => <ResultS>
-  // <div className='x__word'>{word}</div>
-// </ResultS>
-
 const ResultsInnerS = styled.div`
   background: white;
-  width: 80%;
   min-width: 100px;
 `
 
 const ResultsS = styled.div`
   > .x__pagination {
-    // border: 1px solid #999999;
     > .x__separator {
       height: 1px;
       background: #000;
@@ -133,30 +120,56 @@ const ResultsS = styled.div`
 const ResultS = styled.div`
   padding: 3%;
   font-size: 20px;
-  > .x__name {
-    font-weight: bold;
-    display: inline-block;
-  }
-  > .x__type {
-    display: inline-block;
-    margin-left: 4px;
-    font-weight: bold;
-  }
-  > .x__match {
-    > .highlight {
-      background: yellow;
+  display: flex;
+  > .x__left {
+    flex: 0 0 250px;
+    margin-right: 40px;
+    > .x__image {
+      text-align: center;
+      img {
+        width: 200px;
+      }
+    }
+    > .x__name {
+      font-family: Lora, serif;
+      text-align: center;
+      font-weight: bold;
     }
   }
+  > .x__right {
+    flex: 1 1 0px;
+    > .x__type {
+      // display: inline-block;
+      margin-right: 4px;
+    }
+    > .x__categories {
+      display: inline-block;
+    }
+    > .x__match {
+      > .highlight {
+        background: yellow;
+      }
+    }
+  }
+
 `
 
-const Result = ({ name, type, match, }) => <ResultS>
-  <div className='x__name'>{name}</div>
-  <div className='x__type'>{[type] | sprintfN ("(%s)")}</div>
-  <div
-    className='x__match'
-    // --- @todo
-    dangerouslySetInnerHTML={{__html: match}}
-  />
+const Result = ({ imgSrc, name, type, match, categories=['sport', 'religie', 'stuff']}) => <ResultS>
+  <div className='x__left'>
+    <div className='x__image'>
+      <img src={imgSrc}/>
+    </div>
+    <div className='x__name'>{name}</div>
+  </div>
+    <div className='x__right'>
+    <div className='x__type'>{[type] | sprintfN ("%s")}</div>
+    <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
+    <div
+      className='x__match'
+      // --- @todo
+      dangerouslySetInnerHTML={{__html: match}}
+    />
+  </div>
 </ResultS>
 
 const SearchResults = container2 (
@@ -164,6 +177,7 @@ const SearchResults = container2 (
   (props) => {
     const searchResults = useSelector (selectResultsSearch)
     const numResultsSearch = useSelector (selectNumResultsSearch)
+    const imgSrc = imageEyeWall
     return <ResultsS>
       <div className='x__pagination'>
         <PaginationWrapper showTotal={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
@@ -175,11 +189,13 @@ const SearchResults = container2 (
           onResults: (results) => <>
             <ResultsInnerS>
               {results | map (
-                ({ uuid, name, type, match }) => <Result
+                ({ uuid, name, type, match, categories, }) => <Result
                   key={uuid}
+                  imgSrc={imgSrc}
                   name={name}
                   type={type}
                   match={match}
+                  categories={categories}
                   />)}
             </ResultsInnerS>
           </>

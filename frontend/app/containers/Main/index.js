@@ -790,6 +790,7 @@ const FondsS = styled.div`
     > .x__naam-organisatie {
       text-decoration: underline;
       font-size: 30px;
+      font-family: Lora, serif;
     }
     .x__categories {
       margin-top: 20px;
