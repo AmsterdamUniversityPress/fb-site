@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not, recurry,
   sprintfN, nil, tap, concatM, concat,
-  ifOk, dot, id, always,
+  ifOk, dot, id, always, defaultToV,
   prop, whenOk, split,
   whenFalse,
 } from 'stick-js/es'
@@ -17,7 +17,7 @@ import styled from 'styled-components'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
-import { logWith, trim, } from 'alleycat-js/es/general'
+import { logWith, trim, iwarn, } from 'alleycat-js/es/general'
 import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
@@ -221,21 +221,26 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
   </ResultS>
 }
 
-const highlightMap = recurry (2) (
-  (f) => (xss) => xss | map (
-    (xs) => xs | mapX (
-      (x, idx) => idx | ifEven (
-        () => <span>{f (x)}</span>,
-        () => <span class='highlight'>{f (x)}</span>,
+// --- receives a list of lists, where the outer list must contain exactly one element in the case
+// of string fields (doelstelling etc.) and several elements in the case of an array field
+// (categories).
+
+const highlightJoin = recurry (2) (
+  (joiner=(idx) => idx === 0 ? '' : ', ') => (xss) => xss | mapX (
+    (xs, idx) => [joiner (idx), ... xs | mapX (
+      (x, idx2) => idx2 | ifEven (
+        () => <span>{x}</span>,
+        () => <span class='highlight'>{x}</span>,
       ),
-    ),
-  ) | mapX ((x, idx) => <>
-    {idx !== 0 ? ', ' : ''}
-    {x}
-  </>)
+    )],
+  ),
 )
 
-const highlight = highlightMap (id)
+const highlightList = highlightJoin (void 8)
+const highlightString = highlightJoin ((idx) => {
+  if (idx > 0) iwarn ('highlightString (): expected single element')
+  return ''
+})
 
 const SearchResults = container2 (
   ['SearchResults'],
@@ -266,10 +271,10 @@ const SearchResults = container2 (
                 ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
                   key={uuid}
                   imgSrc={imgSrc}
-                  categories={highlight (categories)}
-                  name={highlight (name)}
+                  categories={highlightList (categories)}
+                  name={highlightString (name)}
                   objective={objective}
-                  targetGroup={highlight (targetGroup)}
+                  targetGroup={highlightString (targetGroup)}
                   type={type}
                   uuid={uuid}
                   workingRegion={workingRegion}

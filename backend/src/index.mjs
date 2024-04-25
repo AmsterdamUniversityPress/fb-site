@@ -1,13 +1,10 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
-  rangeTo, prop, remapTuples, xReplace,
+  rangeTo, prop, xReplace,
   gt, againstAny, eq, die, map, reduce, split, values,
-  not, concatTo, recurry, ifOk, ifNil, noop, take,
-  repeatF, dot, dot1, dot2, join, appendM, path,
-  anyAgainst, ifPredicate, whenOk, invoke, each,
-  // mapTuples,
-  fromPairs,
+  not, recurry, ifOk, ifNil, take, dot, join, appendM,
+  ifPredicate, whenOk, invoke, each,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -27,11 +24,10 @@ import nodemailer from 'nodemailer'
 import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
 import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
-import { get, listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
+import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
 import { decorateRejection, length, logWith, setIntervalOn, composeManyRight, } from 'alleycat-js/es/general'
-import { ifArray, any, isEmptyString, ifEquals, } from 'alleycat-js/es/predicate'
-
+import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config as configFb, } from './config-fb.mjs'
@@ -359,24 +355,16 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
-// xs = null |
-//  ["fjdskjk BREAK fjsdkjfdslk BREAK jkfjdkj",
-//   "fdjsk BREAK fjdsk BREAK fdjskl",
-//   ...
-//   ]
-//
-//   [
-//   ["fdjksl", fkjds, fjdslk"],
-//   ["fjdksl, fdsjlk, fjdskl]
-//   ]
-
-
+// --- receives an array with 1 element in the case of string fields (since
+// number_of_fragments is 0) and several elements in the case of an array
+// field (currently only `categories`).
 const transformHighlights = (xs) => xs | ifNil (
   () => null,
   (xs) => xs | map (split (highlightTags [0])),
 )
 
-const transform = ifNil (
+// --- output must match the shape of `transformHighlights`
+const transformNonHighlighted = ifNil (
   () => [],
   (x) => [[x]],
 )
@@ -385,6 +373,8 @@ const transform = ifNil (
 // duplicates have been removed.
 const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
   | then (({ hits, numHits, }) => {
+    // --- for all fields except doelstelling we use the value returned in
+    // `highlight` as the entire text to show.
     const simpleFields = [
       ['categories', 'categories'],
       ['name', 'naam_organisatie'],
@@ -412,7 +402,7 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
           k,
           highlight [v] | ifOk (
             (highlights) => transformHighlights (highlights),
-            () => transform (fonds [v]),
+            () => transformNonHighlighted (fonds [v]),
           ),
         ],
       )

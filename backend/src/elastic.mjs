@@ -165,13 +165,14 @@ export const search = (query, pageSize, pageNum) => startP ()
     highlight: {
       pre_tags: highlightTags [0],
       post_tags: highlightTags [1],
-      // --- use a large number so we can be sure that we can stitch
-      // together the highlights and not lose any text
-      fragment_size: 1e6,
+      // --- because we want to be able to use the returned contents in
+      // `highlight` as the value of the field (and so be sure not to lose
+      // any text).
+      number_of_fragments: 0,
       fields: {
-        // --- we highlight `categories` manually for now (since it's an
-        // array)
-        // @future use elastic mappings?
+        // --- we highlight `categories` manually for now (it's an
+        // array and that presents some difficulties)
+        // --- @future use elastic mappings?
         doelgroep: {},
         doelstelling: {},
         naam_organisatie: {},
