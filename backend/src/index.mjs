@@ -6,6 +6,8 @@ import {
   not, concatTo, recurry, ifOk, ifNil, noop, take,
   repeatF, dot, dot1, dot2, join, appendM, path,
   anyAgainst, ifPredicate, whenOk, invoke, each,
+  // mapTuples,
+  fromPairs,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -60,6 +62,7 @@ import {
   foldWhenLeft,
   effects,
   takeMapUnique,
+  mapFromPairs,
 } from './util.mjs'
 import {
   gvQuery,
@@ -82,6 +85,7 @@ import {
   setExpire as redisSetExpire,
 } from './util-redis.mjs'
 import {
+  highlightTags,
   init as esInit,
   // --- @todo should we check periodically / check for broken connection?
   // checkConnection as esCheckConnection,
@@ -355,36 +359,69 @@ const corsOptions = {
 
 const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 
+// xs = null |
+//  ["fjdskjk BREAK fjsdkjfdslk BREAK jkfjdkj",
+//   "fdjsk BREAK fjdsk BREAK fdjskl",
+//   ...
+//   ]
+//
+//   [
+//   ["fdjksl", fkjds, fjdslk"],
+//   ["fjdksl, fdsjlk, fjdskl]
+//   ]
+
+
+const transformHighlights = (xs) => xs | ifNil (
+  () => null,
+  (xs) => xs | map (split (highlightTags [0])),
+)
+
+const transform = ifNil (
+  () => [],
+  (x) => [[x]],
+)
+
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
 const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
   | then (({ hits, numHits, }) => {
+    const simpleFields = [
+      ['categories', 'categories'],
+      ['name', 'naam_organisatie'],
+      ['targetGroup', 'doelgroep'],
+      ['type', 'type_organisatie'],
+      ['workingRegion', 'werk_regio'],
+    ]
     const matches = []
+    // @future might save some time by first having elastic do the
+    // highlight, then doing it manually
     let idx = -1
     hits | each ((result) => {
-      const { _source: fonds, highlight, } = result
+      const { _source: fonds, highlight={}, } = result
+      const tag = highlightTags [0]
+      // --- manually highlight categories
+      highlight.categories = fonds.categories | whenOk (map (
+        (x) => x.replace (new RegExp (query, 'gi'), (y) => tag + y + tag),
+      ))
       const {
-        categories,
-        doelgroep: targetGroup,
         doelstelling: objective,
-        naam_organisatie: name,
-        type_organisatie: type,
         uuid,
-        werk_regio: workingRegion,
       } = fonds
-      // --- @todo ... but which one
-      const match = highlight | values | take (1)
-      match | each ((theMatch) => matches.push ({
+      const simpleMatches = simpleFields | mapFromPairs (
+        (k, v) => [
+          k,
+          highlight [v] | ifOk (
+            (highlights) => transformHighlights (highlights),
+            () => transform (fonds [v]),
+          ),
+        ],
+      )
+      matches.push ({
         matchKey: ++idx,
-        categories,
-        name,
+        ... simpleMatches,
         objective,
-        targetGroup,
-        type,
         uuid,
-        workingRegion,
-        match: theMatch,
-      }))
+      })
     })
     return { matches, numHits, }
   })

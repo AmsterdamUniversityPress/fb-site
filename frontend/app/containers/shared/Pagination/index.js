@@ -26,6 +26,7 @@ import { component, container, useWhy, } from '../../../common'
 
 const PaginationInnerS = styled.div`
   line-height: 2em;
+  margin-top: 13px;
 
   >.x__num-per-page {
     font-size: 80%;

@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
-  path, noop, ok, join, map, not,
-  sprintfN, nil, tap,
+  path, noop, ok, join, map, not, recurry,
+  sprintfN, nil, tap, concatM, concat,
   ifOk, dot, id, always,
   prop, whenOk, split,
   whenFalse,
@@ -14,6 +14,7 @@ import { useNavigate, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 
+import { flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
@@ -36,7 +37,8 @@ import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
-  effects, isNotEmptyString, truncate, whenIsNotEmptyString,
+  effects, isNotEmptyString, truncate, whenIsNotEmptyString, mapX, reduceX, ifEven,
+  whenIsNotEmptyList,
 } from '../../util-general'
 
 import config from '../../config'
@@ -115,6 +117,10 @@ const ResultS = styled.div`
   font-size: 17px;
   display: flex;
   cursor: pointer;
+  .highlight {
+    background: yellow;
+    // font-weight: bold;
+  }
   &:hover {
     background: #d2a89233;
     > .x__left {
@@ -145,6 +151,7 @@ const ResultS = styled.div`
       font-family: Lora, serif;
       text-align: right;
       padding-top: 8px;
+      text-transform: uppercase;
     }
   }
   > .x__right {
@@ -155,13 +162,10 @@ const ResultS = styled.div`
     > .x__objective {
       padding-bottom: 2%;
     }
+    // --- @todo do something with type?
     > .x__type {
       display: none;
-      // display: inline-block;
       margin-right: 4px;
-    }
-    > .x__categories {
-      display: none;
     }
     .x__targetGroup {
       font-size: 15px;
@@ -172,20 +176,11 @@ const ResultS = styled.div`
     }
     > .x__match {
       display: none;
-      > .highlight {
-        background: yellow;
-      }
     }
   }
 
 `
 
-// @todo: check how the results should be presented, and implement. There are a few display: none
-// fields now, which can be cleaned up eventually. The highlight snippet is commented out: if we use
-// it, we need some way to find out which other fields to show (e.g. we want to show (part of)
-// 'doelstelling', but the snippet is often part of doelstelling. Then text appears double, which
-// you don't want etc etc.
-// @todo we need a better truncate function??
 const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objective, match, categories, }) => {
   const href = '/detail/' + uuid
   const navigate = useNavigate ()
@@ -199,31 +194,48 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
       <div className='x__image'>
         <img src={imgSrc} />
       </div>
-      <div className='x__name'>{name}</div>
+      <div className='x__name'>
+        {name}
+      </div>
       <div className='x__categories'>
-        {[categories
+        {categories}
+        {/* [categories
             | map (dot ('toUpperCase')) | join (', ')
-            | truncate (55)] | sprintfN ("%s")}
+            | truncate (55)] */}
       </div>
     </div>
     <div className='x__right'>
       <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
       <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
-      <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
-      {targetGroup | whenOk (
-        () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
+      {targetGroup | whenIsNotEmptyList (
+        () => <div className='x__targetGroup'>Doelgroep:&nbsp;
+          {targetGroup}
+        </div>,
       )}
-      {workingRegion | whenOk (
-        () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
+      {workingRegion | whenIsNotEmptyList (
+        () => <div className='x__workingRegion'>Werkregio:&nbsp;
+          {workingRegion}
+        </div>,
       )}
-      <div
-        className='x__match'
-        // --- @todo
-        dangerouslySetInnerHTML={{__html: match}}
-      />
     </div>
   </ResultS>
 }
+
+const highlightMap = recurry (2) (
+  (f) => (xss) => xss | map (
+    (xs) => xs | mapX (
+      (x, idx) => idx | ifEven (
+        () => <span>{f (x)}</span>,
+        () => <span class='highlight'>{f (x)}</span>,
+      ),
+    ),
+  ) | mapX ((x, idx) => <>
+    {idx !== 0 ? ', ' : ''}
+    {x}
+  </>)
+)
+
+const highlight = highlightMap (id)
 
 const SearchResults = container2 (
   ['SearchResults'],
@@ -251,14 +263,13 @@ const SearchResults = container2 (
           onResults: (results) => <>
             <ResultsInnerS>
               {results | map (
-                ({ uuid, name, type, workingRegion, objective,  match, categories, targetGroup, }) => <Result
+                ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
                   key={uuid}
                   imgSrc={imgSrc}
-                  categories={categories}
-                  match={match}
-                  name={name}
+                  categories={highlight (categories)}
+                  name={highlight (name)}
                   objective={objective}
-                  targetGroup={targetGroup}
+                  targetGroup={highlight (targetGroup)}
                   type={type}
                   uuid={uuid}
                   workingRegion={workingRegion}
@@ -315,7 +326,6 @@ export const Search = container (
       setSuggestions ([])
     })
     const startSearch = useCallback ((value) => {
-      // setQuerySubmitted (value)
       navigate ('/search/' + encodeURIComponent (value))
     }, [navigate])
     // --- after choosing autocomplete value or typing query and pressing enter

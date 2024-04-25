@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke, addIndex, not, eq, dot,
+  map, spreadTo, lets, flip, invoke, addIndex, not, eq, dot, fromPairs,
   sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
@@ -455,3 +455,10 @@ export const takeUniqueWith = recurry (3) (
 export const takeMapUnique = takeMapUniqueWith (id)
 
 export const takeUnique = takeUniqueWith (id)
+
+export const mapFromPairs = recurry (2) (
+  (f) => (xs) => {
+    const g = ([k, v]) => f (k, v)
+    return xs | map (g) | fromPairs
+  },
+)

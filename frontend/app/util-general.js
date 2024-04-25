@@ -1,5 +1,6 @@
 import {
   pipe, compose, composeRight,
+  addIndex2,
   concatTo, lt, bindProp, noop, die, always,
   bindTryProp, defaultTo, lets, invoke, ifOk, id, not,
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
@@ -33,6 +34,7 @@ export const foldWhenJust = recurry (2) (
 export const isNotEmptyString = not << isEmptyString
 export const isNotEmptyList = not << isEmptyList
 export const whenIsNotEmptyString = isNotEmptyString | whenPredicate
+export const whenIsNotEmptyList = isNotEmptyList | whenPredicate
 export const ifIsEmptyString = isEmptyString | ifPredicate
 
 // --- functor map for `null` which treats it like `Nothing`
@@ -145,3 +147,7 @@ export const truncate = recurry (2) (
     (_, f) => f (s),
   ),
 )
+
+export const reduceX = addIndex2 (reduce)
+const isEven = (n) => n % 2 === 0
+export const ifEven = isEven | ifPredicate

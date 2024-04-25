@@ -10,7 +10,7 @@ import { info, warn, } from 'alleycat-js/es/io'
 import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, } from 'alleycat-js/es/general'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, } from './util.mjs'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, } from './util.mjs'
 
 // --- debug / analyze
 const analyze = false
@@ -19,9 +19,14 @@ Het Joods Jongerenfonds (JJF) oftewel 't Fonds dat gaat over het boek van taken 
 Het optimaliseren van het welzijn van werknemers in de gehele supply chain is een sleutelonderdeel van klanttevredenheid.
 `
 const inspectResultsAutocomplete = false
-const inspectResultsSearch = false
+const inspectResultsSearch = true
 
 const indexMain = 'main'
+
+export const highlightTags = [
+  '___HIGHLIGHT-START___',
+  '___HIGHLIGHT-START___',
+]
 
 let esClient
 
@@ -119,10 +124,15 @@ const initIndexMain = (data) => startP ()
     text: analyzeText,
   }) | then (logWith ('analysis: ')))
   | then (
-    () => data | eachP ((fonds) => esClient.index ({
-      index: indexMain,
-      document: fonds,
-    }))
+    () => data | eachP ((fonds) => {
+      // const { categories, ... rest } = fonds
+      return esClient.index ({
+        index: indexMain,
+        // --- @future we could save memory by only indexing the fields we
+        // will eventually search/autocomplete on
+        document: fonds,
+      })
+    })
     | recover (decorateAndReject ('Error with indexing'))
   )
   | then (() => info ('done building main index'))
@@ -148,19 +158,26 @@ export const search = (query, pageSize, pageNum) => startP ()
           { match_phrase: { naam_organisatie: query, }},
           { match_phrase: { trefwoorden: query, }},
           { match_phrase: { type_organisatie: query, }},
+          { match_phrase: { werk_regio: query, }},
         ],
       },
     },
     highlight: {
-      pre_tags: '<span class="highlight">',
-      post_tags: '</span>',
+      pre_tags: highlightTags [0],
+      post_tags: highlightTags [1],
+      // --- use a large number so we can be sure that we can stitch
+      // together the highlights and not lose any text
+      fragment_size: 1e6,
       fields: {
-        categories: {},
+        // --- we highlight `categories` manually for now (since it's an
+        // array)
+        // @future use elastic mappings?
         doelgroep: {},
         doelstelling: {},
         naam_organisatie: {},
         trefwoorden: {},
         type_organisatie: {},
+        werk_regio: {},
       },
     },
   }))
