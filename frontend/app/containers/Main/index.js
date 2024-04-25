@@ -1038,18 +1038,22 @@ const UserPage = container (
   }
 )
 
-const FondsMainS = styled.div`
+const SearchWrapperS = styled.div`
+  width: 1000px;
+  height: 75%;
+  margin: auto;
   margin-top: 50px;
+  text-align: center;
+`
+
+const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
+  <Search {... rest}/>
+</SearchWrapperS>
+
+const FondsMainS = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  > .x__search {
-    width: 1000px;
-    height: 75%;
-    margin: auto;
-    flex: 0 0 104px;
-    text-align: center;
-  }
   > .x__main {
     // --- @todo
     flex: 0 0 calc(100vh - 104px);
@@ -1060,9 +1064,7 @@ const FondsMainS = styled.div`
 
 const FondsMain = () => {
   return <FondsMainS>
-    <div className='x__search'>
-      <Search query={null} showResults={false}/>
-    </div>
+    <SearchWrapper style={{ flex: '0 0 104px', }} query={null} showResults={false}/>
     <div className='x__main'>
       <Fondsen/>
     </div>
@@ -1130,7 +1132,7 @@ const Contents = container (
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email}/>],
-      search: [true, () => <Search query={params.query} showResults={true}/>],
+      search: [true, () => <SearchWrapper query={params.query} showResults={true}/>],
       user: [true, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
