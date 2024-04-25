@@ -9,7 +9,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, useNavigate, } from 'react-router-dom'
+import { useNavigate, } from 'react-router-dom'
 
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
@@ -107,8 +107,8 @@ const SearchS = styled.div`
 const ResultsInnerS = styled.div`
   background: white;
   min-width: 100px;
-  display: flex;
-  flex-flow: row wrap;
+  // display: flex;
+  // flex-flow: row wrap;
 `
 
 const ResultsS = styled.div`
@@ -123,38 +123,44 @@ const ResultsS = styled.div`
 `
 
 const ResultS = styled.div`
-  width: 45%;
+  width: 85%;
   min-width: 550px;
   padding: 3%;
   font-size: 17px;
   display: flex;
-  a {
-    color: inherit;
-    text-decoration: inherit;
-    display: inherit;
-  }
-  .x__left {
-    flex: 0 0 250px;
+  cursor: pointer;
+  &:hover {
+    > .x__left {
+      > .x__name {
+        text-decoration: underline;
+        }
+      }
+    }
+  > .x__left {
+    flex: 0 0 320px;
     margin-right: 40px;
     > .x__image {
       text-align: right;
       img {
-        width: 250px;
+        width: 320px;
       }
     }
     > .x__name {
-      padding-top: 3%;
+      font-size: 19px;
+      padding-top: 15px;
       font-family: Lora, serif;
       text-align: right;
       font-weight: bold;
+      color: #4a001a;
     }
     > .x__categories {
-      font-size: 12px;
+      font-size: 14px;
       font-family: Lora, serif;
       text-align: right;
+      padding-top: 8px;
     }
   }
-  .x__right {
+  > .x__right {
     flex: 1 1 0px;
     > div {
       padding: 0.2%;
@@ -171,13 +177,11 @@ const ResultS = styled.div`
       display: none;
     }
     .x__targetGroup {
-      font-size: 14px;
-      display: inline-block;
+      font-size: 15px;
       padding-right: 2%;
     }
     > .x__workingRegion {
-      font-size: 14px;
-      display: inline-block;
+      font-size: 15px;
     }
     > .x__match {
       display: none;
@@ -195,38 +199,42 @@ const ResultS = styled.div`
 // 'doelstelling', but the snippet is often part of doelstelling. Then text appears double, which
 // you don't want etc etc.
 // @todo we need a better truncate function??
-const Result = ({imgSrc, uuid, name, type, targetGroup, workingRegion, objective, match, categories = ['sport', 'religie', 'stuff']}) => {
+const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objective, match, categories, }) => {
   const href = '/detail/' + uuid
-  return <ResultS>
-    <Link to={href}>
-      <div className='x__left'>
-        <div className='x__image'>
-          <img src={imgSrc} />
-        </div>
-        <div className='x__name'>{name}</div>
-        <div className='x__categories'>
-          {[categories
-              | map (dot ('toUpperCase')) | join (', ')
-              | truncate (55)] | sprintfN ("%s")}
-        </div>
+  const navigate = useNavigate ()
+  const onClick = useCallback (
+    () => navigate (href),
+    [navigate]
+  )
+
+  return <ResultS onClick={onClick}>
+    <div className='x__left'>
+      <div className='x__image'>
+        <img src={imgSrc} />
       </div>
-      <div className='x__right'>
-        <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
-        <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
-        <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
-        {targetGroup | whenOk (
-          () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
-        )}
-        {workingRegion | whenOk (
-          () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
-        )}
-        <div
-          className='x__match'
-          // --- @todo
-          dangerouslySetInnerHTML={{__html: match}}
-        />
+      <div className='x__name'>{name}</div>
+      <div className='x__categories'>
+        {[categories
+            | map (dot ('toUpperCase')) | join (', ')
+            | truncate (55)] | sprintfN ("%s")}
       </div>
-    </Link>
+    </div>
+    <div className='x__right'>
+      <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
+      <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
+      <div className='x__categories'>{[categories | join (', ')] | sprintfN ("%s")}</div>
+      {targetGroup | whenOk (
+        () => <div className='x__targetGroup'>{[targetGroup] | sprintfN ("Doelgroep: %s")}</div>
+      )}
+      {workingRegion | whenOk (
+        () => <div className='x__workingRegion'>{[workingRegion] | sprintfN ("Werkregio: %s")} </div>
+      )}
+      <div
+        className='x__match'
+        // --- @todo
+        dangerouslySetInnerHTML={{__html: match}}
+      />
+    </div>
   </ResultS>
 }
 
