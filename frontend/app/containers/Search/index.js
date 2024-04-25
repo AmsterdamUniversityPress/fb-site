@@ -123,13 +123,15 @@ const ResultsS = styled.div`
 `
 
 const ResultS = styled.div`
-  width: 85%;
+  width: 100%;
   min-width: 550px;
   padding: 3%;
+  padding-right: 70px;
   font-size: 17px;
   display: flex;
   cursor: pointer;
   &:hover {
+    background: #d2a89233;
     > .x__left {
       > .x__name {
         text-decoration: underline;
@@ -250,8 +252,15 @@ const SearchResults = container2 (
         <PaginationAndExplanation query={query} showExplanation={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
         <div className='x__separator'/>
       </div>
-      {searchResults | requestResults ({
-        spinnerProps: { color: 'white', size: 60, delayMs: 400, },
+        {searchResults | requestResults ({
+          spinnerProps: {
+            color: 'black', size: 30, delayMs: 400,
+            style: {
+              marginLeft: '50%',
+              marginTop: '30px',
+              marginBottom: '30px',
+            },
+          },
           onError: noop,
           onResults: (results) => <>
             <ResultsInnerS>
@@ -267,10 +276,10 @@ const SearchResults = container2 (
                   type={type}
                   uuid={uuid}
                   workingRegion={workingRegion}
-                  />)}
+              />)}
             </ResultsInnerS>
           </>
-      })}
+        })}
     </ResultsS>
   }
 )

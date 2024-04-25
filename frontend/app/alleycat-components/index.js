@@ -165,8 +165,8 @@ const SpinnerTextblocks = ({ spinning=true, keepVisible=false, delayMs=0, ... re
     <SpinnerTextblocksC type='textblocks' spinning={spinning} {... restProps}/>
   </SpinnerWrapperS>
 
-const SpinnerComet = ({ spinning=true, keepVisible=false, delayMs=100, ... restProps }) =>
-  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible} delayMs={delayMs}>
+const SpinnerComet = ({ spinning=true, keepVisible=false, delayMs=100, style={}, ... restProps }) =>
+  <SpinnerWrapperS spinning={spinning} keepVisible={keepVisible} delayMs={delayMs} style={style}>
     <SpinnerCometC spinning={spinning} {... restProps}/>
   </SpinnerWrapperS>
 
