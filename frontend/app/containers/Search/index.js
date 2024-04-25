@@ -80,44 +80,29 @@ const SearchS = styled.div`
     position: relative;
     margin-top: 40px;
     padding-top: 20px;
-    /*
-      .x__result-wrapper {
-        a {
-          text-decoration: none;
-          color: inherit;
-        }
-        &:hover {
-          background: #EEE;
-        }
-        .x__result {
-          padding-top: 15px;
-          padding-bottom: 15px;
-        }
-        .x__separator {
-          height: 1px;
-          background: #AAA;
-          width: 60%;
-        }
-      }
-    */
-    }
   }
 `
 
 const ResultsInnerS = styled.div`
   background: white;
   min-width: 100px;
-  // display: flex;
-  // flex-flow: row wrap;
+  margin-top: 30px;
 `
 
 const ResultsS = styled.div`
   > .x__pagination {
     > .x__separator {
+      --width: 60%;
       height: 1px;
       background: #000;
-      width: 40%;
-      margin: auto;
+      width: var(--width);
+      margin-left: calc((100% - var(--width))/2);
+      &.x--waiting {
+        width: 0%;
+      }
+      &.x--not-waiting {
+        transition: width 200ms;
+      }
     }
   }
 `
@@ -247,10 +232,11 @@ const SearchResults = container2 (
     const searchResults = useSelector (selectResultsSearch)
     const numResultsSearch = useSelector (selectNumResultsSearch)
     const imgSrc = imageEyeWall
+    const isLoading = searchResults | requestIsLoading
     return <ResultsS>
       <div className='x__pagination'>
         <PaginationAndExplanation query={query} showExplanation={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
-        <div className='x__separator'/>
+        <div className={clss ('x__separator', isLoading ? 'x--waiting' : 'x--not-waiting')}/>
       </div>
         {searchResults | requestResults ({
           spinnerProps: {
