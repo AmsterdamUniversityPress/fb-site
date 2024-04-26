@@ -27,7 +27,7 @@ import { createReducer, } from '../../redux'
 import { queryUpdated, searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
-import { selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch, } from './selectors'
+import { selectQuery as selectSearchQuery, selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch, } from './selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
@@ -297,6 +297,7 @@ export const Search = container (
       results: selectResultsAutocomplete,
       numResultsSearch: selectNumResultsSearch,
       resultsSearch: selectResultsSearch,
+      searchQuery: selectSearchQuery,
     },
   ],
   (props) => {
@@ -305,6 +306,7 @@ export const Search = container (
       showResults: showResultsProp,
       results: resultsRequest,
       resultsSearch,
+      searchQuery,
       queryUpdatedDispatch, searchFetchDispatch, searchResetDispatch,
       numResultsSearch,
     } = props
@@ -364,9 +366,10 @@ export const Search = container (
     useEffect (() => {
       if (nil (queryProp)) return
       setQuerySubmitted (queryProp)
+      if (queryProp === searchQuery) return
       searchResetDispatch ()
       searchFetchDispatch (decodeURIComponent (queryProp))
-    }, [queryProp, searchFetchDispatch])
+    }, [queryProp, searchQuery, searchFetchDispatch])
 
     useEffect (() => {
       setIsNewQuery (false)
