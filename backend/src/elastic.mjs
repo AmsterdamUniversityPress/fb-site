@@ -19,7 +19,7 @@ Het Joods Jongerenfonds (JJF) oftewel 't Fonds dat gaat over het boek van taken 
 Het optimaliseren van het welzijn van werknemers in de gehele supply chain is een sleutelonderdeel van klanttevredenheid.
 `
 const inspectResultsAutocomplete = false
-const inspectResultsSearch = true
+const inspectResultsSearch = false
 
 const indexMain = 'main'
 
