@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  sprintf1, sprintfN, tryCatch, lets, id, nil, tap,
+  sprintf1, sprintfN, tryCatch, lets, id, nil,
   rangeTo, prop, xReplace,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, recurry, ifOk, ifNil, take, dot, join, appendM,
@@ -21,12 +21,12 @@ import yargsMod from 'yargs'
 
 import nodemailer from 'nodemailer'
 
-import { allP, recover, rejectP, startP, then, resolveP, } from 'alleycat-js/es/async'
+import { allP, recover, rejectP, startP, then, } from 'alleycat-js/es/async'
 import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, logWith, setIntervalOn, composeManyRight, } from 'alleycat-js/es/general'
+import { decorateRejection, length, setIntervalOn, composeManyRight, } from 'alleycat-js/es/general'
 import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
@@ -59,7 +59,15 @@ import {
   effects,
   takeMapUnique,
   mapFromPairs,
+  slice1,
 } from './util.mjs'
+
+import {
+  truncateBGrowRight,
+  truncateBGrowRight2,
+  truncateBGrowBoth,
+} from './util-truncate.mjs'
+
 import {
   gvQuery,
   gvBodyParams,
@@ -96,6 +104,9 @@ import {
 
 const configUserTop = configUser | configure.init
 const configFbTop = configFb () | configure.init
+
+// --- @future remove
+const doHighlightDoelstelling = true
 
 const appEnv = lets (
   () => [
@@ -358,10 +369,45 @@ const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
 // --- receives an array with 1 element in the case of string fields (since
 // number_of_fragments is 0) and several elements in the case of an array
 // field (currently only `categories`).
-const transformHighlights = (xs) => xs | ifNil (
+const transformHighlightsMain = (highlights, _query, _ful) => highlights | ifNil (
   () => null,
   (xs) => xs | map (split (highlightTags [0])),
 )
+
+const transformHighlightsDoelstelling = not (doHighlightDoelstelling)
+  ? (... _) => null
+  : (highlights, query, _doelstelling) => highlights | ifNil (
+    () => null,
+    (xs) => {
+      const tag = highlightTags [0]
+      const tagTokenLength = 2*tag.length + query.length
+      if (tagTokenLength > totalLength - firstChunkLength) {
+        warn ('failed assert: tagTokenLength > totalLength - firstChunkLength')
+        return null
+      }
+      if (tagTokenLength > highlightChunkLength / 2) {
+        warn ('failed assert: tagTokenLength > highlightChunkLength / 2')
+        return null
+      }
+      const firstChunkLength = 200
+      const totalLength = 400
+      const highlightChunkLength = 300
+      if (xs.length > 1) die ('transformHighlightsDoelstelling (): expected array of size 1')
+      const [hit] = xs
+      if (hit.length <= firstChunkLength) return [hit | truncateBGrowRight (totalLength)]
+      const [firstChunk, growAmount] = hit | truncateBGrowRight2 (firstChunkLength)
+      const firstChunkHasHighlight = firstChunk.indexOf (tag) !== -1
+      if (firstChunkHasHighlight) return [hit | truncateBGrowRight (totalLength)]
+      const rest = hit | slice1 (firstChunkLength + growAmount)
+      const idx = rest.indexOf (tag)
+      if (idx === -1) die ('transformHighlightsDoelstelling (): no highlight tag found: ' + hit)
+      const chunkWithHighlight = lets (
+        () => Math.max (0, idx - highlightChunkLength / 2),
+        (leftIdx) => truncateBGrowBoth (rest, leftIdx, highlightChunkLength),
+      )
+      return [firstChunk + ' ' + chunkWithHighlight]
+    }
+  )
 
 // --- output must match the shape of `transformHighlights`
 const transformNonHighlighted = ifNil (
@@ -369,9 +415,19 @@ const transformNonHighlighted = ifNil (
   (x) => [[x]],
 )
 
+const mkTransform = recurry (5) (
+  (highlight) => (fonds) => (highlightF) => (query) => (fields) => fields | mapFromPairs ((k, v) => [
+    k,
+    highlight [v] | ifOk (
+      (highlights) => highlightF (highlights, query, fonds [v]),
+      () => transformNonHighlighted (fonds [v]),
+    ),
+  ]),
+)
+
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
-const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
+const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum, doHighlightDoelstelling)
   | then (({ hits, numHits, }) => {
     // --- for all fields except doelstelling we use the value returned in
     // `highlight` as the entire text to show.
@@ -383,7 +439,7 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
       ['workingRegion', 'werk_regio'],
     ]
     const matches = []
-    // @future might save some time by first having elastic do the
+    // --- @future might save some time by first having elastic do the
     // highlight, then doing it manually
     let idx = -1
     hits | each ((result) => {
@@ -393,23 +449,12 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum)
       highlight.categories = fonds.categories | whenOk (map (
         (x) => x.replace (new RegExp (query, 'gi'), (y) => tag + y + tag),
       ))
-      const {
-        doelstelling: objective,
-        uuid,
-      } = fonds
-      const simpleMatches = simpleFields | mapFromPairs (
-        (k, v) => [
-          k,
-          highlight [v] | ifOk (
-            (highlights) => transformHighlights (highlights),
-            () => transformNonHighlighted (fonds [v]),
-          ),
-        ],
-      )
+      const { uuid, } = fonds
+      const transform = mkTransform (highlight, fonds)
       matches.push ({
         matchKey: ++idx,
-        ... simpleMatches,
-        objective,
+        ... simpleFields | transform (transformHighlightsMain, query),
+        ... [['objective', 'doelstelling']] | transform (transformHighlightsDoelstelling >> transformHighlightsMain, query),
         uuid,
       })
     })

@@ -4,8 +4,8 @@ import {
   sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
-  againstAll, gt, gte, dot1, join, repeatF,
-  whenPredicate, list, ifNo, tap, ok, noop,
+  againstAll, gt, gte, dot1, join, repeatF, concat,
+  whenPredicate, list, ifNo, tap, ok, noop, dot2,
 } from 'stick-js/es'
 
 import path from 'node:path'
@@ -14,13 +14,16 @@ import util from 'node:util'
 
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { flatMap, fold, foldMaybe, isLeft, Left, Right, } from 'alleycat-js/es/bilby'
-import { composeManyRight, decorateRejection, setTimeoutOn, } from 'alleycat-js/es/general'
-import { ifArray, ifUndefined, } from 'alleycat-js/es/predicate'
+import { composeManyRight, decorateRejection, setTimeoutOn, length, } from 'alleycat-js/es/general'
+import { ifArray, ifUndefined, ifFalseV, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
 
 // --- usage: `__dirname (import.meta.url)`
 export const __dirname = fileURLToPath >> path.dirname
+
+export const slice = dot2 ('slice')
+export const slice1 = dot1 ('slice')
 
 export const base64decode = (x) => Buffer.from (x, 'base64').toString ('ascii')
 export const base64decodeAsBuffer = (x) => Buffer.from (x, 'base64')
@@ -461,4 +464,12 @@ export const mapFromPairs = recurry (2) (
     const g = ([k, v]) => f (k, v)
     return xs | map (g) | fromPairs
   },
+)
+
+export const truncate = recurry (2) (
+  (n) => (s) => lets (
+    () => length (s) > n,
+    (doIt) => doIt | ifFalseV (id, slice (0, n) >> concat ('…')),
+    (_, f) => f (s),
+  ),
 )

@@ -14,7 +14,6 @@ import { useNavigate, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 
-import { flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, trim, iwarn, } from 'alleycat-js/es/general'
@@ -37,7 +36,7 @@ import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
-  effects, isNotEmptyString, truncate, whenIsNotEmptyString, mapX, reduceX, ifEven,
+  effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
   whenIsNotEmptyList,
 } from '../../util-general'
 
@@ -119,7 +118,6 @@ const ResultS = styled.div`
   cursor: pointer;
   .highlight {
     background: yellow;
-    // font-weight: bold;
   }
   &:hover {
     background: #d2a89233;
@@ -205,7 +203,10 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
       </div>
     </div>
     <div className='x__right'>
-      <div className='x__objective'> {[objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s")}</div>
+      <div className='x__objective'>
+      {/* [objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s") */}
+      {[objective]}
+      </div>
       <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
       {targetGroup | whenIsNotEmptyList (
         () => <div className='x__targetGroup'>Doelgroep:&nbsp;
@@ -273,7 +274,7 @@ const SearchResults = container2 (
                   imgSrc={imgSrc}
                   categories={highlightList (categories)}
                   name={highlightString (name)}
-                  objective={objective}
+                  objective={highlightString (objective)}
                   targetGroup={highlightString (targetGroup)}
                   type={type}
                   uuid={uuid}
@@ -353,14 +354,6 @@ export const Search = container (
     )
     const [suggestions, setSuggestions] = useState (results)
     useEffect (() => { setSuggestions (results) }, [results])
-    // const isLoading = useMemo (
-      // () => resultsRequest | requestIsLoading,
-      // [resultsRequest],
-    // )
-    // const hasQuery = useMemo (
-      // () => query | isNotEmptyString,
-      // [query],
-    // )
     const showResults = useMemo (
       () => allV (
         showResultsProp,

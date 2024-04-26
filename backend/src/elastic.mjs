@@ -24,8 +24,9 @@ const inspectResultsSearch = false
 const indexMain = 'main'
 
 export const highlightTags = [
-  '___HIGHLIGHT-START___',
-  '___HIGHLIGHT-START___',
+  // --- U+185D
+  '_ᡝᡝᡝ_',
+  '_ᡝᡝᡝ_',
 ]
 
 let esClient
@@ -137,7 +138,7 @@ const initIndexMain = (data) => startP ()
   )
   | then (() => info ('done building main index'))
 
-export const search = (query, pageSize, pageNum) => startP ()
+export const search = (query, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
     size: pageSize,
@@ -174,7 +175,7 @@ export const search = (query, pageSize, pageNum) => startP ()
         // array and that presents some difficulties)
         // --- @future use elastic mappings?
         doelgroep: {},
-        doelstelling: {},
+        ... doHighlightDoelstelling ? { doelstelling: {}, } : {},
         naam_organisatie: {},
         trefwoorden: {},
         type_organisatie: {},
