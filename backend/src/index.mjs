@@ -60,6 +60,7 @@ import {
   takeMapUnique,
   mapFromPairs,
   slice1,
+  stripNonAlphaNum,
 } from './util.mjs'
 
 import {
@@ -445,9 +446,13 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum,
     hits | each ((result) => {
       const { _source: fonds, highlight={}, } = result
       const tag = highlightTags [0]
+      const alphaNumQuery = stripNonAlphaNum (query)
       // --- manually highlight categories
       highlight.categories = fonds.categories | whenOk (map (
-        (x) => x.replace (new RegExp (query, 'gi'), (y) => tag + y + tag),
+        (x) => x.replace (
+          new RegExp (alphaNumQuery, 'gi'),
+          (y) => tag + y + tag,
+        ),
       ))
       const { uuid, } = fonds
       const transform = mkTransform (highlight, fonds)

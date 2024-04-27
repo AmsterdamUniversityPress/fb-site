@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   tap, map, ok, not, path, join, prop,
+  invoke, split, lets,
 } from 'stick-js/es'
 
 import { Client, } from '@elastic/elasticsearch'
@@ -9,8 +10,8 @@ import { info, warn, } from 'alleycat-js/es/io'
 
 import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
-import { logWith, } from 'alleycat-js/es/general'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, } from './util.mjs'
+import { logWith, trim, } from 'alleycat-js/es/general'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
 
 // --- debug / analyze
 const analyze = false
@@ -20,6 +21,7 @@ Het optimaliseren van het welzijn van werknemers in de gehele supply chain is ee
 `
 const inspectResultsAutocomplete = false
 const inspectResultsSearch = false
+const inspectLuceneQuery = false
 
 const indexMain = 'main'
 
@@ -126,7 +128,6 @@ const initIndexMain = (data) => startP ()
   }) | then (logWith ('analysis: ')))
   | then (
     () => data | eachP ((fonds) => {
-      // const { categories, ... rest } = fonds
       return esClient.index ({
         index: indexMain,
         // --- @future we could save memory by only indexing the fields we
@@ -138,36 +139,66 @@ const initIndexMain = (data) => startP ()
   )
   | then (() => info ('done building main index'))
 
+const mkSearchLuceneQuery = invoke (() => {
+  // --- must match the fields in `mkSearchQuery`
+  const fields = [
+    'categories',
+    'doelgroep',
+    'doelstelling',
+    'naam_organisatie',
+    'type_organisatie',
+    'werk_regio',
+  ]
+  // --- for e.g. 'jongeren verbinding' we want:
+  // +(field1:jongeren field2:jongeren ...) +(field1:verbinding field2:verbinding ...)
+  return (words) => words
+    | map ((word) => join (' ', fields | map (
+      (field) => field + ':' + word,
+    )))
+    | map ((clause) => '+(' + clause + ')')
+    | join (' ')
+})
+
+const mkSearchQuery = (query) => query
+  | stripNonAlphaNum
+  | trim
+  | split (/\s+/)
+  | ifLengthOne (
+    () => ({
+      query: {
+        bool: {
+          // --- i.e., group phrases together using OR
+          should: [
+            // --- we need to use full-text queries (`match` etc.) and not
+            // term-level queries (`term` etc.) because of the stemming &
+            // tokenizing and so on which we do for Dutch.
+            { match: { categories: { query, }}},
+            { match: { doelgroep: { query, }}},
+            { match: { doelstelling: { query, }}},
+            { match: { naam_organisatie: { query, }}},
+            { match: { trefwoorden: { query, }}},
+            { match: { type_organisatie: { query, }}},
+            { match: { werk_regio: { query, }}},
+          ],
+        },
+      },
+    }),
+    (words) => ({
+      // --- for multiple words we assemble the Lucene query manually (not clear
+      // how to do what we want using the Elastic Query DSL)
+      q: mkSearchLuceneQuery (words) | tapWhen (
+        () => inspectLuceneQuery,
+        logWith ('lucene query:'),
+      ),
+    }),
+  )
+
 export const search = (query, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
     size: pageSize,
     from: pageNum * pageSize,
-    query: {
-      bool: {
-        // --- i.e., group phrases together using OR
-        should: [
-          // --- we need to use full-text queries (`match` etc.) and not
-          // term-level queries (`term` etc.) because of the stemming &
-          // tokenizing and so on which we do for Dutch.
-          // --- operator AND here means group the words in the query
-          // together using AND
-          // --- @todo this still isn't exactly what we want: searching on
-          // 'onderzoek' and 'fonds' will only match if any field contains
-          // BOTH of the words; what we really want is that any field can
-          // contain 'onderzoek', and any other field, or the same field,
-          // can contain 'fonds', and that in the end, both of the words
-          // must be represented in the results.
-          { match: { categories: { query, operator: 'AND', }}},
-          { match: { doelgroep: { query, operator: 'AND', }}},
-          { match: { doelstelling: { query, operator: 'AND', }}},
-          { match: { naam_organisatie: { query, operator: 'AND', }}},
-          { match: { trefwoorden: { query, operator: 'AND', }}},
-          { match: { type_organisatie: { query, operator: 'AND', }}},
-          { match: { werk_regio: { query, operator: 'AND', }}},
-        ],
-      },
-    },
+    ... mkSearchQuery (query),
     highlight: {
       pre_tags: highlightTags [0],
       post_tags: highlightTags [1],
