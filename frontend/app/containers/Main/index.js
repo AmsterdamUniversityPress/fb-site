@@ -986,7 +986,7 @@ const UserPage = container (
     })
 
     return <FormWrapper>
-      <FormS style={{ marginTop: '-20%', }}>
+      <FormS style={{ marginTop: '5%', }}>
         <div className='x__close' onClick={onClickClose}>
           <CloseIcon
             height={25}
