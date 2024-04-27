@@ -22,6 +22,7 @@ import { brightRed, error, } from './io.mjs'
 // --- usage: `__dirname (import.meta.url)`
 export const __dirname = fileURLToPath >> path.dirname
 
+export const replace = dot2 ('replace')
 export const slice = dot2 ('slice')
 export const slice1 = dot1 ('slice')
 
@@ -471,5 +472,31 @@ export const truncate = recurry (2) (
     () => length (s) > n,
     (doIt) => doIt | ifFalseV (id, slice (0, n) >> concat ('…')),
     (_, f) => f (s),
+  ),
+)
+
+export const ifLengthOne = (length >> eq (1)) | ifPredicate
+
+// --- unicode-aware version of /[\d\w]/
+const charClassAlphaNum = [
+  '\\d', '\\p{Alphabetic}', '\\p{Mark}', '\\p{Decimal_Number}', '\\p{Connector_Punctuation}', '\\p{Join_Control}',
+]
+const charClassAlphaNumSpace = [... charClassAlphaNum, '\\p{White_Space}']
+const charClassToRegex = (cls, post='', not=false, pre='') => new RegExp (
+  pre + '[' + (not ? '^' : '') + (cls | join ('')) + ']' + post, 'u',
+)
+export const regexAlphaNum = (... modify) => charClassToRegex (charClassAlphaNum, ... modify)
+export const regexAlphaNumSpace = (... modify) => charClassToRegex (charClassAlphaNumSpace, ... modify)
+
+const regexAlphaNumPlusGlobal = lets (
+  () => regexAlphaNumSpace ('+', true),
+  (re1) => new RegExp (re1.source, re1.flags + 'g'),
+)
+
+export const stripNonAlphaNum = replace (regexAlphaNumPlusGlobal, '')
+
+export const tapWhen = recurry (3) (
+  (p) => (f) => (x) => x | tap (
+    () => p (x) ? f (x) : id,
   ),
 )

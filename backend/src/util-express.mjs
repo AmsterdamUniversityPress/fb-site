@@ -11,25 +11,19 @@ import { sendStatus, } from 'alleycat-js/es/express'
 import { trim, } from 'alleycat-js/es/general'
 import { isEmptyString, } from 'alleycat-js/es/predicate'
 
-import { eachAbort, } from './util.mjs'
+import { eachAbort, regexAlphaNum, regexAlphaNumSpace, } from './util.mjs'
 
 const isNonEmptyString = isEmptyString >> not
 const isStrongPassword = recurry (2) (
   (minimumPasswordScore) => (pw) => zxcvbn (pw).score >= minimumPasswordScore,
 )
 
-// --- unicode-aware version of /^[\d\w]$/
-const regexAlphaNum = [
-  '\\d', '\\p{Alphabetic}', '\\p{Mark}', '\\p{Decimal_Number}', '\\p{Connector_Punctuation}', '\\p{Join_Control}',
-]
-const regexAlphaNumSpace = [... regexAlphaNum, '\\p{White_Space}']
-
 const isNonEmptyAlphaNumericString = (x) => ok (x.match (
-  new RegExp ('^[' + join ('', regexAlphaNum) + ']+$', 'u')
+  new RegExp ('^' + regexAlphaNum ('+').source + '$', regexAlphaNum.flags),
 ))
 
 const isNonEmptyAlphaNumericSpaceString = (x) => ok (x.match (
-  new RegExp ('^[' + join ('', regexAlphaNumSpace) + ']+$', 'u')
+  new RegExp ('^' + regexAlphaNumSpace ('+').source + '$', regexAlphaNumSpace.flags),
 ))
 
 const isNonEmptyBase64String = (x) => ok (x.toLowerCase ().match (
