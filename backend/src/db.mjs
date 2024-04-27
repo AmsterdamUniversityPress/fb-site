@@ -15,6 +15,7 @@ import { info, yellow, } from 'alleycat-js/es/io'
 import { config as configUser, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
 import { doEither, epochMs, ifEqualsZero, foldWhenLeft, } from './util.mjs'
+import { doEitherWithTransaction, } from './util-db.mjs'
 import { runMigrations, } from './db-migrations.mjs'
 
 const configTop = configUser | configure.init
@@ -75,7 +76,7 @@ export const userAddOrReplace = (email, firstName, lastName, privileges, passwor
   vals: { email, firstName, lastName, privileges, password },
 })
 
-export const userRemove = (email) => doEitherWithTransaction (
+export const userRemove = (email) => doEitherWithTransaction (sqliteApi,
   () => sqliteApi.getPluck (SB (
     `select id from user where email = ?`, email,
   )),
