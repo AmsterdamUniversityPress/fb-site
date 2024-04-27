@@ -145,21 +145,26 @@ export const search = (query, pageSize, pageNum, doHighlightDoelstelling=true) =
     from: pageNum * pageSize,
     query: {
       bool: {
-        // --- i.e., 'OR'
+        // --- i.e., group phrases together using OR
         should: [
           // --- we need to use full-text queries (`match` etc.) and not
           // term-level queries (`term` etc.) because of the stemming &
           // tokenizing and so on which we do for Dutch.
-          // --- `match_phrase` is like `match` for single words, but if a
-          // phrase is entered it matches the whole phrase instead of doing
-          // OR on the words.
-          { match_phrase: { categories: query, }},
-          { match_phrase: { doelgroep: query, }},
-          { match_phrase: { doelstelling: query, }},
-          { match_phrase: { naam_organisatie: query, }},
-          { match_phrase: { trefwoorden: query, }},
-          { match_phrase: { type_organisatie: query, }},
-          { match_phrase: { werk_regio: query, }},
+          // --- operator AND here means group the words in the query
+          // together using AND
+          // --- @todo this still isn't exactly what we want: searching on
+          // 'onderzoek' and 'fonds' will only match if any field contains
+          // BOTH of the words; what we really want is that any field can
+          // contain 'onderzoek', and any other field, or the same field,
+          // can contain 'fonds', and that in the end, both of the words
+          // must be represented in the results.
+          { match: { categories: { query, operator: 'AND', }}},
+          { match: { doelgroep: { query, operator: 'AND', }}},
+          { match: { doelstelling: { query, operator: 'AND', }}},
+          { match: { naam_organisatie: { query, operator: 'AND', }}},
+          { match: { trefwoorden: { query, operator: 'AND', }}},
+          { match: { type_organisatie: { query, operator: 'AND', }}},
+          { match: { werk_regio: { query, operator: 'AND', }}},
         ],
       },
     },
@@ -201,7 +206,10 @@ export const searchPhrasePrefixNoContext = (max, query) => {
       // --- combine using OR
       bool: {
         should: [
-          // --- phrase search where the last word can be partial
+          // --- `match_phrase` is like `match` for single words, but if a
+          // phrase is entered it matches the whole phrase instead of doing
+          // OR on the words; also the last word of the phrase can be
+          // partial.
           { match_phrase_prefix: { categories: query, }},
           { match_phrase_prefix: { doelgroep: query, }},
           { match_phrase_prefix: { doelstelling: query, }},
