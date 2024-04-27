@@ -385,7 +385,7 @@ export const Search = container (
           Input={Input}
           inputWrapperProps={{
             withIcon: ['search', 'left'],
-            showCloseIcon: true,
+            showClearIcon: true,
             style: { display: 'inline-block', },
             inputProps: {
               autoFocus: true,

@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  invoke, whenOk, prop, noop, path,
+  invoke, whenOk, prop, noop, not,
 } from 'stick-js/es'
 
 import React, { useCallback, useRef, useState, } from 'react'
@@ -67,7 +67,7 @@ const InputWrapperS = styled.div`
       right: 15px;
     }
   }
-  .x__close-icon {
+  .x__clear-icon {
     position: absolute;
     display: inline-block;
     display: flex;
@@ -93,23 +93,26 @@ const InputWrapper = invoke (() => {
     left: 'x--left',
     right: 'x--right',
   }
-  const styles = {
+  const styleForWhereIcon = {
     // --- padding + icon width
     left: { paddingLeft: '60px', },
     right: { paddingRight: '60px', },
+  }
+  const styleForClearIcon = (show) => not (show) ? null : {
+    paddingRight: '47px',
   }
   const icons = {
     search: <img src={searchIcon}/>,
   }
   return (props) => {
     const {
-      withIcon=[], showCloseIcon=false, inputRef: inputRefProp=null, style={}, width,
+      withIcon=[], showClearIcon=false, inputRef: inputRefProp=null, style={}, width,
       clear: clearProp={},
       onBlur=noop, onChange=noop, onClear=noop, onKeyDown=noop,
       inputProps={},
     } = props
     const { style: inputStyle={}, ... restInputProps } = inputProps
-    const [icon, where] = withIcon
+    const [icon, whereIcon] = withIcon
     const hasIcon = withIcon | isNotEmptyList
     const inputRef = useRef (null)
     const theInputRef = inputRefProp ?? inputRef
@@ -122,13 +125,13 @@ const InputWrapper = invoke (() => {
     }, [theInputRef, onClear])
     const onClickClear = clear
     clearProp.current = clear
-    const showTheCloseIcon = allV (
-      showCloseIcon,
+    const showTheClearIcon = allV (
+      showClearIcon,
       theInputRef.current | whenOk (prop ('value') >> isNotEmptyString)
     )
     const clsIcon = clss (
       'x__icon',
-      wheres [where] || null,
+      wheres [whereIcon] || null,
     )
     const clsInput = 'x__input'
     inputStyle.padding ??= '16px'
@@ -136,7 +139,7 @@ const InputWrapper = invoke (() => {
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
         {icons [icon] || null}
       </div>}
-      {showTheCloseIcon && <div className='x__close-icon' onClick={onClickClear}>
+      {showTheClearIcon && <div className='x__clear-icon' onClick={onClickClear}>
         <span>
           ×
         </span>
@@ -149,11 +152,13 @@ const InputWrapper = invoke (() => {
           {... restInputProps}
           ref={theInputRef}
           // --- this is for avoiding a weird jump / blue outline on mobile. It probably won't work
-          // right if the caller gives varying values for paddingLeft, paddingRight, etc.
+          // right if the caller gives varying values for paddingLeft, paddingRight, etc. The
+          // padding stuff is pretty terrible -- works for now but needs a rewrite.
           padding={inputStyle.padding}
           style={{
             ... inputStyle,
-            ... styles [where],
+            ... styleForClearIcon (showClearIcon),
+            ... (styleForWhereIcon [whereIcon] || null),
           }}
         />
       </div>
