@@ -67,6 +67,7 @@ export const config = {
   ],
   // --- list of users which will be added to the database using INSERT OR REPLACE on each startup, or `null`
   users: [
+    // --- note that `password` only gets set for dev and tst, else it will be null.
     {
       email: 'xx@xx.xx',
       password: 'xxx',

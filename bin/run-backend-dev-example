@@ -20,6 +20,7 @@ xport COOKIE_SECRET xxx
 xport REDIS_PASSWORD xxx
 
 xport ELASTIC_URL xxx
+xport ALLOW_DESTRUCTIVE_MIGRATIONS <1 or 0>
 
 xport APP_ENV dev
 
