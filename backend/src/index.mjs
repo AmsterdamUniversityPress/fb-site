@@ -617,7 +617,7 @@ const sendInfoEmailTryOnce = (email, type) => {
 }
 
 const sendInfoEmail = (email, type) => retryPDefaultMessage (
-  'Unable to send email',
+  'Unable to send email to ' + email,
   warn,
   // --- @todo string/int
   lookupOnOr (() => null, {
