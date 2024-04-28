@@ -389,7 +389,7 @@ function *s_userRemoveCompleted ({ rcomplete, email: _email, }) {
 
 function *s_usersFetch () {
   yield call (doApiCall, {
-    url: '/api/users',
+    url: '/api/user-admin/users',
     continuation: EffAction (a_usersFetchCompleted),
     resultsModify: map (prop ('users')),
     imsgDecorate: 'Error fetching users',

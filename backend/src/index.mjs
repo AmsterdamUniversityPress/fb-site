@@ -840,7 +840,7 @@ const init = ({ port, }) => express ()
       })
     },
   ))
-  | secureGet (privsAdminUser) ('/users', (_req, res) => {
+  | secureGet (privsAdminUser) ('/user-admin/users', (_req, res) => {
     // @todo kattenluik has a nice doCallResults function for this...
     const users = doDbCall (dbUsersGet, [])
     return res | sendStatus (200, { users, })
