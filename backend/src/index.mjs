@@ -106,6 +106,9 @@ import {
 const configUserTop = configUser | configure.init
 const configFbTop = configFb () | configure.init
 
+// const cacheExpireSecs = 10 * 3600
+const cacheExpireSecs = null
+
 // --- @future remove
 const doHighlightDoelstelling = true
 
@@ -628,15 +631,15 @@ const sendInfoEmail = (email, type) => retryPDefaultMessage (
   () => sendInfoEmailTryOnce (email, type),
 )
 
-const cacheExpireSecs = 10 * 3600
-
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
   | use (cors (corsOptions))
   | useAuthMiddleware
   | use ((_req, res, next) => {
-    res.set ('Cache-control', cacheExpireSecs | sprintf1 ('max-age=%d'))
+    cacheExpireSecs | whenOk (
+      (secs) => res.set ('Cache-control', secs | sprintf1 ('max-age=%d')),
+    )
     next ()
   })
   | secureGet (privsUser) ('/fondsen', gvQuery ([
