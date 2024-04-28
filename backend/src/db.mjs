@@ -54,14 +54,17 @@ export const initUsers = (encryptPassword, users, initPasswords) => doEither (
 
 const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => allowExists ? ' on conflict do nothing' : '',
-  (upsertClause) => doEither (
+  (upsertClause) => doEitherWithTransaction (sqliteApi,
     () => sqliteApi.run (SB (
       `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)` + upsertClause,
-      [email, firstName, lastName, password] ,
+      [email, firstName, lastName, password],
     )),
     ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
-      (priv) => SB (`insert into userPrivilege (userId, privilege) values (?, ?)` + upsertClause,
-      [userId, priv]
+      (priv) => SB (`
+        insert into userPrivilege (userId, privilegeId) values
+        (?, (select id from privilege p where p.privilege = ?))
+      ` + upsertClause,
+      [userId, priv],
     ))),
   ),
 )
@@ -155,15 +158,21 @@ export const staleSessionsClear = (ms) => lets (
 )
 
 export const usersGet = () => sqliteApi.all (S (`
-  select u.email, u.firstName, u.lastName, group_concat(up.privilege) as privileges,
+  select u.email, u.firstName, u.lastName, group_concat(p.privilege) as privileges,
   (case when password is null then 0 else 1 end) as isActive
   from user u left join userPrivilege up
   on u.id = up.userId
+  join privilege p
+  on p.id = up.privilegeId
   group by email
 `))
 
-export const privilegesGet = (email) => sqliteApi.allPluck (SB (
-  `select privilege from user u join userPrivilege up
+export const privilegesGet = (email) => sqliteApi.allPluck (SB (`
+  select privilege from
+  user u join userPrivilege up
   on u.id = up.userId
-  where u.email = ?`, email
+  join privilege p
+  on p.id = up.privilegeId
+  where u.email = ?
+  `, email
 ))

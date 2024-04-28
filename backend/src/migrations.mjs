@@ -109,7 +109,80 @@ export default [
         destructive: false,
       },
     },
-  ]]
+  ]],
+  [4, [
+    {
+      forwards: {
+        sql: `create table privilege (id integer primary key autoincrement, privilege text not null)`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `drop table privilege`,
+        destructive: true,
+      },
+    },
+    {
+      forwards: {
+        sql: `insert into privilege (privilege) values ('user'), ('admin-user')`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `delete from privilege`,
+        destructive: true,
+      },
+    },
+    {
+      forwards: {
+        sql: `alter table userPrivilege rename to userPrivilege_old`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `alter table userPrivilege_old rename to userPrivilege`,
+        destructive: false,
+      },
+    },
+    {
+      forwards: {
+        sql: `
+          create table userPrivilege (
+            id integer primary key autoincrement,
+            userId integer not null,
+            privilegeId integer not null
+          )
+        `,
+        destructive: false,
+      },
+      backwards: {
+        sql: `drop table userPrivilege`,
+        destructive: true,
+      },
+    },
+    {
+      forwards: {
+        sql: `create index userPrivilege_unique on userPrivilege (userId, privilegeId)`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `drop index userPrivilege_unique`,
+        destructive: false,
+      },
+    },
+    {
+      forwards: {
+        sql: `
+          insert into userPrivilege (id, userId, privilegeId)
+          select id, userId,
+          (select id from privilege p where p.privilege = up.privilege)
+          from userPrivilege_old up
+        `,
+        destructive: false,
+      },
+      backwards: {
+        sql: `delete from userPrivilege`,
+        destructive: true,
+      },
+    },
+  ]],
   /*
     {
       forwards: {

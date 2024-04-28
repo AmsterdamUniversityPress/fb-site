@@ -888,6 +888,6 @@ staleSessionCheckTimeoutMs | setIntervalOn (
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
-if (schemaVersion !== 0) dbInitUsers (encrypt, users ?? [], envIsDevOrTst)
+if (schemaVersion >= 4) dbInitUsers (encrypt, users ?? [], envIsDevOrTst)
 
 init ({ port: serverPort, })

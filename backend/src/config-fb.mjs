@@ -12,7 +12,7 @@ export const config = () => ({
   cookieMaxAgeMs: 24 * 3600 * 1000,
   jwtSecret: Nothing,
   minimumPasswordScore: 4,
-  schemaVersion: 3,
+  schemaVersion: 4,
   // --- needs to be just a bit longer than cookieMaxAgeMs (1 hour is
   // plenty); the user cookie will have expired so it's safe to clear old
   // rows from the session table
