@@ -117,6 +117,8 @@ const appEnv = lets (
   (validate) => env ('APP_ENV', validate),
 )
 
+const envIsDevOrTst = appEnv === 'dev' || appEnv === 'tst'
+
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
 
 const { authorizeByIP, email: emailOpts, fbDomains, [getRedisURLConfigKey]: getRedisURL, serverPort, users, } = tryCatch (
@@ -886,6 +888,6 @@ staleSessionCheckTimeoutMs | setIntervalOn (
 // --- @future separate script to manage users
 // --- set config key `users` to `null` or an empty list to not add default
 // users on startup
-if (schemaVersion !== 0) dbInitUsers (encrypt, users ?? [])
+if (schemaVersion !== 0) dbInitUsers (encrypt, users ?? [], envIsDevOrTst)
 
 init ({ port: serverPort, })

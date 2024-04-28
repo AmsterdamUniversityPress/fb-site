@@ -39,13 +39,13 @@ export const init = (version, allowDestructiveMigrations) => {
   )
 }
 
-export const initUsers = (encryptPassword, users) => doEither (
+export const initUsers = (encryptPassword, users, initPasswords) => doEither (
   () => Right (null),
   ... users | map (({ email, password, firstName, lastName, hasAdminUser, }) => {
     return () => userAddOrReplace (
       email, firstName, lastName,
       compact (['user', hasAdminUser && 'admin-user']),
-      encryptPassword (password),
+      initPasswords ? encryptPassword (password) : null,
     )
   }))
   | foldWhenLeft (
