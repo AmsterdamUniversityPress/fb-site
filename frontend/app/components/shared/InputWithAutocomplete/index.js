@@ -71,6 +71,7 @@ export default component (
   (props) => {
     const {
       Input=InputDefault, inputWrapperProps={},
+      initValue: initValueProp=null,
       value: valueProp='',
       suggestions: suggestionsProp=null,
       closeOnSelected=false,
@@ -83,7 +84,8 @@ export default component (
     } = props
     const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
     const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
-    const [value, setValue] = useState (valueProp)
+    const [value, setValue] = useState (initValueProp ?? valueProp)
+    useEffect (() => { setValue (initValueProp) }, [initValueProp])
     const [showSuggestions, setShowSuggestions] = useState (false)
     const [enteredValue, setEnteredValue] = useState (valueProp)
     // --- -1 means use the value, >= 0 means that idx of the suggestions.

@@ -398,6 +398,7 @@ export const Search = container (
               },
             },
           }}
+          initValue={query}
           closeOnSelected={true}
           suggestions={suggestions}
           onChange={(event) => onChange (event)}
