@@ -2,13 +2,13 @@ import {
   pipe, compose, composeRight,
   id, recurry, sprintf1, head,
   againstAll, allAgainst, T, ok, not, join,
-  reduce,
+  lets, reduce, tap,
 } from 'stick-js/es'
 
 import zxcvbn from 'zxcvbn'
 
 import { sendStatus, } from 'alleycat-js/es/express'
-import { trim, } from 'alleycat-js/es/general'
+import { trim, logWith, } from 'alleycat-js/es/general'
 import { isEmptyString, } from 'alleycat-js/es/predicate'
 
 import { eachAbort, regexAlphaNum, regexAlphaNumSpace, } from './util.mjs'
@@ -18,13 +18,14 @@ const isStrongPassword = recurry (2) (
   (minimumPasswordScore) => (pw) => zxcvbn (pw).score >= minimumPasswordScore,
 )
 
-const isNonEmptyAlphaNumericString = (x) => ok (x.match (
-  new RegExp ('^' + regexAlphaNum ('+').source + '$', regexAlphaNum.flags),
-))
+const isNonEmptyXString = (mkRe1) => lets (
+  () => mkRe1 ('+'),
+  (re1) => new RegExp ('^' + re1.source + '$', re1.flags),
+  (_ , re) => (x) => ok (x.match (re)),
+)
 
-const isNonEmptyAlphaNumericSpaceString = (x) => ok (x.match (
-  new RegExp ('^' + regexAlphaNumSpace ('+').source + '$', regexAlphaNumSpace.flags),
-))
+const isNonEmptyAlphaNumericString = isNonEmptyXString (regexAlphaNum)
+const isNonEmptyAlphaNumericSpaceString = isNonEmptyXString (regexAlphaNumSpace)
 
 const isNonEmptyBase64String = (x) => ok (x.toLowerCase ().match (
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/,
