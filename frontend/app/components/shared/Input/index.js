@@ -41,6 +41,7 @@ const InputBaseMixin = `
 const InputS = styled.input`
   ${InputBaseMixin}
   ${({ padding, }) => padding | whenOk (() => `
+    padding: ${padding};
     :focus {
       padding: calc(${padding} - 1px);
     }
@@ -135,6 +136,7 @@ const InputWrapper = invoke (() => {
     )
     const clsInput = 'x__input'
     inputStyle.padding ??= '16px'
+    const { padding, ... restInputStyle } = inputStyle
     return <InputWrapperS style={{ width, ... style, }}>
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
         {icons [icon] || null}
@@ -156,7 +158,7 @@ const InputWrapper = invoke (() => {
           // padding stuff is pretty terrible -- works for now but needs a rewrite.
           padding={inputStyle.padding}
           style={{
-            ... inputStyle,
+            ... restInputStyle,
             ... styleForClearIcon (showClearIcon),
             ... (styleForWhereIcon [whereIcon] || null),
           }}
