@@ -159,7 +159,9 @@ const mkSearchLuceneQuery = invoke (() => {
     | join (' ')
 })
 
-const mkSearchQuery = (query) => query
+const mkSearchQuery = (query, filters) => {
+  const { categories: categories, } = filters
+  return query
   | stripNonAlphaNum
   | trim
   | split (/\s+/)
@@ -180,6 +182,9 @@ const mkSearchQuery = (query) => query
             { match: { type_organisatie: { query, }}},
             { match: { werk_regio: { query, }}},
           ],
+          filter: categories | map ((categorie) => (
+            { match : { categories : categorie }}
+          )),
         },
       },
     }),
@@ -192,13 +197,14 @@ const mkSearchQuery = (query) => query
       ),
     }),
   )
+}
 
-export const search = (query, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
+export const search = (query, filters, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
     size: pageSize,
     from: pageNum * pageSize,
-    ... mkSearchQuery (query),
+    ... mkSearchQuery (query, filters),
     highlight: {
       pre_tags: highlightTags [0],
       post_tags: highlightTags [1],

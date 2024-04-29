@@ -3,8 +3,9 @@ import {
   sprintf1, sprintfN, tryCatch, lets, id, nil,
   rangeTo, prop, xReplace,
   gt, againstAny, eq, die, map, reduce, split, values,
-  not, recurry, ifOk, ifNil, take, dot, join, appendM,
-  ifPredicate, whenOk, invoke, each,
+  not, recurry, ifOk, ifNil, take, dot, join,
+  ifPredicate, whenOk, invoke, each, appendM,
+  tap,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -26,7 +27,7 @@ import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, setIntervalOn, composeManyRight, } from 'alleycat-js/es/general'
+import { decorateRejection, length, setIntervalOn, trim, composeManyRight, } from 'alleycat-js/es/general'
 import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
@@ -80,6 +81,7 @@ import {
   basicStringValidator,
   basicUUIDValidator,
   basicValidator,
+  basicListValidator,
   basicStringListValidator,
 } from './util-express.mjs'
 import {
@@ -433,7 +435,7 @@ const mkTransform = recurry (5) (
 
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
-const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum, doHighlightDoelstelling)
+const search = (query, filters, pageSize, pageNum) => esSearch (query, filters, pageSize, pageNum, doHighlightDoelstelling)
   | then (({ hits, numHits, }) => {
     // --- for all fields except doelstelling we use the value returned in
     // `highlight` as the entire text to show.
@@ -470,6 +472,57 @@ const search = (query, pageSize, pageNum) => esSearch (query, pageSize, pageNum,
     })
     return { matches, numHits, }
   })
+
+// @todo remove, this is just to play around with
+// notes: they want 4 'filters'
+// naam, categorie, trefwoord, doelregio
+//
+// --- naam:
+// this is probaly just going to be a 'search field' where we ask elastic to do a text
+// search in the naam. So there are no 'filter options'
+//
+// --- categorie:
+// there are 12, so it makes sense to make those into filter options
+//
+// --- trefwoorden:
+// there are many (more than 600), examples:
+//
+// 'behoeftigen', 'behoud', 'bejaarden', 'belangenbehartiging', 'beperking', 'beroepsonderwijs',
+// 'betaalbare zorg', 'beurzen', 'beveiliging', 'beweging', 'bibliotheek', 'bijbel', 'bijstand',
+// so this could be the same as name, I guess (with autocomplete)
+//
+// --- doelregio
+// this is indeed a tricky one. There are many countries (more than 100), and even more regios in
+// Nederland, en plaatsen in Nederland. It might be an idea to split international and national,
+// and give an autocomplete field for each (and just regio en plaats in Nederland together)
+const get = recurry (2) (
+  (field) => (data) => {
+  let seen = new Set
+  for (const fonds of data) {
+    const xs = fonds [field] | ifNil (
+      () => [],
+      (x) => String (x) | split (',')
+    )
+    // console.log ('xs', xs)
+    for (const x of xs) {
+      const x_lower = x.toLowerCase () | trim
+      // console.log ('x_lower', x_lower)
+      if (seen.has (x_lower)) continue
+        seen.add (x_lower)
+    }
+  }
+  return Array.from (seen)
+})
+
+const get_naam_organisatie = get ('naam_organisatie')
+const get_categories = get ('categories')
+const get_doelgroepen = get ('doelgroep')
+const get_trefwoorden = get ('trefwoorden')
+// there is a fonds with Err:522 as werkregio
+const get_werkregio = get ('werk_regio')
+const get_landen = get ('landen')
+const get_regio_in_nederland = get ('regio_in_nederland')
+const get_plaats_in_nederland = get ('plaats_in_nederland')
 
 const completeQueriesSimple = invoke (() => {
   const fields = [
@@ -668,9 +721,16 @@ const init = ({ port, }) => express ()
     gvQuery ([
       basicValidator ('pageSize', isPositiveInt, Number),
       basicValidator ('pageNum', isNonNegativeInt, Number),
+      // note that this is encoded as &categories[]=valueX&categories[]=value(X+1)...
+      // and we don't use categories[] here
+      basicListValidator ('categories'),
     ]),
-    ({ res }, query, pageSize, pageNum) => {
-      search (query, pageSize, pageNum)
+    ({ res }, query, pageSize, pageNum, categories) => {
+      console.log ('categories', categories)
+      // note we don't want to give filters = {} (right now), because elastic will complain
+      // const filters = { categories: []}
+      const filters = { categories: ['onderwijs', 'religie']}
+      search (query, filters, pageSize, pageNum)
       | then (({ matches, numHits, }) => res | sendStatus (
         200,
         { results: matches, metadata: { numHits }},
@@ -880,6 +940,23 @@ const initRedis = async () => redisInit (redisURL, 1000)
   | recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
 const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.forceReindexElastic, })
   | recover (error << decorateRejection ('Fatal error connecting to elastic: '))
+
+const { log, } = console
+const sort = dot ('sort')
+
+// ; data
+  // | take (20)
+  // | get_doelgroepen
+  // | get_categories
+  // | get_naam_organisatie
+  // | get_trefwoorden
+  // | get_landen
+  // | get_regio_in_nederland
+  // | get_plaats_in_nederland
+  // | map ((x) => {console.log ('x', x)
+    // return x})
+  // | sort
+  // | log
 
 await initRedis ()
 await initElastic ()

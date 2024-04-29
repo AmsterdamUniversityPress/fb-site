@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   id, recurry, sprintf1, head,
   againstAll, allAgainst, T, ok, not, join,
-  lets, reduce, tap,
+  lets, reduce, tap, map,
 } from 'stick-js/es'
 
 import zxcvbn from 'zxcvbn'
@@ -114,6 +114,16 @@ export const gv2 = recurry (6) (
 export const gv3 = recurry (7) (
   (gvf1) => (gvf2) => (gvf3) => gvN ([gvf1, gvf2, gvf3]),
 )
+
+// @todo refactor with basicStringListValidator?
+// and do we want map (transform) (for example, one might want a reduce as transformation, which is
+// not possible now).
+export const basicListValidator = (param, validate=T, transform=id, preValidate=T) => [
+  param,
+  allAgainst (validate),
+  map (transform),
+  againstAll ([ok, allAgainst (preValidate)]),
+]
 
 export const basicValidator = (param, validate=T, transform=id, preValidate=T) => [
   param,

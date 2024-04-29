@@ -794,7 +794,7 @@ const Sidebar = () => {
     )}
     <div className='x__dropdown-wrapper'>
       <DropDown open={open}>
-        {filterOptions | map ((o) => <div>{o}</div>)}
+        {filters.categories | map ((cat) => <div>{cat}</div>)}
       </DropDown>
     </div>
   </SidebarS>

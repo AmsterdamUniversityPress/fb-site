@@ -51,7 +51,7 @@ import { selectQuery as selectSearchQuery, } from '../../../containers/Search/se
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
-import { lookupOnOrDie, } from '../../../util-general'
+import { lookupOnOrDie, reduceX, } from '../../../util-general'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -296,11 +296,24 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 
 // --- @todo move to Search?
 function *s_searchFetch (query) {
+  const filters = {
+    categories: ['onderwijs', 'religie']
+    // note: we only have categories as a 'list' for now, the
+    // rest, like trefwoorden, will be a query.
+    // trefwoorden:
+  }
+  const encode = (filters) =>  filters | prop ('categories') | reduceX (
+    (acc, cat, x) => [acc, cat] | sprintfN ("%s&categories[]=%s"),
+    // (acc, c, x) => acc + "&cat_" + x + "=" c,
+    ""
+  )
+  const filters_encoded = filters | encode
+  console.log ('filters_encoded', filters_encoded)
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
   yield call (doApiCall, {
-    url: [query, pageNum, pageSize] | sprintfN (
-      '/api/search/search/%s?pageNum=%d&pageSize=%d',
+    url: [query, pageNum, pageSize, filters_encoded] | sprintfN (
+      '/api/search/search/%s?pageNum=%d&pageSize=%d%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),
     oops: toastError,
