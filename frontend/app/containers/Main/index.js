@@ -4,7 +4,8 @@ import {
   not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
-  sprintfN,
+  sprintfN, reduce,
+  take,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -66,7 +67,7 @@ import {
   requestResults,
 } from '../../common'
 import {
-  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie,
+  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapX,
 } from '../../util-general'
 import config from '../../config'
 
@@ -681,7 +682,7 @@ const UserPasswordForm = container (
               emailadres
             </div>
             <div className='x__input x__email-input'>
-              <input type='text' autoComplete='username' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} ref={inputEmailRef}/>
+              <input type='email' autoComplete='username' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} ref={inputEmailRef}/>
             </div>
           </> || <>
             <div/>
@@ -750,53 +751,168 @@ const UserActivate = ({ email, mode, token: resetPasswordToken, }) => <UserActiv
   <UserPasswordForm mode={mode} email={email} resetPasswordToken={resetPasswordToken}/>
 </UserActivateS>
 
+const OptionS = styled.div`
+  .x__select {
+    display: inline-block;
+    padding-right: 20px;
+  }
+  .x__data {
+    display: inline-block;
+    &:hover {
+      background: #ffcbcb6b;
+    }
+  }
+`
+
+const Option = ({
+  data,
+  onSelect,
+  selected: selectedProp,
+}) => {
+  const [selected, setSelected] = useState (selectedProp)
+  const onClick = useCallback (() => {
+    setSelected (not (selected))
+    onSelect ()
+  }, [onSelect, selected, setSelected,])
+  return <OptionS>
+    <div className='x__select'>
+      {selected ? 'yes' : 'no'}
+    </div>
+    <div
+      className='x__data'
+      onClick={onClick}
+    >
+      {data}
+    </div>
+  </OptionS>
+}
+
+const FilterS = styled.div`
+  .x__dropdown-wrapper {
+  }
+  .x__filter {
+    background: white;
+    display: inline-block;
+    font-size: 20px;
+    width: 100%;
+    height: 35px;
+    .x__filter-name {
+      display: inline-block;
+      width: 200px;
+    }
+    .x__filter-open-char, .x__filter-close-char {
+      display: inline-block;
+      font-size: 35px;
+      padding-left: 20px;
+      position: absolute;
+    }
+    .x__filter-open-char {
+      margin-top: -1px;
+    }
+    .x__filter-close-char {
+      margin-top: -16px;
+    }
+  }
+`
+
+const Filter = ({ name, options, }) => {
+  const optionMap = options | reduce ((map, x) => map.set (x, false), new Map)
+  const [open, setOpen] = useState (false)
+  const [selected, setSelected] = useState (optionMap)
+  const onClick = useCallbackConst (
+    () => setOpen (not),
+  )
+  const onSelect = useCallback (
+    (option) => () => {
+      setSelected (selected.set (option, not (selected.get(option))))
+  }, [selected, setSelected])
+
+  return <FilterS>
+    <div className='x__filter' onClick={onClick}>
+      {open | ifTrue (
+        () => <><div className='x__filter-name'> {name}</div><div className='x__filter-open-char'>⌃</div></>,
+        () => <><div className='x__filter-name'> {name}</div> <div className='x__filter-close-char'>⌄</div></>
+      )}
+    </div>
+    <div className='x__dropdown-wrapper'>
+      <DropDown open={open} contentsStyle={{ position: 'relative', maxWidth: '200px', textWrap: 'wrap' }}>
+        {options | mapX ((option, idx) => {
+          const option_short = (option | take (15)) + ' ... '
+          return <Option
+            key={option}
+            data={option_short}
+            selected={selected.get (option)}
+            onSelect={onSelect (option)}
+          />
+        }
+        )}
+      </DropDown>
+    </div>
+  </FilterS>
+}
+
+const FiltersS = styled.div`
+  > .x__button {
+    padding: 20px;
+  }
+`
+
+const Filters = () => {
+  const onClickSubmit = useCallback (() => {
+    console.log ('onClickSubmit')
+    alert ('onClickSubmit!')
+  }, [])
+
+  const filters = [
+    { name : "categories",
+      options: [
+        'maatschappij | welzijn | samenleving',
+        'religie',
+        'onderwijs',
+        'gezondheidszorg',
+        'mensenrechten | vrede | veiligheid',
+        'natuur | milieu | dieren',
+        'kunst | cultuur',
+        'sport | recreatie',
+        'economische ontwikkeling en microkrediet',
+        'vluchtelingen',
+        'noodhulp',
+        'voedsel'
+      ]
+    },
+    { name : "zoekopties",
+      options: [
+        'trefwoorden',
+        'naam fonds'
+      ]
+    },
+  ]
+  return <FiltersS>
+  {filters | map (({ name, options }) =>
+  <Filter
+    key={name}
+    name={name}
+    options={options}
+  />)}
+  <div className='x__button'>
+    <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
+  </div>
+</FiltersS>
+}
+
 const SidebarS = styled.div`
   height: 100%;
   width: 100%;
   padding: 20px;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
-  .x__dropdown-wrapper {
-  }
-  .x__filter {
-    background: white;
-    font-size: 20px;
-    .x__filter-open-char {
-      display: inline-block;
-      font-size: 35px;
-      padding-left: 20px;
-      position: absolute;
-      padding-top: 0px;
-    }
-    .x__filter-close-char {
-      display: inline-block;
-      font-size: 35px;
-      padding-left: 20px;
-      position: absolute;
-      margin-top: -17px;
-    }
-  }
 `
 
 const Sidebar = () => {
-  const [open, setOpen] = useState (false)
-  const onClick = useCallbackConst (
-    () => setOpen (not),
-  )
-
-  const filterOptions = ['one', 'two']
+  // these categories  are all that occur (checked with a script)
   return <SidebarS>
     <p>dit is de {process.env.APP_ENV} omgeving</p>
-    {open | ifTrue (
-      () => <div onClick={onClick} className='x__filter'>FILTER<div className='x__filter-open-char'>⌃</div></div>,
-      () => <div onClick={onClick} className='x__filter'>FILTER<div className='x__filter-close-char'>⌄</div></div>
-      // <FormS style={{ marginTop: '-20%', }}>
-    )}
-    <div className='x__dropdown-wrapper'>
-      <DropDown open={open}>
-        {filters.categories | map ((cat) => <div>{cat}</div>)}
-      </DropDown>
-    </div>
+    <Filters/>
   </SidebarS>
 }
 

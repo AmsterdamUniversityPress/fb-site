@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
   id, ifOk, concatTo, tap, join,
-  sprintfN,
+  sprintfN, reduce,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
@@ -51,7 +51,7 @@ import { selectQuery as selectSearchQuery, } from '../../../containers/Search/se
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
-import { lookupOnOrDie, reduceX, } from '../../../util-general'
+import { lookupOnOrDie, } from '../../../util-general'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -302,17 +302,14 @@ function *s_searchFetch (query) {
     // rest, like trefwoorden, will be a query.
     // trefwoorden:
   }
-  const encode = (filters) =>  filters | prop ('categories') | reduceX (
-    (acc, cat, x) => [acc, cat] | sprintfN ("%s&categories[]=%s"),
-    // (acc, c, x) => acc + "&cat_" + x + "=" c,
+  const encode = (filters) =>  filters | prop ('categories') | reduce (
+    (acc, cat) => [acc, cat] | sprintfN ("%s&categories[]=%s"),
     ""
   )
-  const filters_encoded = filters | encode
-  console.log ('filters_encoded', filters_encoded)
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
   yield call (doApiCall, {
-    url: [query, pageNum, pageSize, filters_encoded] | sprintfN (
+    url: [query, pageNum, pageSize, encode (filters)] | sprintfN (
       '/api/search/search/%s?pageNum=%d&pageSize=%d%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),
