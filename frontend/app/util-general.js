@@ -151,3 +151,18 @@ export const truncate = recurry (2) (
 export const reduceX = addIndex2 (reduce)
 const isEven = (n) => n % 2 === 0
 export const ifEven = isEven | ifPredicate
+
+
+export const mapGet = recurry (2) (
+  (key) => (map) => map.get (key)
+)
+
+export const mapSetM = recurry (3) (
+  (key) => (value) => (map) =>  map.set (key, value)
+)
+
+export const mapUpdateM = recurry (3) (
+  (key) => (f) => (map) => map.set (
+    key,
+    f (map.get (key)))
+)

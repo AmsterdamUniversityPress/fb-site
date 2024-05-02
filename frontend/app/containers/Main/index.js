@@ -5,7 +5,7 @@ import {
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
   sprintfN, reduce,
-  take,
+  take, recurry,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -61,13 +61,13 @@ import CloseIcon from '../../components/svg/CloseIcon'
 import mkPagination from '../../containers/shared/Pagination'
 
 import {
-  component, container,
+  component, container, container2,
   useWhy,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults,
 } from '../../common'
 import {
-  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapX,
+  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapGet, mapSetM, mapUpdateM, mapX,
 } from '../../util-general'
 import config from '../../config'
 
@@ -797,6 +797,7 @@ const FilterS = styled.div`
     width: 100%;
     height: 35px;
     .x__filter-name {
+      padding-left: 10px;
       display: inline-block;
       width: 200px;
     }
@@ -815,7 +816,7 @@ const FilterS = styled.div`
   }
 `
 
-const Filter = ({ name, options, }) => {
+const Filter = ({ name, options, onChange, }) => {
   const optionMap = options | reduce ((map, x) => map.set (x, false), new Map)
   const [open, setOpen] = useState (false)
   const [selected, setSelected] = useState (optionMap)
@@ -825,7 +826,8 @@ const Filter = ({ name, options, }) => {
   const onSelect = useCallback (
     (option) => () => {
       setSelected (selected.set (option, not (selected.get(option))))
-  }, [selected, setSelected])
+      onChange (option)
+  }, [onChange, selected, setSelected])
 
   return <FilterS>
     <div className='x__filter' onClick={onClick}>
@@ -857,48 +859,77 @@ const FiltersS = styled.div`
   }
 `
 
-const Filters = () => {
-  const onClickSubmit = useCallback (() => {
-    console.log ('onClickSubmit')
-    alert ('onClickSubmit!')
-  }, [])
+// @todo move to config?
+const filters = [
+  { name : "categories",
+    options: [
+      'maatschappij | welzijn | samenleving',
+      'religie',
+      'onderwijs',
+      'gezondheidszorg',
+      'mensenrechten | vrede | veiligheid',
+      'natuur | milieu | dieren',
+      'kunst | cultuur',
+      'sport | recreatie',
+      'economische ontwikkeling en microkrediet',
+      'vluchtelingen',
+      'noodhulp',
+      'voedsel'
+    ]
+  },
+  { name : "zoekopties",
+    options: [
+      'trefwoorden',
+      'naam fonds'
+    ]
+  },
+]
 
-  const filters = [
-    { name : "categories",
-      options: [
-        'maatschappij | welzijn | samenleving',
-        'religie',
-        'onderwijs',
-        'gezondheidszorg',
-        'mensenrechten | vrede | veiligheid',
-        'natuur | milieu | dieren',
-        'kunst | cultuur',
-        'sport | recreatie',
-        'economische ontwikkeling en microkrediet',
-        'vluchtelingen',
-        'noodhulp',
-        'voedsel'
-      ]
-    },
-    { name : "zoekopties",
-      options: [
-        'trefwoorden',
-        'naam fonds'
-      ]
-    },
-  ]
-  return <FiltersS>
-  {filters | map (({ name, options }) =>
-  <Filter
-    key={name}
-    name={name}
-    options={options}
-  />)}
-  <div className='x__button'>
-    <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
-  </div>
-</FiltersS>
-}
+const filterMap = filters | reduce (
+  (filterMap, { name, options }) => filterMap | mapSetM (
+    name,
+    options | reduce (
+      (optionMap, option) => optionMap | mapSetM (
+        option, false), new Map)
+  ), new Map)
+
+const Filters = container2 (
+  ['Filters'],
+  (props) => {
+    const { filterMap: filterMapProp, } = props
+
+    const [filterMap, setFilterMap] = useState (filterMapProp)
+
+    const onChange = useCallback (
+      (name) => (option) => {
+        setFilterMap (
+          filterMap | mapUpdateM (
+            name,
+            mapUpdateM (option, not),
+        ))
+      }, [filterMap, setFilterMap],
+    )
+
+    const onClickSubmit = useCallback (() => {
+      console.log ('onClickSubmit')
+      console.log ('filterMap | mapGet ("zoekopties")', filterMap | mapGet ("zoekopties"))
+      alert ('onClickSubmit!')
+    }, [filterMap])
+
+    return <FiltersS>
+    {filters | map (({ name, options }) =>
+    <Filter
+      key={name}
+      name={name}
+      options={options}
+      onChange={onChange (name)}
+    />)}
+    <div className='x__button'>
+      <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
+    </div>
+  </FiltersS>
+  }
+)
 
 const SidebarS = styled.div`
   height: 100%;
@@ -912,7 +943,9 @@ const Sidebar = () => {
   // these categories  are all that occur (checked with a script)
   return <SidebarS>
     <p>dit is de {process.env.APP_ENV} omgeving</p>
-    <Filters/>
+    <Filters
+      filterMap={filterMap}
+    />
   </SidebarS>
 }
 
