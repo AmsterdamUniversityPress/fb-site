@@ -41,6 +41,8 @@ const isValidEmail = (x) => ok (x.match (
   /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/,
 ))
 
+const abortGetAndValidate = Symbol ()
+
 export const _getAndValidate = recurry (6) (
   (getParams) => (spec) => (cont) => (req) => (res) => (next) => {
     const params = getParams (req)
@@ -61,7 +63,7 @@ export const _getAndValidate = recurry (6) (
       }
       paramVals.push (transformed)
     })
-    if (aborted) return
+    if (aborted) return abortGetAndValidate
     return cont ({ req, res, next, }, ... paramVals)
   },
 )
@@ -88,6 +90,9 @@ export const gvBodyParams = _getAndValidate ((req) => req.body.data)
 
 const getAndValidate = recurry (5) (
   (getAndValidates) => (cont) => (req) => (res) => (next) => {
+    // --- @future use reduceAbort (no need to keep reducing after we already know there's a
+    // problem)
+    let aborted
     const [params, reqResNexts] = getAndValidates | reduce (
       ([collectParams, reqResNexts], gandv) => {
         // --- reqResNext is the same at each step, any one will do
@@ -95,11 +100,20 @@ const getAndValidate = recurry (5) (
           reqResNexts.push (reqResNext)
           collectParams.push (... params)
         }
-        gandv (f, req, res, next)
+        const ret = gandv (f, req, res, next)
+        // --- one of the validators failed, and we have already sent 499 in the response.
+        if (ret === abortGetAndValidate) {
+          aborted = true
+          return []
+        }
         return [collectParams, reqResNexts]
       },
       [[], []],
     )
+    if (aborted) {
+      // --- we have already returned response with 499
+      return
+    }
     return cont (reqResNexts | head, ... params)
   },
 )
