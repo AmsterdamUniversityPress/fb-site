@@ -230,8 +230,8 @@ const highlightJoin = recurry (2) (
   (joiner=(idx) => idx === 0 ? '' : ', ') => (xss) => xss | mapX (
     (xs, idx) => [joiner (idx), ... xs | mapX (
       (x, idx2) => idx2 | ifEven (
-        () => <span>{x}</span>,
-        () => <span class='highlight'>{x}</span>,
+        () => <span key={idx2}>{x}</span>,
+        () => <span key={idx2} className='highlight'>{x}</span>,
       ),
     )],
   ),
