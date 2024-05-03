@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
-  id, ifOk, concatTo, tap, join,
-  sprintfN, reduce,
+  id, ifOk, concatTo, tap, join, ifNil,
+  reduce, sprintfN,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
@@ -318,7 +318,7 @@ function *s_searchFetch (query) {
 }
 
 function *s_searchReset () {
-  yield put (a_setPage (paginationKeySearch, 0))
+  yield put (a_setPage (paginationKeySearch, 0, { doNewSearch: false, }))
 }
 
 function *s_sendResetEmail (email) {
@@ -356,10 +356,17 @@ function *s_setNumPerPageIdx ({ key, ... _}) {
   else if (key === paginationKeySearch) yield put (a_searchFetch (query))
 }
 
-function *s_setPage ({ key, ... _}) {
+function *s_setPage ({ key, userdata=null, ... _}) {
   const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  else if (key === paginationKeySearch) yield put (a_searchFetch (query))
+  // --- @todo
+  else if (key === paginationKeySearch) {
+    const doNewSearch = userdata | ifNil (
+      () => true,
+      prop ('doNewSearch'),
+    )
+    if (doNewSearch) yield put (a_searchFetch (query, null))
+  }
 }
 
 function *s_userAdd ({ email, firstName, lastName, privileges }) {

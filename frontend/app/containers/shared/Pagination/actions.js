@@ -12,6 +12,6 @@ export const setNumPerPageIdx = action (
 )
 
 export const setPage = action (
-  (key, page) => ({ key, page, }),
+  (key, page, userData=null) => ({ key, page, userData, }),
   'setPage',
 )

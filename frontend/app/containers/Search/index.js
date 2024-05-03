@@ -311,6 +311,10 @@ export const Search = container (
       numResultsSearch,
     } = props
     const navigate = useNavigate ()
+    // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
+    // again by react router. If it's nil it means there hasn't been a search yet; e.g., we're
+    // looking at Main. `query` in the state is the query as it's being entered, but hasn't been
+    // accepted yet.
     const [query, setQuery] = useState ('')
     const [querySubmitted, setQuerySubmitted] = useState (null)
     // --- we want to distinguish the case of starting a new search, with a new query, and searching

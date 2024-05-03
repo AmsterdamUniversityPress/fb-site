@@ -22,7 +22,7 @@ const checkKey = (k1, k2) => (reduce) => k1 === k2 ? reduce : id
 // structured)
 const mkReducerTable = (theKey) => makeReducer (
   setNumPerPageIdx, ({ key, n, }) => checkKey (theKey, key) (assoc ('numPerPageIdx', n)),
-  setPage, ({ key, page, }) => checkKey (theKey, key) (assoc ('page', page)),
+  setPage, ({ key, page, ... _ }) => checkKey (theKey, key) (assoc ('page', page)),
 )
 
 // --- @future this is a bit ugly (we may want to design it differently next time we want a reusable
