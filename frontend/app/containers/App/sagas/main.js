@@ -2,7 +2,8 @@ import {
   pipe, compose, composeRight,
   map, prop, ok, againstAny, lets,
   id, ifOk, concatTo, tap, join, ifNil,
-  reduce, sprintfN,
+  reduce, sprintfN, defaultToV,
+  recurry, each, whenOk,
 } from 'stick-js/es'
 
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
@@ -52,6 +53,7 @@ import { init as initPaginationSelectors, } from '../../shared/Pagination/select
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import { lookupOnOrDie, } from '../../../util-general'
+import { takeParams, } from '../../../util-web'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -149,6 +151,16 @@ function *logoutUserCompleted (rcomplete) {
   )
   if (ok) yield put (a_loggedOutUser ())
   yield call (hello, false)
+}
+
+// --- redoes a search with the current query and filters -- useful for when the page number /
+// number per page has changed.
+function *redoSearch () {
+  const query = yield select (selectSearchQuery)
+  // --- @todo
+  // const filters = yield select (selectSearchFilters)
+  const filters = null
+  yield put (a_searchFetch (query, filters))
 }
 
 function *sendEmail (email, type) {
@@ -295,22 +307,22 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 }
 
 // --- @todo move to Search?
-function *s_searchFetch (query) {
+function *s_searchFetch ({ query, filterSearchParams, }) {
   const filters = {
     categories: ['onderwijs', 'religie']
     // note: we only have categories as a 'list' for now, the
     // rest, like trefwoorden, will be a query.
     // trefwoorden:
   }
-  const encode = (filters) =>  filters | prop ('categories') | reduce (
-    (acc, cat) => [acc, cat] | sprintfN ("%s&categories[]=%s"),
-    ""
-  )
+// --- @todo
+const searchParams = filterSearchParams | defaultToV (new URLSearchParams ())
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
+  searchParams.set ('pageSize', pageSize)
+  searchParams.set ('pageNum', pageNum)
   yield call (doApiCall, {
-    url: [query, pageNum, pageSize, encode (filters)] | sprintfN (
-      '/api/search/search/%s?pageNum=%d&pageSize=%d%s',
+    url: [encodeURIComponent (query), searchParams.toString ()] | sprintfN (
+      '/api/search/search/%s?%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),
     oops: toastError,
@@ -353,7 +365,7 @@ function *s_setNumPerPageIdx ({ key, ... _}) {
   yield put (a_setPage (key, 0))
   const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  else if (key === paginationKeySearch) yield put (a_searchFetch (query))
+  else if (key === paginationKeySearch) yield call (redoSearch)
 }
 
 function *s_setPage ({ key, userdata=null, ... _}) {
@@ -365,7 +377,7 @@ function *s_setPage ({ key, userdata=null, ... _}) {
       () => true,
       prop ('doNewSearch'),
     )
-    if (doNewSearch) yield put (a_searchFetch (query, null))
+    if (doNewSearch) yield call (redoSearch)
   }
 }
 

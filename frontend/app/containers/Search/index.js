@@ -39,6 +39,7 @@ import {
   effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
   whenIsNotEmptyList,
 } from '../../util-general'
+import { mkURLSearchParams, } from '../../util-web'
 
 import config from '../../config'
 const configTop = configure.init (config)
@@ -311,7 +312,10 @@ export const Search = container (
       queryUpdatedDispatch, searchFetchDispatch, searchResetDispatch,
     } = props
     const navigate = useNavigate ()
-    const filterSearchParams = new URLSearchParams (searchParamsStringProp)
+    const filterSearchParams = searchParamsStringProp | mkURLSearchParams (
+      // --- @todo add more
+      ['categories', 'trefwoorden'],
+    )
     // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
     // again by React Router. If this is the first time this component sees this value for `queryProp` then it hasn't been searched on yet (it's our job to do it using the effect below).
     // If it's nil it means there hasn't been a search yet; e.g., we're looking at Main. `query` in
