@@ -365,7 +365,6 @@ function *s_setNumPerPageIdx ({ key, ... _}) {
 
 function *s_setPage ({ key, userdata=null, ... _}) {
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  // --- @todo
   else if (key === paginationKeySearch) {
     const doNewSearch = userdata | ifNil (
       () => true,
