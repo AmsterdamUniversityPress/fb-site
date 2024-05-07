@@ -26,7 +26,7 @@ export const autocompleteFetchCompleted = action (
 )
 
 export const searchFetch = action (
-  (query) => query,
+  (query, filterSearchParams) => ({ query, filterSearchParams, }),
   'searchFetch',
 )
 

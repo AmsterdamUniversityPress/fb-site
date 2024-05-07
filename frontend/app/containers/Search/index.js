@@ -295,7 +295,6 @@ export const Search = container (
     },
     {
       results: selectResultsAutocomplete,
-      numResultsSearch: selectNumResultsSearch,
       resultsSearch: selectResultsSearch,
       searchQuery: selectSearchQuery,
     },
@@ -303,19 +302,23 @@ export const Search = container (
   (props) => {
     const {
       query: queryProp=null,
+      searchParamsStringProp='',
       showResults: showResultsProp,
       results: resultsRequest,
       resultsSearch,
+      // --- `searchQuery` is the query that has actually been executed (contrast with `queryProp`)
       searchQuery,
       queryUpdatedDispatch, searchFetchDispatch, searchResetDispatch,
-      numResultsSearch,
     } = props
     const navigate = useNavigate ()
+    const filterSearchParams = new URLSearchParams (searchParamsStringProp)
     // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
-    // again by react router. If it's nil it means there hasn't been a search yet; e.g., we're
-    // looking at Main. `query` in the state is the query as it's being entered, but hasn't been
-    // accepted yet.
+    // again by React Router. If this is the first time this component sees this value for `queryProp` then it hasn't been searched on yet (it's our job to do it using the effect below).
+    // If it's nil it means there hasn't been a search yet; e.g., we're looking at Main. `query` in
+    // the state is the query as it's being entered, but hasn't been accepted yet.
     const [query, setQuery] = useState ('')
+    // --- keep track of this so that the effect doesn't continually fire
+    const [searchParamsString, setSearchParamsString] = useState (null)
     const [querySubmitted, setQuerySubmitted] = useState (null)
     // --- we want to distinguish the case of starting a new search, with a new query, and searching
     // on a different page or page size with the existing query. In the first case we want the text
@@ -325,7 +328,7 @@ export const Search = container (
     // suddenly gets replaced by new text when the new results come in.
     const [isNewQuery, setIsNewQuery] = useState (false)
     useEffect (() => {
-      if (ok (queryProp)) setQuery (decodeURIComponent (queryProp))
+      if (ok (queryProp)) setQuery (queryProp)
     }, [queryProp])
     // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
@@ -370,10 +373,11 @@ export const Search = container (
     useEffect (() => {
       if (nil (queryProp)) return
       setQuerySubmitted (queryProp)
-      if (queryProp === searchQuery) return
+      if (queryProp === searchQuery && searchParamsString === searchParamsStringProp) return
+      setSearchParamsString (searchParamsStringProp)
       searchResetDispatch ()
-      searchFetchDispatch (decodeURIComponent (queryProp))
-    }, [queryProp, searchQuery, searchFetchDispatch])
+      searchFetchDispatch (queryProp, filterSearchParams)
+    }, [queryProp, searchQuery, searchResetDispatch, searchFetchDispatch, filterSearchParams])
 
     useEffect (() => {
       setIsNewQuery (false)

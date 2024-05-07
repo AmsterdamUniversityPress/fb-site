@@ -23,7 +23,7 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   autocompleteFetchCompleted, (rcomplete) => assoc ('resultsAutocomplete', rcompleteToResults (rcomplete)),
-  searchFetch, (query) => composeManyRight (
+  searchFetch, ({ query, ... _ }) => composeManyRight (
     assoc ('resultsSearch', RequestLoading (Nothing)),
     assoc ('querySearch', query),
   ),

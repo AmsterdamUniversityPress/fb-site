@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tap, gt, gte,
+  tap, gt, gte, nil,
   not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
@@ -11,6 +11,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import { Link, useNavigate, useParams, } from 'react-router-dom'
+import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 import zxcvbn from 'zxcvbn'
 
@@ -47,6 +48,7 @@ import {
 import {
   selectPasswordUpdated,
 } from '../App/store/ui/selectors'
+import { selectQuery as selectSearchQuery, } from '../Search/selectors'
 
 import saga from './saga'
 
@@ -771,9 +773,9 @@ const Option = ({
 }) => {
   const [selected, setSelected] = useState (selectedProp)
   const onClick = useCallback (() => {
-    setSelected (not (selected))
+    setSelected (not)
     onSelect ()
-  }, [onSelect, selected, setSelected,])
+  }, [onSelect, setSelected])
   return <OptionS>
     <div className='x__select'>
       {selected ? 'yes' : 'no'}
@@ -885,6 +887,7 @@ const filters = [
   },
 ]
 
+// @todo where to do this transform?
 const filterMap = filters | reduce (
   (filterMap, { name, options }) => filterMap | mapSetM (
     name,
@@ -897,6 +900,9 @@ const Filters = container2 (
   ['Filters'],
   (props) => {
     const { filterMap: filterMapProp, } = props
+    // --- the query that has been accepted, and may or may not have already been executed.
+    const searchQuery = useSelector (selectSearchQuery)
+    const navigate = useNavigate ()
 
     const [filterMap, setFilterMap] = useState (filterMapProp)
 
@@ -910,24 +916,39 @@ const Filters = container2 (
       }, [filterMap, setFilterMap],
     )
 
+    // --- may be nil
+    const searchQueryEncoded = encodeURIComponent (searchQuery)
+
+    // --- @mock
     const onClickSubmit = useCallback (() => {
-      console.log ('onClickSubmit')
-      console.log ('filterMap | mapGet ("zoekopties")', filterMap | mapGet ("zoekopties"))
-      alert ('onClickSubmit!')
-    }, [filterMap])
+      // const filterMapTemp = new Map ([
+      const filterMapTemp = [
+        ['categories', 'welzijn'],
+        ['categories', 'azijn'],
+        ['categories', 'olijfolie'],
+        ['trefwoorden', 'water'],
+      ]
+      const params = new URLSearchParams (filterMapTemp)
+      navigate ([searchQueryEncoded, params.toString ()] | sprintfN (
+        '/search/%s?%s',
+      ))
+    }, [navigate, filterMap, searchQueryEncoded])
+
+    // --- currently don't show the filters if there isn't an active search query
+    if (nil (searchQuery)) return
 
     return <FiltersS>
-    {filters | map (({ name, options }) =>
-    <Filter
-      key={name}
-      name={name}
-      options={options}
-      onChange={onChange (name)}
-    />)}
-    <div className='x__button'>
-      <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
-    </div>
-  </FiltersS>
+      {filters | map (({ name, options }) =>
+      <Filter
+        key={name}
+        name={name}
+        options={options}
+        onChange={onChange (name)}
+      />)}
+      <div className='x__button'>
+        <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
+      </div>
+    </FiltersS>
   }
 )
 
@@ -1281,7 +1302,7 @@ const Contents = container (
       overview: [true, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email}/>],
-      search: [true, () => <SearchWrapper query={params.query} showResults={true}/>],
+      search: [true, () => <SearchWrapper query={params.query} searchParamsString={document.location.search} showResults={true}/>],
       user: [true, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
