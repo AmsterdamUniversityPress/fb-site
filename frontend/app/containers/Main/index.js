@@ -916,9 +916,6 @@ const Filters = container2 (
       }, [filterMap, setFilterMap],
     )
 
-    // --- may be nil
-    const searchQueryEncoded = encodeURIComponent (searchQuery)
-
     // --- @mock
     const onClickSubmit = useCallback (() => {
       // const filterMapTemp = new Map ([
@@ -929,10 +926,10 @@ const Filters = container2 (
         ['trefwoorden', 'water'],
       ]
       const params = new URLSearchParams (filterMapTemp)
-      navigate ([searchQueryEncoded, params.toString ()] | sprintfN (
+      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
         '/search/%s?%s',
       ))
-    }, [navigate, filterMap, searchQueryEncoded])
+    }, [navigate, filterMap, searchQuery])
 
     // --- currently don't show the filters if there isn't an active search query
     if (nil (searchQuery)) return

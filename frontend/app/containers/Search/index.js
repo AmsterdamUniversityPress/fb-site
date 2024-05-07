@@ -381,7 +381,7 @@ export const Search = container (
       if (queryProp === searchQuery && searchParamsString === searchParamsStringProp) return
       searchResetDispatch ()
       searchFetchDispatch (queryProp, filterSearchParams)
-    }, [queryProp, searchQuery, searchResetDispatch, searchFetchDispatch, filterSearchParams])
+    }, [queryProp, searchQuery, searchParamsString, searchParamsStringProp, searchResetDispatch, searchFetchDispatch, filterSearchParams])
 
     useEffect (() => {
       setIsNewQuery (false)

@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, prop, ok, againstAny, lets,
+  map, prop, ok, againstAny, lets, nil,
   id, ifOk, concatTo, tap, join, ifNil,
   reduce, sprintfN, defaultToV,
   recurry, each, whenOk,
@@ -53,7 +53,6 @@ import { init as initPaginationSelectors, } from '../../shared/Pagination/select
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import { lookupOnOrDie, } from '../../../util-general'
-import { takeParams, } from '../../../util-web'
 import config from '../../../config'
 
 const configTop = configure.init (config)
@@ -155,8 +154,9 @@ function *logoutUserCompleted (rcomplete) {
 
 // --- redoes a search with the current query and filters -- useful for when the page number /
 // number per page has changed.
-function *redoSearch () {
+function *redoSearchIfActive () {
   const query = yield select (selectSearchQuery)
+  if (nil (query)) return
   const filters = yield select (selectSearchFilterSearchParams)
   yield put (a_searchFetch (query, filters))
 }
@@ -359,13 +359,11 @@ function *s_sendWelcomeEmailCompleted ({ rcomplete, email, }) {
 
 function *s_setNumPerPageIdx ({ key, ... _}) {
   yield put (a_setPage (key, 0))
-  const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
-  else if (key === paginationKeySearch) yield call (redoSearch)
+  else if (key === paginationKeySearch) yield call (redoSearchIfActive)
 }
 
 function *s_setPage ({ key, userdata=null, ... _}) {
-  const query = yield select (selectSearchQuery)
   if (key === paginationKeyFondsen) yield call (fondsenRefresh, true)
   // --- @todo
   else if (key === paginationKeySearch) {
@@ -373,7 +371,7 @@ function *s_setPage ({ key, userdata=null, ... _}) {
       () => true,
       prop ('doNewSearch'),
     )
-    if (doNewSearch) yield call (redoSearch)
+    if (doNewSearch) yield call (redoSearchIfActive)
   }
 }
 
