@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   id, recurry, sprintf1, head,
   againstAll, allAgainst, T, ok, not, join,
-  lets, reduce, tap, map,
+  lets, reduce, tap, map, whenOk, ifOk,
 } from 'stick-js/es'
 
 import zxcvbn from 'zxcvbn'
@@ -11,7 +11,7 @@ import { sendStatus, } from 'alleycat-js/es/express'
 import { trim, logWith, } from 'alleycat-js/es/general'
 import { isEmptyString, } from 'alleycat-js/es/predicate'
 
-import { eachAbort, regexAlphaNum, regexAlphaNumSpace, } from './util.mjs'
+import { eachAbort, regexAlphaNum, regexAlphaNumSpace, toListSingleton, } from './util.mjs'
 
 const isNonEmptyString = isEmptyString >> not
 const isStrongPassword = recurry (2) (
@@ -82,8 +82,8 @@ export const gvBodyParams = _getAndValidate ((req) => req.body.data)
  *        basicStringValidator ('query'),
  *      ]),
  *      gvQuery ([
- *        basicValidator ('pageSize', isPositiveInt, Number),
- *        basicValidator ('pageNum', isNonNegativeInt, Number),
+ *        basicRequiredValidator ([isPositiveInt, Number], 'pageSize'),
+ *        basicRequiredValidator ([isNonNegativeInt, Number], 'pageNum'),
  *      ]),
  *    ], ({ res }, query, pageSize, pageNum) => ...
  */
@@ -129,69 +129,68 @@ export const gv3 = recurry (7) (
   (gvf1) => (gvf2) => (gvf3) => gvN ([gvf1, gvf2, gvf3]),
 )
 
+export const basicValidator = recurry (3) (
+  (required=true) => ([validate=T, transform=id, preValidate=T]) => (param) => [
+    param,
+    validate,
+    // --- @todo how important is this trim? seems like overkill
+    whenOk (trim) >> transform,
+    againstAll ([required ? ok : T, preValidate]),
+  ],
+)
+
+export const basicRequiredValidator = basicValidator (true)
+export const basicOptionalValidator = basicValidator (false)
+
+// --- @future once we start dealing with optional values the whole thing gets more complicated
+// (ifOk/whenOk etc.). Another option is to keep everything required, and use separate endpoints
+// (for example /search and /search-with-filters)
+
 // @todo refactor with basicStringListValidator?
 // and do we want map (transform) (for example, one might want a reduce as transformation, which is
 // not possible now).
-export const basicListValidator = (param, validate=T, transform=id, preValidate=T) => [
+export const basicListValidator = recurry (3) (
+  (required=true) => ([validate=T, transform=id, preValidate=T]) => (param) => [
+    param,
+    ifOk (allAgainst (validate), T),
+    whenOk (map (transform)),
+    againstAll ([required ? ok : T, ifOk (allAgainst (preValidate), T)]),
+  ],
+)
+
+export const basicStringValidator = (param) => basicRequiredValidator (
+  [isNonEmptyString],
   param,
-  allAgainst (validate),
-  map (transform),
-  againstAll ([ok, allAgainst (preValidate)]),
+)
+
+export const basicAlphaNumericStringValidator = (param) => basicRequiredValidator (
+  [isNonEmptyAlphaNumericString],
+  param,
+)
+
+export const basicPasswordValidator = (minimumPasswordScore) => (param) => basicRequiredValidator (
+  [againstAll ([isNonEmptyString, isStrongPassword (minimumPasswordScore)])],
+  param,
+)
+
+export const basicBase64StringValidator = (param) => basicRequiredValidator (
+  [isNonEmptyBase64String],
+  param,
+)
+
+export const basicStringListValidator = (param) => [
+  param,
+  allAgainst (trim >> isNonEmptyAlphaNumericString),
+  id,
+  ok,
 ]
 
-export const basicValidator = (param, validate=T, transform=id, preValidate=T) => [
+export const basicUUIDValidator = (param) => basicRequiredValidator (
+  [isNonEmptyUUID],
   param,
-  validate,
-  trim >> transform,
-  againstAll ([ok, preValidate]),
-]
-
-export const basicStringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
-  param,
-  againstAll ([validate, isNonEmptyString]),
-  transform,
-  preValidate,
 )
 
-export const basicAlphaNumericStringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
+export const basicEmailValidator = (param) => basicRequiredValidator (
+  [isValidEmail],
   param,
-  againstAll ([validate, isNonEmptyAlphaNumericString]),
-  transform,
-  preValidate,
-)
-
-export const basicPasswordValidator = (minimumPasswordScore) => (param, validate=T, transform=id, preValidate=T) => basicValidator (
-  param,
-  againstAll ([validate, isNonEmptyString, isStrongPassword (minimumPasswordScore)]),
-  transform,
-  preValidate,
-)
-
-export const basicBase64StringValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
-  param,
-  againstAll ([validate, isNonEmptyBase64String]),
-  transform,
-  preValidate,
-)
-
-export const basicStringListValidator = (param, validate=T, transform=id, preValidate=T) => [
-  param,
-  againstAll ([validate, allAgainst (trim >> isNonEmptyAlphaNumericString)]),
-  transform,
-  againstAll ([ok, preValidate]),
-]
-
-
-export const basicUUIDValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
-  param,
-  againstAll ([validate, isNonEmptyUUID]),
-  transform,
-  preValidate,
-)
-
-export const basicEmailValidator = (param, validate=T, transform=id, preValidate=T) => basicValidator (
-  param,
-  againstAll ([validate, isValidEmail]),
-  transform,
-  preValidate,
 )

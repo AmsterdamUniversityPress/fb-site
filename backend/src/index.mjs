@@ -77,12 +77,12 @@ import {
   gv2,
   basicBase64StringValidator,
   basicEmailValidator,
+  basicListValidator,
   basicPasswordValidator,
+  basicStringListValidator,
   basicStringValidator,
   basicUUIDValidator,
-  basicValidator,
-  basicListValidator,
-  basicStringListValidator,
+  basicRequiredValidator,
 } from './util-express.mjs'
 import {
   init as redisInit,
@@ -696,8 +696,8 @@ const init = ({ port, }) => express ()
     next ()
   })
   | secureGet (privsUser) ('/fondsen', gvQuery ([
-      basicValidator ('beginIdx', isNonNegativeInt, Number),
-      basicValidator ('number', isPositiveInt, Number),
+      basicRequiredValidator ([isNonNegativeInt, Number], 'beginIdx'),
+      basicRequiredValidator ([isPositiveInt, Number], 'number'),
     ],
     ({ res, }, beginIdx, number) => res | sendStatus (200, {
       metadata: { totalAvailable: data.length, },
@@ -719,11 +719,9 @@ const init = ({ port, }) => express ()
       basicStringValidator ('query'),
     ]),
     gvQuery ([
-      basicValidator ('pageSize', isPositiveInt, Number),
-      basicValidator ('pageNum', isNonNegativeInt, Number),
-      // note that this is encoded as &categories[]=valueX&categories[]=value(X+1)...
-      // and we don't use categories[] here
-      basicListValidator ('categories'),
+      basicRequiredValidator ([isPositiveInt, Number], 'pageSize'),
+      basicRequiredValidator ([isNonNegativeInt, Number], 'pageNum'),
+      basicListValidator (false, [], 'categories'),
     ]),
     ({ res }, query, pageSize, pageNum, categories) => {
       console.log ('categories', categories)
