@@ -182,9 +182,10 @@ const mkSearchQuery = (query, filters) => {
             { match: { type_organisatie: { query, }}},
             { match: { werk_regio: { query, }}},
           ],
-          filter: categories | map ((categorie) => (
-            { match : { categories : categorie }}
-          )),
+          // --- @todo
+          // filter: categories | map ((categorie) => (
+            // { match : { categories : categorie }}
+          // )),
         },
       },
     }),
