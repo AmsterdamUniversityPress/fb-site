@@ -303,7 +303,7 @@ export const Search = container (
   (props) => {
     const {
       query: queryProp=null,
-      searchParamsStringProp='',
+      searchParamsString: searchParamsStringProp='',
       showResults: showResultsProp,
       results: resultsRequest,
       resultsSearch,
@@ -323,6 +323,7 @@ export const Search = container (
     const [query, setQuery] = useState ('')
     // --- keep track of this so that the effect doesn't continually fire
     const [searchParamsString, setSearchParamsString] = useState (null)
+    useEffect (() => { setSearchParamsString (searchParamsStringProp) }, [searchParamsStringProp])
     const [querySubmitted, setQuerySubmitted] = useState (null)
     // --- we want to distinguish the case of starting a new search, with a new query, and searching
     // on a different page or page size with the existing query. In the first case we want the text
@@ -378,7 +379,6 @@ export const Search = container (
       if (nil (queryProp)) return
       setQuerySubmitted (queryProp)
       if (queryProp === searchQuery && searchParamsString === searchParamsStringProp) return
-      setSearchParamsString (searchParamsStringProp)
       searchResetDispatch ()
       searchFetchDispatch (queryProp, filterSearchParams)
     }, [queryProp, searchQuery, searchResetDispatch, searchFetchDispatch, filterSearchParams])

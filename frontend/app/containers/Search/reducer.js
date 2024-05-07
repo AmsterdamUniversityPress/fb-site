@@ -13,6 +13,8 @@ import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../comm
 
 export const initialState = {
   resultsAutocomplete: RequestInit,
+  // --- a URLSearchParams object
+  filterSearchParams: null,
   querySearch: null,
   // --- request results
   resultsSearch: RequestInit,
@@ -23,9 +25,10 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   autocompleteFetchCompleted, (rcomplete) => assoc ('resultsAutocomplete', rcompleteToResults (rcomplete)),
-  searchFetch, ({ query, ... _ }) => composeManyRight (
+  searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
     assoc ('resultsSearch', RequestLoading (Nothing)),
     assoc ('querySearch', query),
+    assoc ('filterSearchParams', filterSearchParams),
   ),
   searchFetchCompleted, (rcomplete) => composeManyRight (
     assoc ('resultsSearch', rcomplete | rcompleteToResults | map (prop ('results'))),

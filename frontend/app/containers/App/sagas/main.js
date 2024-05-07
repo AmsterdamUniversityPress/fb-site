@@ -48,7 +48,7 @@ import {
 } from '../../shared/Pagination/actions'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
-import { selectQuery as selectSearchQuery, } from '../../../containers/Search/selectors'
+import { selectFilterSearchParams as selectSearchFilterSearchParams, selectQuery as selectSearchQuery, } from '../../../containers/Search/selectors'
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
@@ -157,9 +157,7 @@ function *logoutUserCompleted (rcomplete) {
 // number per page has changed.
 function *redoSearch () {
   const query = yield select (selectSearchQuery)
-  // --- @todo
-  // const filters = yield select (selectSearchFilters)
-  const filters = null
+  const filters = yield select (selectSearchFilterSearchParams)
   yield put (a_searchFetch (query, filters))
 }
 
@@ -307,15 +305,13 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 }
 
 // --- @todo move to Search?
-function *s_searchFetch ({ query, filterSearchParams, }) {
+function *s_searchFetch ({ query, filterSearchParams: searchParams, }) {
   const filters = {
     categories: ['onderwijs', 'religie']
     // note: we only have categories as a 'list' for now, the
     // rest, like trefwoorden, will be a query.
     // trefwoorden:
   }
-// --- @todo
-const searchParams = filterSearchParams | defaultToV (new URLSearchParams ())
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
   searchParams.set ('pageSize', pageSize)
