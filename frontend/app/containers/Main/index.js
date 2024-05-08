@@ -4,7 +4,7 @@ import {
   not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
-  sprintfN, reduce,
+  sprintfN,
   take, recurry,
 } from 'stick-js/es'
 
@@ -18,7 +18,7 @@ import zxcvbn from 'zxcvbn'
 import configure from 'alleycat-js/es/configure'
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
-import { all, } from 'alleycat-js/es/predicate'
+import { all, ifUndefined, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
@@ -43,6 +43,7 @@ import {
 } from '../App/store/app/selectors'
 import {
   selectFilters,
+  selectFilterMap,
   selectFondsen,
   selectNumFondsen,
 } from '../App/store/domain/selectors'
@@ -860,41 +861,8 @@ const FiltersS = styled.div`
   }
 `
 
-// @todo move to config?
-const filters = [
-  { name : "categories",
-    options: [
-      'maatschappij | welzijn | samenleving',
-      'religie',
-      'onderwijs',
-      'gezondheidszorg',
-      'mensenrechten | vrede | veiligheid',
-      'natuur | milieu | dieren',
-      'kunst | cultuur',
-      'sport | recreatie',
-      'economische ontwikkeling en microkrediet',
-      'vluchtelingen',
-      'noodhulp',
-      'voedsel'
-    ]
-  },
-  { name : "trefwoorden",
-    options: [
-      'appel',
-      'ei'
-    ]
-  },
-]
-
-// @todo where to do this transform?
-const filterMap = filters | reduce (
-  (filterMap, { name, options }) => filterMap | mapSetM (
-    name,
-    options | reduce (
-      (optionMap, option) => optionMap | mapSetM (
-        option, false), new Map)
-  ), new Map)
-
+// @todo find a nice place for this
+// probably possible to use remapMapTuples from kattenluik
 const mapToList = (m) => {
   const ret = []
   m | mapForEach ((options, name) => options
@@ -906,14 +874,17 @@ const mapToList = (m) => {
 const Filters = container2 (
   ['Filters'],
   (props) => {
-    const filtersNew = useSelector (selectFilters)
-    console.log ('filtersNew', filtersNew)
-    const { filterMap: filterMapProp, } = props
+    const filters = useSelector (selectFilters)
+    const filterMapProp = useSelector (selectFilterMap)
     // --- the query that has been accepted, and may or may not have already been executed.
     const searchQuery = useSelector (selectSearchQuery)
     const navigate = useNavigate ()
 
-    const [filterMap, setFilterMap] = useState (filterMapProp)
+    // @todo can we use a selector as starting point for state like this?
+    const [filterMap, setFilterMap] = useState (filterMapProp | ifUndefined (
+      () => new Map (),
+      id
+    ))
 
     const onChange = useCallback (
       (name) => (option) => {
@@ -938,30 +909,24 @@ const Filters = container2 (
     if (nil (searchQuery)) return
 
     return <FiltersS>
-      {filters | map (({ name, options }) =>
-      <Filter
-        key={name}
-        name={name}
-        options={options}
-        optionMap={filterMap | mapGet (name)}
-        onChange={onChange (name)}
-      />)}
+      {filters | requestResults ({
+        spinnerProps: { color: 'black', size: 20, delayMs: 400, },
+          onError: noop,
+          onResults: (results) => <>
+            {results | map (
+              ({ name, options, }) => <Filter
+                key={name}
+                name={name}
+                options={options}
+                optionMap={filterMap | mapGet (name)}
+                onChange={onChange (name)}
+              />
+            )}
+          </>,
+      })}
       <div className='x__button'>
         <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
       </div>
-    {filtersNew | requestResults ({
-      spinnerProps: { color: 'black', size: 20, delayMs: 400, },
-      onError: noop,
-      onResults: (results) => <>
-        {results | prop ('categories') | map (
-          (option) => {
-            return <div>
-              {option}
-            </div>
-          },
-        )}
-      </>,
-    })}
     </FiltersS>
   }
 )
@@ -977,7 +942,7 @@ const SidebarS = styled.div`
 const Sidebar = () => {
   // these categories  are all that occur (checked with a script)
   return <SidebarS>
-    <Filters filterMap={filterMap}/>
+    <Filters/>
   </SidebarS>
 }
 

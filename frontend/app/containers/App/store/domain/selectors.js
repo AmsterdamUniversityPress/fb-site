@@ -4,14 +4,18 @@
 import {
   pipe, compose, composeRight,
   map, prop, path, tap,
-  ok,
+  ok, reduce,
 } from 'stick-js/es'
 
 import { initialState, } from './reducer'
 
 import { length, logWith, } from 'alleycat-js/es/general'
 
-import { toRequestResults, initSelectors, } from '../../../../common'
+import { foldWhenRequestResults, toRequestResults, initSelectors, } from '../../../../common'
+
+import {
+  mapSetM,
+} from '../../../../util-general'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'domain',
@@ -33,6 +37,22 @@ export const selectFilters = select (
   'filters',
   _selectFilters,
   (filtersRequest) => filtersRequest | map (prop ('results'))
+)
+
+// @todo better name
+export const selectFilterMap = select (
+  'filterMap',
+  [selectFilters],
+  // (filters) => filters | map (
+  (filters) => filters | foldWhenRequestResults (
+    (lst) => lst | reduce (
+      (filterMap, { name, options }) => filterMap | mapSetM (
+        name,
+        options | reduce (
+          (optionMap, option) => optionMap | mapSetM (
+            option, false), new Map)
+      ), new Map)
+  )
 )
 
 export const selectFondsen = select (

@@ -524,11 +524,25 @@ const get_landen = get ('landen')
 const get_regio_in_nederland = get ('regio_in_nederland')
 const get_plaats_in_nederland = get ('plaats_in_nederland')
 
-const filters = {
-  categories: get_categories (data),
-  trefwoorden: get_trefwoorden (data),
-  // naam_organisatie: get_naam_organisatie (data)
-}
+const filters = [
+  { name:  "categories",
+    options: get_categories (data)
+  },
+  { name:  "naam_organisatie",
+    options: get_naam_organisatie (data)
+  },
+  { name:  "trefwoorden",
+    options: get_trefwoorden (data)
+  },
+  { name:  "regio",
+    options: [
+      ... get_werkregio (data),
+      ... get_landen (data),
+      ... get_regio_in_nederland (data),
+      ... get_plaats_in_nederland (data),
+    ]
+  },
+]
 
 const completeQueriesSimple = invoke (() => {
   const fields = [
