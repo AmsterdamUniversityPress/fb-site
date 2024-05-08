@@ -14,7 +14,7 @@ import util from 'node:util'
 
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { flatMap, fold, foldMaybe, isLeft, Left, Right, } from 'alleycat-js/es/bilby'
-import { composeManyRight, decorateRejection, setTimeoutOn, length, } from 'alleycat-js/es/general'
+import { composeManyRight, decorateRejection, isEmptyList, setTimeoutOn, length, } from 'alleycat-js/es/general'
 import { ifArray, ifUndefined, ifFalseV, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
@@ -83,6 +83,7 @@ export const envOrConfig = _envOrConfig (true)
 export const env = (key, validate) => _envOrConfig (true) (null, null, key, validate)
 export const envOptional = (key, validate) => _envOrConfig (false) (null, null, key, validate)
 
+export const ifEmptyList = isEmptyList | ifPredicate
 export const lookupOn = recurry (2) (
   o => k => o [k],
 )
@@ -279,6 +280,7 @@ export const retryPDefaultMessage = recurry (4) (
 
 export const toListSingleton = ifArray (id, list)
 export const toListCollapseNil = ifNil (() => [], toListSingleton)
+export const toListCollapseUndefined = ifUndefined (() => [], toListSingleton)
 
 export const inspectN = recurry (2) (
   (depth) => (x) => util.inspect (x, { depth, colors: process.stdout.isTTY, }),

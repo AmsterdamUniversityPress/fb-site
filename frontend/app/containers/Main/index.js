@@ -877,10 +877,10 @@ const filters = [
       'voedsel'
     ]
   },
-  { name : "zoekopties",
+  { name : "trefwoorden",
     options: [
-      'trefwoorden',
-      'naam fonds'
+      'appel',
+      'ei'
     ]
   },
 ]
@@ -891,7 +891,7 @@ const filterMap = filters | reduce (
     name,
     options | reduce (
       (optionMap, option) => optionMap | mapSetM (
-        option, true), new Map)
+        option, false), new Map)
   ), new Map)
 
 const mapToList = (m) => {

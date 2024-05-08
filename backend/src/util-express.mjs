@@ -11,7 +11,7 @@ import { sendStatus, } from 'alleycat-js/es/express'
 import { trim, logWith, } from 'alleycat-js/es/general'
 import { isEmptyString, } from 'alleycat-js/es/predicate'
 
-import { eachAbort, regexAlphaNum, regexAlphaNumSpace, toListSingleton, } from './util.mjs'
+import { eachAbort, ifEmptyList, regexAlphaNum, regexAlphaNumSpace, toListSingleton, toListCollapseUndefined, } from './util.mjs'
 
 const isNonEmptyString = isEmptyString >> not
 const isStrongPassword = recurry (2) (
@@ -149,13 +149,23 @@ export const basicOptionalValidator = basicValidator (false)
 // @todo refactor with basicStringListValidator?
 // and do we want map (transform) (for example, one might want a reduce as transformation, which is
 // not possible now).
+//
+// @todo
+// this is a bit funky now .. The thing is, param can be undefined, x, or [xs], and we transform it
+// into a list (either [], [x] or [xs]). That should be convenient. So that's why we need the
+// toListCollapseUndefined (which we could also put into the transform instead!)
+// Then, allAgainst (T) [] is false .. which, I guess, is a matter of convention. In this case, true
+// would have been more practical, but now we can fix that with the ifEmptyList.
 export const basicListValidator = recurry (3) (
   (required=true) => ([validate=T, transform=id, preValidate=T]) => (param) => [
     param,
-    ifOk (allAgainst (validate), T),
-    whenOk (map (transform)),
+    ifEmptyList (
+      T,
+      allAgainst (validate),
+    ),
+    toListCollapseUndefined >> transform,
     againstAll ([required ? ok : T, ifOk (allAgainst (preValidate), T)]),
-  ],
+  ]
 )
 
 export const basicStringValidator = (param) => basicRequiredValidator (

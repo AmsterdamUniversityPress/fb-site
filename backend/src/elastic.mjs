@@ -160,7 +160,9 @@ const mkSearchLuceneQuery = invoke (() => {
 })
 
 const mkSearchQuery = (query, filters) => {
-  const { categories: categories, } = filters
+  const { categories, trefwoorden, } = filters
+  console.log ('categories', categories)
+  console.log ('trefwoorden', trefwoorden)
   return query
   | stripNonAlphaNum
   | trim

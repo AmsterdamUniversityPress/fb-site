@@ -722,12 +722,13 @@ const init = ({ port, }) => express ()
       basicRequiredValidator ([isPositiveInt, Number], 'pageSize'),
       basicRequiredValidator ([isNonNegativeInt, Number], 'pageNum'),
       basicListValidator (false, [], 'categories'),
+      basicListValidator (false, [], 'trefwoorden'),
     ]),
-    ({ res }, query, pageSize, pageNum, categories) => {
-      console.log ('categories', categories)
-      // note we don't want to give filters = {} (right now), because elastic will complain
-      // const filters = { categories: []}
-      const filters = { categories: ['onderwijs', 'religie']}
+    ({ res }, query, pageSize, pageNum, categories, trefwoorden, ) => {
+      const filters = {
+        categories,
+        trefwoorden,
+      }
       search (query, filters, pageSize, pageNum)
       | then (({ matches, numHits, }) => res | sendStatus (
         200,
