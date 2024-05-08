@@ -69,7 +69,7 @@ import {
   requestResults,
 } from '../../common'
 import {
-  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapGet, mapSetM, mapUpdateM, mapX,
+  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapForEach,  mapGet, mapSetM, mapUpdateM, mapX,
 } from '../../util-general'
 import config from '../../config'
 
@@ -818,18 +818,15 @@ const FilterS = styled.div`
   }
 `
 
-const Filter = ({ name, options, onChange, }) => {
-  const optionMap = options | reduce ((map, x) => map.set (x, false), new Map)
+const Filter = ({ name, options, optionMap, onChange, }) => {
   const [open, setOpen] = useState (false)
-  const [selected, setSelected] = useState (optionMap)
   const onClick = useCallbackConst (
     () => setOpen (not),
   )
   const onSelect = useCallback (
     (option) => () => {
-      setSelected (selected.set (option, not (selected.get(option))))
       onChange (option)
-  }, [onChange, selected, setSelected])
+  }, [onChange])
 
   return <FilterS>
     <div className='x__filter' onClick={onClick}>
@@ -841,11 +838,12 @@ const Filter = ({ name, options, onChange, }) => {
     <div className='x__dropdown-wrapper'>
       <DropDown open={open} contentsStyle={{ position: 'relative', maxWidth: '200px', textWrap: 'wrap' }}>
         {options | mapX ((option, idx) => {
+          // @todo make nice option_short
           const option_short = (option | take (15)) + ' ... '
           return <Option
             key={option}
             data={option_short}
-            selected={selected.get (option)}
+            selected={optionMap | mapGet (option)}
             onSelect={onSelect (option)}
           />
         }
@@ -893,8 +891,16 @@ const filterMap = filters | reduce (
     name,
     options | reduce (
       (optionMap, option) => optionMap | mapSetM (
-        option, false), new Map)
+        option, true), new Map)
   ), new Map)
+
+const mapToList = (m) => {
+  const ret = []
+  m | mapForEach ((options, name) => options
+    | mapForEach ((val, option) => val | whenTrue (
+      () => ret.push ([name, option]))))
+  return ret
+}
 
 const Filters = container2 (
   ['Filters'],
@@ -918,13 +924,7 @@ const Filters = container2 (
 
     // --- @mock
     const onClickSubmit = useCallback (() => {
-      // const filterMapTemp = new Map ([
-      const filterMapTemp = [
-        ['categories', 'welzijn'],
-        ['categories', 'azijn'],
-        ['categories', 'olijfolie'],
-        ['trefwoorden', 'water'],
-      ]
+      const filterMapTemp = filterMap | mapToList
       const params = new URLSearchParams (filterMapTemp)
       navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
         '/search/%s?%s',
@@ -940,6 +940,7 @@ const Filters = container2 (
         key={name}
         name={name}
         options={options}
+        optionMap={filterMap | mapGet (name)}
         onChange={onChange (name)}
       />)}
       <div className='x__button'>
@@ -960,10 +961,7 @@ const SidebarS = styled.div`
 const Sidebar = () => {
   // these categories  are all that occur (checked with a script)
   return <SidebarS>
-    <p>dit is de {process.env.APP_ENV} omgeving</p>
-    <Filters
-      filterMap={filterMap}
-    />
+    <Filters filterMap={filterMap}/>
   </SidebarS>
 }
 

@@ -7,7 +7,7 @@ import {
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
   againstAny, contains, containsV, flip,
   map, addIndex, ifTrue, ifPredicate, whenPredicate,
-  dot2,
+  dot2, dot1,
 } from 'stick-js/es'
 
 import { fold, Right, Left, } from 'alleycat-js/es/bilby'
@@ -166,3 +166,6 @@ export const mapUpdateM = recurry (3) (
     key,
     f (map.get (key)))
 )
+
+// @todo some recurrying?
+export const mapForEach = dot1 ('forEach')
