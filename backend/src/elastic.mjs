@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   tap, map, ok, not, path, join, prop,
-  invoke, split, lets,
+  invoke, split, lets, id,
 } from 'stick-js/es'
 
 import { Client, } from '@elastic/elasticsearch'
@@ -142,6 +142,7 @@ const initIndexMain = (data) => startP ()
 const mkSearchLuceneQuery = invoke (() => {
   // --- must match the fields in `mkSearchQuery`
   const fields = [
+    // @todo slightly weird that categories is english and the other fields are dutch
     'categories',
     'doelgroep',
     'doelstelling',
@@ -163,43 +164,64 @@ const mkSearchQuery = (query, filters) => {
   const { categories, trefwoorden, } = filters
   console.log ('categories', categories)
   console.log ('trefwoorden', trefwoorden)
+  console.log ('query', query)
+  const orQueryList =
+    [
+      { match: { categories: { query, }}},
+      // --- we need to use full-text queries (`match` etc.) and not
+      // term-level queries (`term` etc.) because of the stemming &
+      // tokenizing and so on which we do for Dutch.
+      { match: { doelgroep: { query, }}},
+      { match: { doelstelling: { query, }}},
+      { match: { naam_organisatie: { query, }}},
+      { match: { trefwoorden: { query, }}},
+      { match: { type_organisatie: { query, }}},
+      { match: { werk_regio: { query, }}},
+    ]
   return query
-  | stripNonAlphaNum
-  | trim
-  | split (/\s+/)
-  | ifLengthOne (
-    () => ({
-      query: {
-        bool: {
-          // --- i.e., group phrases together using OR
-          should: [
-            // --- we need to use full-text queries (`match` etc.) and not
-            // term-level queries (`term` etc.) because of the stemming &
-            // tokenizing and so on which we do for Dutch.
-            { match: { categories: { query, }}},
-            { match: { doelgroep: { query, }}},
-            { match: { doelstelling: { query, }}},
-            { match: { naam_organisatie: { query, }}},
-            { match: { trefwoorden: { query, }}},
-            { match: { type_organisatie: { query, }}},
-            { match: { werk_regio: { query, }}},
-          ],
-          // --- @todo
-          // filter: categories | map ((categorie) => (
-            // { match : { categories : categorie }}
-          // )),
+    | stripNonAlphaNum
+    | trim
+    | split (/\s+/)
+    | ifLengthOne (
+      () => ({
+        query: {
+          bool: {
+            must: {
+              bool: {
+                // --- i.e., group phrases together using OR
+                should: [
+                  { match: { categories: { query, }}},
+                  // --- we need to use full-text queries (`match` etc.) and not
+                  // term-level queries (`term` etc.) because of the stemming &
+                  // tokenizing and so on which we do for Dutch.
+                  { match: { doelgroep: { query, }}},
+                  { match: { doelstelling: { query, }}},
+                  { match: { naam_organisatie: { query, }}},
+                  { match: { trefwoorden: { query, }}},
+                  { match: { type_organisatie: { query, }}},
+                  { match: { werk_regio: { query, }}},
+                ]
+              }
+            },
+            // --- @todo
+            filter: [
+              categories | map ((categorie) => (
+                { match : { categories : categorie }})),
+              trefwoorden | map ((trefwoord) => (
+                { match : { trefwoorden : trefwoord }}))
+            ] | flatMap (id),
+          },
         },
-      },
-    }),
-    (words) => ({
-      // --- for multiple words we assemble the Lucene query manually (not clear
-      // how to do what we want using the Elastic Query DSL)
-      q: mkSearchLuceneQuery (words) | tapWhen (
-        () => inspectLuceneQuery,
-        logWith ('lucene query:'),
-      ),
-    }),
-  )
+      }),
+      (words) => ({
+        // --- for multiple words we assemble the Lucene query manually (not clear
+        // how to do what we want using the Elastic Query DSL)
+        q: mkSearchLuceneQuery (words) | tapWhen (
+          () => inspectLuceneQuery,
+          logWith ('lucene query:'),
+        ),
+      }),
+    )
 }
 
 export const search = (query, filters, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
