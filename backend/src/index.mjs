@@ -524,6 +524,12 @@ const get_landen = get ('landen')
 const get_regio_in_nederland = get ('regio_in_nederland')
 const get_plaats_in_nederland = get ('plaats_in_nederland')
 
+const filters = {
+  categories: get_categories (data),
+  trefwoorden: get_trefwoorden (data),
+  // naam_organisatie: get_naam_organisatie (data)
+}
+
 const completeQueriesSimple = invoke (() => {
   const fields = [
     'doelstelling',
@@ -695,6 +701,12 @@ const init = ({ port, }) => express ()
     )
     next ()
   })
+  | secureGet (privsUser) ('/filters', ({ res, }) => res
+    | sendStatus (200, {
+      // metadata: { totalAvailable: data.length, },
+      results: filters,
+    }),
+  )
   | secureGet (privsUser) ('/fondsen', gvQuery ([
       basicRequiredValidator ([isNonNegativeInt, Number], 'beginIdx'),
       basicRequiredValidator ([isPositiveInt, Number], 'number'),

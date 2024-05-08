@@ -26,7 +26,14 @@ export const selectError = selectVal ('error')
  *   results: [...],
  * })
  */
+const _selectFilters = selectVal ('filters')
 const _selectFondsen = selectVal ('fondsen')
+
+export const selectFilters = select (
+  'filters',
+  _selectFilters,
+  (filtersRequest) => filtersRequest | map (prop ('results'))
+)
 
 export const selectFondsen = select (
   'selectFondsen',

@@ -42,6 +42,7 @@ import {
   selectHasPrivilegeAdminUser,
 } from '../App/store/app/selectors'
 import {
+  selectFilters,
   selectFondsen,
   selectNumFondsen,
 } from '../App/store/domain/selectors'
@@ -905,6 +906,8 @@ const mapToList = (m) => {
 const Filters = container2 (
   ['Filters'],
   (props) => {
+    const filtersNew = useSelector (selectFilters)
+    console.log ('filtersNew', filtersNew)
     const { filterMap: filterMapProp, } = props
     // --- the query that has been accepted, and may or may not have already been executed.
     const searchQuery = useSelector (selectSearchQuery)
@@ -946,6 +949,19 @@ const Filters = container2 (
       <div className='x__button'>
         <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
       </div>
+    {filtersNew | requestResults ({
+      spinnerProps: { color: 'black', size: 20, delayMs: 400, },
+      onError: noop,
+      onResults: (results) => <>
+        {results | prop ('categories') | map (
+          (option) => {
+            return <div>
+              {option}
+            </div>
+          },
+        )}
+      </>,
+    })}
     </FiltersS>
   }
 )

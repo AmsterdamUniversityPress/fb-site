@@ -16,6 +16,8 @@ import { cata, } from 'alleycat-js/es/bilby'
 
 import {
   appMounted as a_appMounted,
+  filtersFetch as a_filtersFetch,
+  filtersFetchCompleted as a_filtersFetchCompleted,
   fondsenFetch as a_fondsenFetch,
   fondsenFetchCompleted as a_fondsenFetchCompleted,
   logIn as a_logIn,
@@ -129,7 +131,10 @@ function *helloCompleted (rcomplete, first=false) {
   )
   // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
-    if (first) yield call (fondsenRefresh, false)
+    if (first) {
+      yield call (fondsenRefresh, false)
+      yield put (a_filtersFetch ())
+    }
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
@@ -189,6 +194,15 @@ function *s_appMounted () {
   yield call (hello, true)
   yield delay (helloInterval)
   yield callForever (helloInterval, helloWrapper)
+}
+
+function *s_filtersFetch () {
+  console.log ('filtersFetch from saga')
+  yield call (doApiCall, {
+    url: '/api/filters',
+    continuation: EffAction (a_filtersFetchCompleted),
+    oops: toastError,
+  })
 }
 
 function *s_fondsenFetch ({ pageNum, ... _ }) {
@@ -422,6 +436,7 @@ function *s_usersFetch () {
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
+    saga (takeLatest, a_filtersFetch, s_filtersFetch),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logInUser),
     saga (takeLatest, a_loginUserCompleted, s_loginUserCompleted),

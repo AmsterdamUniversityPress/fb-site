@@ -16,6 +16,16 @@ export const appMounted = action (
   'appMounted',
 )
 
+export const filtersFetch = action (
+  noop,
+  'filtersFetch',
+)
+
+export const filtersFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'filtersFetchCompleted',
+)
+
 export const fondsenFetch = action (
   (pageNum, resetResults) => ({ pageNum, resetResults }),
   'fondsenFetch',

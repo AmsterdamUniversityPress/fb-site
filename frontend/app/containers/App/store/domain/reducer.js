@@ -9,6 +9,8 @@ import { composeManyRight, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
+  filtersFetch,
+  filtersFetchCompleted,
   fondsenFetch,
   fondsenFetchCompleted,
   halt,
@@ -19,6 +21,7 @@ import { rcompleteToResults, reducer, } from '../../../../common'
 export const initialState = {
   // --- `error=true` means the reducer is totally corrupted and the app should halt.
   error: false,
+  filters: RequestInit,
   fondsen: RequestInit,
   // --- gets set each time we request a chunk of fonds data -- note that we don't set it to Nothing
   // at the beginning of each request, because we don't want the pagination component (which selects
@@ -28,6 +31,12 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   halt, () => assoc ('error', true),
+  filtersFetch, () => assoc (
+    'filters', RequestLoading (Nothing),
+  ),
+  filtersFetchCompleted, (rcomplete) => assoc (
+    'filters', rcomplete | rcompleteToResults
+  ),
   fondsenFetch, ({ resetResults, ... _ }) => not (resetResults) ? id : assoc (
     'fondsen', RequestLoading (Nothing),
   ),
