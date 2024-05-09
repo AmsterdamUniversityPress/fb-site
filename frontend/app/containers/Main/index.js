@@ -881,10 +881,11 @@ const Filters = container2 (
     const navigate = useNavigate ()
 
     // @todo can we use a selector as starting point for state like this?
-    const [filterMap, setFilterMap] = useState (filterMapProp | ifUndefined (
-      () => new Map (),
-      id
-    ))
+    const [filterMap, setFilterMap] = useState (new Map ())
+
+    useEffect (() => {
+      setFilterMap (filterMapProp)
+    }, [filterMapProp])
 
     const onChange = useCallback (
       (name) => (option) => {
