@@ -33,7 +33,7 @@ import { ifArray, } from 'alleycat-js/es/predicate'
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config as configFb, } from './config-fb.mjs'
 import { config as configUser, } from './config.mjs'
-import { dataTst, dataAcc, dataPrd, } from './data.mjs'
+import { dataTst, dataAcc, dataPrd, getFilters, } from './data.mjs'
 import {
   staleSessionsClear as dbStaleSessionsClear,
   init as dbInit,
@@ -185,6 +185,7 @@ const data = appEnv | lookupOnOrDie (
 )
 
 const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
+const filterValues = getFilters (data)
 
 const emailTransporter = nodemailer.createTransport ({
   connectionTimeout: 3000,
@@ -467,68 +468,6 @@ const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (q
     return { matches, numHits, }
   })
 
-// @todo remove, this is just to play around with
-// notes: they want 4 'filters'
-// naam, categorie, trefwoord, doelregio
-//
-// --- naam:
-// this is probaly just going to be a 'search field' where we ask elastic to do a text
-// search in the naam. So there are no 'filter options'
-//
-// --- categorie:
-// there are 12, so it makes sense to make those into filter options
-//
-// --- trefwoorden:
-// there are many (more than 600), examples:
-//
-// 'behoeftigen', 'behoud', 'bejaarden', 'belangenbehartiging', 'beperking', 'beroepsonderwijs',
-// 'betaalbare zorg', 'beurzen', 'beveiliging', 'beweging', 'bibliotheek', 'bijbel', 'bijstand',
-// so this could be the same as name, I guess (with autocomplete)
-//
-// --- doelregio
-// this is indeed a tricky one. There are many countries (more than 100), and even more regios in
-// Nederland, en plaatsen in Nederland. It might be an idea to split international and national,
-// and give an autocomplete field for each (and just regio en plaats in Nederland together)
-const get = recurry (2) (
-  (field) => (data) => {
-  let seen = new Set
-  for (const fonds of data) {
-    fonds [field]
-      | toListCollapseNil
-      | each ((x) => seen.has (x) || seen.add (x))}
-  return Array.from (seen)
-})
-
-const get_naam_organisatie = get ('naam_organisatie')
-const get_categories = get ('categories')
-const get_doelgroepen = get ('doelgroep')
-const get_trefwoorden = get ('trefwoorden')
-// there is a fonds with Err:522 as werkregio
-const get_werkregio = get ('werk_regio')
-const get_landen = get ('landen')
-const get_regio_in_nederland = get ('regio_in_nederland')
-const get_plaats_in_nederland = get ('plaats_in_nederland')
-
-const filters = [
-  { name:  "categories",
-    options: get_categories (data)
-  },
-  { name:  "naam_organisatie",
-    options: get_naam_organisatie (data)
-  },
-  { name:  "trefwoorden",
-    options: get_trefwoorden (data)
-  },
-  { name:  "regio",
-    options: [
-      ... get_werkregio (data),
-      ... get_landen (data),
-      ... get_regio_in_nederland (data),
-      ... get_plaats_in_nederland (data),
-    ]
-  },
-]
-
 const completeQueriesSimple = invoke (() => {
   const fields = [
     'doelstelling',
@@ -703,7 +642,7 @@ const init = ({ port, }) => express ()
   | secureGet (privsUser) ('/filters', ({ res, }) => res
     | sendStatus (200, {
       // metadata: { totalAvailable: data.length, },
-      results: filters,
+      results: filterValues,
     }),
   )
   | secureGet (privsUser) ('/fondsen', gvQuery ([
@@ -740,7 +679,7 @@ const init = ({ port, }) => express ()
         categories,
         trefwoorden,
       }
-      search (query, searchFilters, pageSize, pageNum, filters)
+      search (query, searchFilters, pageSize, pageNum, filterValues)
       | then (({ matches, numHits, }) => res | sendStatus (
         200,
         { results: matches, metadata: { numHits }},
@@ -950,23 +889,6 @@ const initRedis = async () => redisInit (redisURL, 1000)
   | recover (error << decorateRejection ('Fatal error connecting to redis, not trying reconnect strategy: '))
 const initElastic = async () => esInit (elasticURL, data, { forceReindex: opt.forceReindexElastic, })
   | recover (error << decorateRejection ('Fatal error connecting to elastic: '))
-
-const { log, } = console
-const sort = dot ('sort')
-
-// ; data
-  // | take (20)
-  // | get_doelgroepen
-  // | get_categories
-  // | get_naam_organisatie
-  // | get_trefwoorden
-  // | get_landen
-  // | get_regio_in_nederland
-  // | get_plaats_in_nederland
-  // | map ((x) => {console.log ('x', x)
-    // return x})
-  // | sort
-  // | log
 
 await initRedis ()
 await initElastic ()

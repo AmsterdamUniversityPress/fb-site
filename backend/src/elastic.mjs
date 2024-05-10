@@ -136,6 +136,7 @@ const initIndexMain = (data) => startP ()
         doelstelling: { type: 'text', },
         categories: keywordMapping,
         trefwoorden: keywordMapping,
+        regios: keywordMapping,
       },
     },
   }))
@@ -178,11 +179,9 @@ const mkSearchLuceneQuery = invoke (() => {
     | join (' ')
 })
 
-const mkSearchQuery = (query, searchFilters, filters) => {
+const mkSearchQuery = (query, searchFilters, filterValues) => {
   const { categories, trefwoorden, } = searchFilters
-  console.log ('categories', categories)
-  console.log ('trefwoorden', trefwoorden)
-  console.log ('query', query)
+
   return query
     | stripNonAlphaNum
     | trim
@@ -203,7 +202,9 @@ const mkSearchQuery = (query, searchFilters, filters) => {
               { match: { naam_organisatie: { query, }}},
               { match: { trefwoorden: { query, }}},
               { match: { type_organisatie: { query, }}},
+              // --- @todo this is 'Lokaal', 'Internationaal', etc.; how useful is that?
               { match: { werk_regio: { query, }}},
+              { match: { regios: { query, }}},
             ],
             filter: {
               bool: {
@@ -239,12 +240,12 @@ const mkSearchQuery = (query, searchFilters, filters) => {
     )
 }
 
-export const search = (query, searchFilters, pageSize, pageNum, doHighlightDoelstelling=true, filters) => startP ()
+export const search = (query, searchFilters, pageSize, pageNum, doHighlightDoelstelling=true, filterValues) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
     size: pageSize,
     from: pageNum * pageSize,
-    ... mkSearchQuery (query, searchFilters, filters),
+    ... mkSearchQuery (query, searchFilters, filterValues),
     highlight: {
       pre_tags: highlightTags [0],
       post_tags: highlightTags [1],
