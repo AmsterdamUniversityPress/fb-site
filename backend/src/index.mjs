@@ -27,7 +27,7 @@ import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, setIntervalOn, trim, composeManyRight, } from 'alleycat-js/es/general'
+import { decorateRejection, length, setIntervalOn, trim, composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
@@ -54,14 +54,8 @@ import {
   env, envOptional, envOrConfig, ifMapHas,
   isNonNegativeInt, isPositiveInt, isSubsetOf,
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
-  retryPDefaultMessage,
-  thenWhenTrue,
-  foldWhenLeft,
-  effects,
-  takeMapUnique,
-  mapFromPairs,
-  slice1,
-  stripNonAlphaNum,
+  retryPDefaultMessage, thenWhenTrue, foldWhenLeft, effects, takeMapUnique,
+  mapFromPairs, slice1, stripNonAlphaNum, toListCollapseNil,
 } from './util.mjs'
 
 import {
@@ -435,7 +429,7 @@ const mkTransform = recurry (5) (
 
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
-const search = (query, filters, pageSize, pageNum) => esSearch (query, filters, pageSize, pageNum, doHighlightDoelstelling)
+const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (query, searchFilters, pageSize, pageNum, doHighlightDoelstelling, filters)
   | then (({ hits, numHits, }) => {
     // --- for all fields except doelstelling we use the value returned in
     // `highlight` as the entire text to show.
@@ -499,18 +493,9 @@ const get = recurry (2) (
   (field) => (data) => {
   let seen = new Set
   for (const fonds of data) {
-    const xs = fonds [field] | ifNil (
-      () => [],
-      (x) => String (x) | split (',')
-    )
-    // console.log ('xs', xs)
-    for (const x of xs) {
-      const x_lower = x.toLowerCase () | trim
-      // console.log ('x_lower', x_lower)
-      if (seen.has (x_lower)) continue
-        seen.add (x_lower)
-    }
-  }
+    fonds [field]
+      | toListCollapseNil
+      | each ((x) => seen.has (x) || seen.add (x))}
   return Array.from (seen)
 })
 
@@ -751,11 +736,11 @@ const init = ({ port, }) => express ()
       basicListValidator (false, [], 'trefwoorden'),
     ]),
     ({ res }, query, pageSize, pageNum, categories, trefwoorden, ) => {
-      const filters = {
+      const searchFilters = {
         categories,
         trefwoorden,
       }
-      search (query, filters, pageSize, pageNum)
+      search (query, searchFilters, pageSize, pageNum, filters)
       | then (({ matches, numHits, }) => res | sendStatus (
         200,
         { results: matches, metadata: { numHits }},

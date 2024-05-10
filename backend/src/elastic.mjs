@@ -31,6 +31,11 @@ export const highlightTags = [
   '_ᡝᡝᡝ_',
 ]
 
+const keywordMapping = {
+  type: 'keyword',
+  normalizer: 'my_normalizer',
+}
+
 let esClient
 
 // --- this is just a manual custom filter which does the same as the filter
@@ -118,6 +123,19 @@ const initIndexMain = (data) => startP ()
         analyzer: {
           default: customDutchAnalyzer,
         },
+        normalizer: {
+          my_normalizer: {
+            type: "custom",
+            filter: ["lowercase", "asciifolding"]
+          }
+        }
+      },
+    },
+    mappings: {
+      properties: {
+        doelstelling: { type: 'text', },
+        categories: keywordMapping,
+        trefwoorden: keywordMapping,
       },
     },
   }))
@@ -160,24 +178,11 @@ const mkSearchLuceneQuery = invoke (() => {
     | join (' ')
 })
 
-const mkSearchQuery = (query, filters) => {
-  const { categories, trefwoorden, } = filters
+const mkSearchQuery = (query, searchFilters, filters) => {
+  const { categories, trefwoorden, } = searchFilters
   console.log ('categories', categories)
   console.log ('trefwoorden', trefwoorden)
   console.log ('query', query)
-  const orQueryList =
-    [
-      { match: { categories: { query, }}},
-      // --- we need to use full-text queries (`match` etc.) and not
-      // term-level queries (`term` etc.) because of the stemming &
-      // tokenizing and so on which we do for Dutch.
-      { match: { doelgroep: { query, }}},
-      { match: { doelstelling: { query, }}},
-      { match: { naam_organisatie: { query, }}},
-      { match: { trefwoorden: { query, }}},
-      { match: { type_organisatie: { query, }}},
-      { match: { werk_regio: { query, }}},
-    ]
   return query
     | stripNonAlphaNum
     | trim
@@ -186,30 +191,40 @@ const mkSearchQuery = (query, filters) => {
       () => ({
         query: {
           bool: {
-            must: {
+            minimum_should_match: 1,
+            // --- i.e., group phrases together using OR
+            should: [
+              { match: { categories: { query, }}},
+              // --- we need to use full-text queries (`match` etc.) and not
+              // term-level queries (`term` etc.) because of the stemming &
+              // tokenizing and so on which we do for Dutch.
+              { match: { doelgroep: { query, }}},
+              { match: { doelstelling: { query, }}},
+              { match: { naam_organisatie: { query, }}},
+              { match: { trefwoorden: { query, }}},
+              { match: { type_organisatie: { query, }}},
+              { match: { werk_regio: { query, }}},
+            ],
+            filter: {
               bool: {
-                // --- i.e., group phrases together using OR
-                should: [
-                  { match: { categories: { query, }}},
-                  // --- we need to use full-text queries (`match` etc.) and not
-                  // term-level queries (`term` etc.) because of the stemming &
-                  // tokenizing and so on which we do for Dutch.
-                  { match: { doelgroep: { query, }}},
-                  { match: { doelstelling: { query, }}},
-                  { match: { naam_organisatie: { query, }}},
-                  { match: { trefwoorden: { query, }}},
-                  { match: { type_organisatie: { query, }}},
-                  { match: { werk_regio: { query, }}},
-                ]
-              }
+                must: [
+                  {
+                    bool: {
+                      should: categories | map ((categorie) => ({
+                        term: { categories: categorie, },
+                      })),
+                    }
+                  },
+                  {
+                    bool: {
+                      should: trefwoorden | map ((trefwoord) => ({
+                        term: { trefwoorden: trefwoord, },
+                      })),
+                    }
+                  },
+                ],
+              },
             },
-            // --- @todo
-            filter: [
-              categories | map ((categorie) => (
-                { match : { categories : categorie }})),
-              trefwoorden | map ((trefwoord) => (
-                { match : { trefwoorden : trefwoord }}))
-            ] | flatMap (id),
           },
         },
       }),
@@ -224,12 +239,12 @@ const mkSearchQuery = (query, filters) => {
     )
 }
 
-export const search = (query, filters, pageSize, pageNum, doHighlightDoelstelling=true) => startP ()
+export const search = (query, searchFilters, pageSize, pageNum, doHighlightDoelstelling=true, filters) => startP ()
   | then (() => esClient.search ({
     index: indexMain,
     size: pageSize,
     from: pageNum * pageSize,
-    ... mkSearchQuery (query, filters),
+    ... mkSearchQuery (query, searchFilters, filters),
     highlight: {
       pre_tags: highlightTags [0],
       post_tags: highlightTags [1],
@@ -272,11 +287,11 @@ export const searchPhrasePrefixNoContext = (max, query) => {
           // phrase is entered it matches the whole phrase instead of doing
           // OR on the words; also the last word of the phrase can be
           // partial.
-          { match_phrase_prefix: { categories: query, }},
+          { prefix: { categories: query, }},
           { match_phrase_prefix: { doelgroep: query, }},
           { match_phrase_prefix: { doelstelling: query, }},
           { match_phrase_prefix: { naam_organisatie: query, }},
-          { match_phrase_prefix: { trefwoorden: query, }},
+          { prefix: { trefwoorden: query, }},
           { match_phrase_prefix: { type_organisatie: query, }},
         ],
       },
