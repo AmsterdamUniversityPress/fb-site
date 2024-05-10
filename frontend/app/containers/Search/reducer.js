@@ -18,6 +18,8 @@ export const initialState = {
   querySearch: null,
   // --- request results
   resultsSearch: RequestInit,
+  // @todo do we want to store this here, and do we not use RequestInit?
+  searchBuckets: null,
   // --- simple value
   // (note, not the length of `resultsSearch`, which may contain several snippets per document).
   numResultsSearch: null,
@@ -30,8 +32,12 @@ const reducerTable = makeReducer (
     assoc ('querySearch', query),
     assoc ('filterSearchParams', filterSearchParams),
   ),
+  // @todo perhaps rewrite so that rcompleteToResults is not repeated so many times?
   searchFetchCompleted, (rcomplete) => composeManyRight (
     assoc ('resultsSearch', rcomplete | rcompleteToResults | map (prop ('results'))),
+    assoc ('searchBuckets', rcomplete | rcompleteToResults | foldWhenRequestResults (
+      path (['metadata', 'buckets']),
+    )),
     assoc ('numResultsSearch', rcomplete | rcompleteToResults | foldWhenRequestResults (
       path (['metadata', 'numHits']),
     ))

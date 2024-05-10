@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil,
-  rangeTo, prop, xReplace,
+  rangeTo, prop, xReplace, path,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, recurry, ifOk, ifNil, take, dot, join,
   ifPredicate, whenOk, invoke, each, appendM,
@@ -431,7 +431,7 @@ const mkTransform = recurry (5) (
 // --- max * 3 is just a guess, to try to have enough results after
 // duplicates have been removed.
 const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (query, searchFilters, pageSize, pageNum, doHighlightDoelstelling, filters)
-  | then (({ hits, numHits, }) => {
+  | then (({ hits, numHits, aggregations, }) => {
     // --- for all fields except doelstelling we use the value returned in
     // `highlight` as the entire text to show.
     const simpleFields = [
@@ -465,7 +465,12 @@ const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (q
         uuid,
       })
     })
-    return { matches, numHits, }
+    const categories_bucket = aggregations | path (['categories', 'buckets'])
+    const buckets = {
+      categories: aggregations | path (['categories', 'buckets']),
+      trefwoorden: aggregations | path (['trefwoorden', 'buckets']),
+    }
+    return { matches, numHits, buckets }
   })
 
 const completeQueriesSimple = invoke (() => {
@@ -680,9 +685,9 @@ const init = ({ port, }) => express ()
         trefwoorden,
       }
       search (query, searchFilters, pageSize, pageNum, filterValues)
-      | then (({ matches, numHits, }) => res | sendStatus (
+      | then (({ matches, numHits, buckets }) => res | sendStatus (
         200,
-        { results: matches, metadata: { numHits }},
+        { results: matches, metadata: { numHits, buckets }}
       ))
       | recover (
         decorateRejection ('Error with elastic search: ') >> effects ([

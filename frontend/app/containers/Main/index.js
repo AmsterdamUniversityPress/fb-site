@@ -50,7 +50,10 @@ import {
 import {
   selectPasswordUpdated,
 } from '../App/store/ui/selectors'
-import { selectQuery as selectSearchQuery, } from '../Search/selectors'
+import {
+  selectQuery as selectSearchQuery,
+  selectSearchBucket,
+} from '../Search/selectors'
 
 import saga from './saga'
 
@@ -875,6 +878,9 @@ const Filters = container2 (
   ['Filters'],
   (props) => {
     const filters = useSelector (selectFilters)
+    const buckets = useSelector (selectSearchBucket)
+    // @todo do something with it
+    // console.log ('buckets', buckets)
     const filterMapProp = useSelector (selectFilterMap)
     // --- the query that has been accepted, and may or may not have already been executed.
     const searchQuery = useSelector (selectSearchQuery)

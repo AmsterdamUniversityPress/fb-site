@@ -228,6 +228,16 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
             },
           },
         },
+        // @todo
+        // aggregations: categories_aggregations
+        aggregations: {
+          "categories": {
+            terms: { field: "categories" }
+          },
+          "trefwoorden": {
+            terms: { field: "trefwoorden" }
+          }
+        }
       }),
       (words) => ({
         // --- for multiple words we assemble the Lucene query manually (not clear
@@ -267,7 +277,7 @@ export const search = (query, searchFilters, pageSize, pageNum, doHighlightDoels
     },
   }))
   | thenWhenTrue (inspectResultsSearch) (tap (inspect >> logWith ('results for search')))
-  | then (({ hits: { total: { value: numHits }, hits, }}) => ({ hits, numHits, }))
+  | then (({ hits: { total: { value: numHits }, hits }, aggregations }) => ({ hits, numHits, aggregations, }))
   | recover (decorateAndReject ('Error with esClient.search: '))
 
 export const searchPhrasePrefixNoContext = (max, query) => {

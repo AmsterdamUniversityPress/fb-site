@@ -19,6 +19,7 @@ export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
 // --- @todo consistent naming for selectors involving a request
 
 export const selectResultsSearch = selectVal ('resultsSearch')
+export const selectSearchBucket = selectVal ('searchBuckets')
 export const selectNumResultsSearch = selectVal ('numResultsSearch')
 export const selectQuery = selectVal ('querySearch')
 export const selectFilterSearchParams = selectVal ('filterSearchParams')
