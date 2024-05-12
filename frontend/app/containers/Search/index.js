@@ -347,7 +347,9 @@ export const Search = container (
       setSuggestions ([])
     })
     const startSearch = useCallback ((value) => {
-      navigate ('/search/' + encodeURIComponent (value))
+      navigate ([encodeURIComponent (value), document.location.search] | sprintfN (
+        '/search/%s%s',
+      ))
     }, [navigate])
     // --- after choosing autocomplete value or typing query and pressing enter
     const onSelect = useCallback ((value) => {
