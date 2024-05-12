@@ -31,7 +31,7 @@ const DetailS = styled.div`
 
 const Detail = ({ data, }) => <DetailS>
   {data | remapTuples ((k, v) => <div key={k} className='x__row'>
-    {k}: {v}
+    {k}: {JSON.stringify (v)}
   </div>)}
 </DetailS>
 

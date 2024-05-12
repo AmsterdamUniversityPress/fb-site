@@ -824,6 +824,9 @@ const FilterS = styled.div`
 `
 
 const Filter = ({ name, options, optionMap, onChange, }) => {
+  // --- @todo this means something is probably wrong higher up
+  if (nil (optionMap)) return
+
   const [open, setOpen] = useState (false)
   const onClick = useCallbackConst (
     () => setOpen (not),
@@ -912,7 +915,7 @@ const Filters = container2 (
       ))
     }, [navigate, filterMap, searchQuery])
 
-    // --- currently don't show the filters if there isn't an active search query
+    // --- don't show the filters if there isn't an active search query
     if (nil (searchQuery)) return
 
     return <FiltersS>
@@ -1218,9 +1221,13 @@ const FondsMainS = styled.div`
 const FondsMain = () => {
   return <FondsMainS>
     <SearchWrapper style={{ flex: '0 0 104px', }} query={null} showResults={false}/>
-    <div className='x__main'>
+    {
+      /*
+      <div className='x__main'>
       <Fondsen/>
-    </div>
+        </div>
+    */
+    }
   </FondsMainS>
 }
 
@@ -1282,11 +1289,11 @@ const Contents = container (
   ({ isMobile, page, }) => {
     const params = useParams ()
     const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
-      overview: [true, () => <FondsMain/>],
+      overview: [false, () => <FondsMain/>],
       detail: [false, () => <FondsDetail/>],
       login: [false, () => <Login isMobile={isMobile} email={params.email}/>],
       search: [true, () => <SearchWrapper query={params.query} searchParamsString={document.location.search} showResults={true}/>],
-      user: [true, () => <UserPage/>],
+      user: [false, () => <UserPage/>],
       'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
       'user-admin': [false, () => <Admin/>],

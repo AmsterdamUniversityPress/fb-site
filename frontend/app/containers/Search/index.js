@@ -339,6 +339,7 @@ export const Search = container (
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
       queryUpdatedDispatch,
+      // () => setSearchParamsString (null),
     ]))
     const onChange = useCallbackConst (targetValue >> trim >> onChangeValue)
     const onClear = useCallbackConst (() => {
