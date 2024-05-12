@@ -459,6 +459,96 @@ const Sidebar = () => <SidebarS>
   <Filters/>
 </SidebarS>
 
+const SearchBarS = styled.div`
+`
+
+export const SearchBar = container2 (
+  ['SearchBar'],
+  ({
+    onSelect: onSelectProp=noop,
+    query: queryProp=null,
+  }) => {
+    const navigate = useNavigate ()
+    const dispatch = useDispatch ()
+    const resultsRequest = useSelector (selectResultsAutocomplete)
+
+    // --- this is the query as it's being entered, but hasn't been accepted yet.
+    const [query, setQuery] = useState ('')
+    useEffect (() => {
+      if (ok (queryProp)) setQuery (queryProp)
+    }, [queryProp])
+
+    // --- @todo start at null, move useMemo down, easier to follow
+    const [suggestions, setSuggestions] = useState (null)
+
+    // --- @todo change name
+    const onChangeValue = useCallbackConst (effects ([
+      setQuery,
+      dispatch << queryUpdated,
+      // () => setSearchParamsString (null),
+    ]))
+    const onChange = useCallback (targetValue >> trim >> onChangeValue, [onChangeValue])
+    const onClear = useCallback (() => {
+      onChangeValue ('')
+      setSuggestions ([])
+    }, [onChangeValue])
+    const startSearch = useCallback ((value) => {
+      navigate ([encodeURIComponent (value), document.location.search] | sprintfN (
+        '/search/%s%s',
+      ))
+    }, [navigate])
+    // --- after choosing autocomplete value or typing query and pressing enter
+    const onSelect = useCallback ((value) => {
+      setQuery (value)
+      onSelectProp (value !== query)
+      console.log ('value', value)
+      startSearch (value)
+      // --- @todo we've changed the order, is that ok?
+      // if (value !== query) setIsNewQuery (true)
+    }, [onSelectProp, query, startSearch])
+    const canSearch = useMemo (() => query | isNotEmptyString, [query])
+    // --- the autocomplete results
+    // @todo better name
+    const results = useMemo (
+      () => resultsRequest | requestResults ({
+        onLoading: noop,
+        onError: noop,
+      }),
+      [resultsRequest],
+    )
+    const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
+    useEffect (() => { setSuggestions (results) }, [results])
+
+    return <SearchBarS>
+      <InputWithAutocomplete
+        Input={Input}
+        inputWrapperProps={{
+          withIcon: ['search', 'left'],
+          showClearIcon: true,
+          style: { display: 'inline-block', },
+          inputProps: {
+            autoFocus: true,
+            style: {
+              height: '100%',
+              fontSize: '25px',
+              border: '2px solid black',
+              borderRadius: '1000px',
+              background: 'white',
+            },
+          },
+        }}
+        initValue={query}
+        closeOnSelected={true}
+        suggestions={suggestions}
+        onChange={onChange}
+        onClear={onClear}
+        onSelect={onSelect}
+      />
+      <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+    </SearchBarS>
+  },
+)
+
 const SearchResults = container2 (
   ['SearchResults'],
   (props) => {
@@ -506,12 +596,10 @@ const SearchResults = container2 (
 export const Search = container (
   ['Search',
     {
-      queryUpdatedDispatch: queryUpdated,
       searchFetchDispatch: searchFetch,
       searchResetDispatch: searchReset,
     },
     {
-      results: selectResultsAutocomplete,
       resultsSearch: selectResultsSearch,
       searchQuery: selectSearchQuery,
     },
@@ -521,22 +609,18 @@ export const Search = container (
       query: queryProp=null,
       searchParamsString: searchParamsStringProp='',
       showResults: showResultsProp,
-      results: resultsRequest,
       resultsSearch,
       // --- `searchQuery` is the query that has actually been executed (contrast with `queryProp`)
       searchQuery,
-      queryUpdatedDispatch, searchFetchDispatch, searchResetDispatch,
+      searchFetchDispatch, searchResetDispatch,
     } = props
-    const navigate = useNavigate ()
     const filterSearchParams = searchParamsStringProp | mkURLSearchParams (
       // --- @todo add more
       ['categories', 'trefwoorden'],
     )
     // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
     // again by React Router. If this is the first time this component sees this value for `queryProp` then it hasn't been searched on yet (it's our job to do it using the effect below).
-    // If it's nil it means there hasn't been a search yet; e.g., we're looking at Main. `query` in
-    // the state is the query as it's being entered, but hasn't been accepted yet.
-    const [query, setQuery] = useState ('')
+    // If it's nil it means there hasn't been a search yet; e.g., we're looking at Main.
     // --- keep track of this so that the effect doesn't continually fire
     const [searchParamsString, setSearchParamsString] = useState (null)
     useEffect (() => { setSearchParamsString (searchParamsStringProp) }, [searchParamsStringProp])
@@ -548,45 +632,8 @@ export const Search = container (
     // This will cause a slight flicker in the first case, but it's confusing if the old text
     // suddenly gets replaced by new text when the new results come in.
     const [isNewQuery, setIsNewQuery] = useState (false)
-    useEffect (() => {
-      if (ok (queryProp)) setQuery (queryProp)
-    }, [queryProp])
-    // --- @todo change name
-    const onChangeValue = useCallbackConst (effects ([
-      setQuery,
-      queryUpdatedDispatch,
-      // () => setSearchParamsString (null),
-    ]))
-    const onChange = useCallbackConst (targetValue >> trim >> onChangeValue)
-    const onClear = useCallbackConst (() => {
-      onChangeValue ('')
-      setSuggestions ([])
-    })
-    const startSearch = useCallback ((value) => {
-      navigate ([encodeURIComponent (value), document.location.search] | sprintfN (
-        '/search/%s%s',
-      ))
-    }, [navigate])
-    // --- after choosing autocomplete value or typing query and pressing enter
-    const onSelect = useCallback ((value) => {
-      setQuery (value)
-      startSearch (value)
-      if (value !== query) setIsNewQuery (true)
-    }, [startSearch, query])
-    const canSearch = useMemo (() => query | isNotEmptyString, [query])
-    const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
+    const onSelect = useCallbackConst ((isNew) => setIsNewQuery (isNew))
 
-    // --- the autocomplete results
-    // @todo better name
-    const results = useMemo (
-      () => resultsRequest | requestResults ({
-        onLoading: noop,
-        onError: noop,
-      }),
-      [resultsRequest],
-    )
-    const [suggestions, setSuggestions] = useState (results)
-    useEffect (() => { setSuggestions (results) }, [results])
     const showResults = useMemo (
       () => allV (
         showResultsProp,
@@ -616,31 +663,7 @@ export const Search = container (
       </div>
       <div className='x__main'>
         <div className='x__search'>
-          <InputWithAutocomplete
-            Input={Input}
-            inputWrapperProps={{
-              withIcon: ['search', 'left'],
-              showClearIcon: true,
-              style: { display: 'inline-block', },
-              inputProps: {
-                autoFocus: true,
-                style: {
-                  height: '100%',
-                  fontSize: '25px',
-                  border: '2px solid black',
-                  borderRadius: '1000px',
-                  background: 'white',
-                },
-              },
-            }}
-            initValue={query}
-            closeOnSelected={true}
-            suggestions={suggestions}
-            onChange={(event) => onChange (event)}
-            onClear={onClear}
-            onSelect={onSelect}
-          />
-          <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+          <SearchBar query={queryProp} onSelect={onSelect}/>
         </div>
         {showResults && <div className='x__search-results-wrapper'>
           <SearchResults query={querySubmitted}/>

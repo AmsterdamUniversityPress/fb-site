@@ -59,7 +59,7 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
-import { Search, } from '../../containers/Search'
+import { Search, SearchBar, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import CloseIcon from '../../components/svg/CloseIcon'
@@ -1020,7 +1020,11 @@ const FondsMainS = styled.div`
 
 const FondsMain = () => {
   return <FondsMainS>
+    {/*
     <SearchWrapper style={{ flex: '0 0 104px', }} query={null} showResults={false}/>
+    */}
+    <SearchBar/>
+
     {
       /*
       <div className='x__main'>

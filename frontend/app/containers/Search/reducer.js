@@ -36,9 +36,12 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
-  autocompleteFetch, () => assoc (
-    'resultsAutocomplete', RequestLoading (Nothing),
-  ),
+  // --- @todo causes a flicker in the AC component, but we probably want something like this to
+  // avoid a sort of weird effect where AC results lazily load after the suggestions have already
+  // been displayed.
+  // autocompleteFetch, () => assoc (
+    // 'resultsAutocomplete', RequestLoading (Nothing),
+  // ),
   autocompleteFetchCompleted, (rcomplete) => assoc (
     'resultsAutocomplete', rcompleteToResults (rcomplete),
   ),
