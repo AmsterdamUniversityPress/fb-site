@@ -30,30 +30,7 @@ export const selectError = selectVal ('error')
  *   results: [...],
  * })
  */
-const _selectFilters = selectVal ('filters')
 const _selectFondsen = selectVal ('fondsen')
-
-export const selectFilters = select (
-  'filters',
-  _selectFilters,
-  (filtersRequest) => filtersRequest | map (prop ('results'))
-)
-
-// @todo better name
-export const selectFilterMap = select (
-  'filterMap',
-  [selectFilters],
-  // (filters) => filters | map (
-  (filters) => filters | foldWhenRequestResults (
-    (lst) => lst | reduce (
-      (filterMap, { name, options }) => filterMap | mapSetM (
-        name,
-        options | reduce (
-          (optionMap, option) => optionMap | mapSetM (
-            option, false), new Map)
-      ), new Map)
-  )
-)
 
 export const selectFondsen = select (
   'selectFondsen',

@@ -42,8 +42,6 @@ import {
   selectHasPrivilegeAdminUser,
 } from '../App/store/app/selectors'
 import {
-  selectFilters,
-  selectFilterMap,
   selectFondsen,
   selectNumFondsen,
 } from '../App/store/domain/selectors'
@@ -74,7 +72,7 @@ import {
   requestResults,
 } from '../../common'
 import {
-  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapForEach,  mapGet, mapSetM, mapUpdateM, mapX,
+  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapGet, mapSetM, mapUpdateM, mapX,
 } from '../../util-general'
 import config from '../../config'
 
@@ -758,204 +756,6 @@ const UserActivate = ({ email, mode, token: resetPasswordToken, }) => <UserActiv
   <UserPasswordForm mode={mode} email={email} resetPasswordToken={resetPasswordToken}/>
 </UserActivateS>
 
-const OptionS = styled.div`
-  .x__select {
-    display: inline-block;
-    padding-right: 20px;
-  }
-  .x__data {
-    display: inline-block;
-    &:hover {
-      background: #ffcbcb6b;
-    }
-  }
-`
-
-const Option = ({
-  data,
-  onSelect,
-  selected: selectedProp,
-}) => {
-  const [selected, setSelected] = useState (selectedProp)
-  const onClick = useCallback (() => {
-    setSelected (not)
-    onSelect ()
-  }, [onSelect, setSelected])
-  return <OptionS>
-    <div className='x__select'>
-      {selected ? 'yes' : 'no'}
-    </div>
-    <div
-      className='x__data'
-      onClick={onClick}
-    >
-      {data}
-    </div>
-  </OptionS>
-}
-
-const FilterS = styled.div`
-  .x__dropdown-wrapper {
-  }
-  .x__filter {
-    background: white;
-    display: inline-block;
-    font-size: 20px;
-    width: 100%;
-    height: 35px;
-    .x__filter-name {
-      padding-left: 10px;
-      display: inline-block;
-      width: 200px;
-    }
-    .x__filter-open-char, .x__filter-close-char {
-      display: inline-block;
-      font-size: 35px;
-      padding-left: 20px;
-      position: absolute;
-    }
-    .x__filter-open-char {
-      margin-top: -1px;
-    }
-    .x__filter-close-char {
-      margin-top: -16px;
-    }
-  }
-`
-
-const Filter = ({ name, options, optionMap, onChange, }) => {
-  // --- @todo this means something is probably wrong higher up
-  if (nil (optionMap)) return
-
-  const [open, setOpen] = useState (false)
-  const onClick = useCallbackConst (
-    () => setOpen (not),
-  )
-  const onSelect = useCallback (
-    (option) => () => {
-      onChange (option)
-  }, [onChange])
-
-  return <FilterS>
-    <div className='x__filter' onClick={onClick}>
-      {open | ifTrue (
-        () => <><div className='x__filter-name'> {name}</div><div className='x__filter-open-char'>⌃</div></>,
-        () => <><div className='x__filter-name'> {name}</div> <div className='x__filter-close-char'>⌄</div></>
-      )}
-    </div>
-    <div className='x__dropdown-wrapper'>
-      <DropDown open={open} contentsStyle={{ position: 'relative', maxWidth: '200px', textWrap: 'wrap' }}>
-        {options | mapX ((option, idx) => {
-          // @todo make nice option_short
-          const option_short = (option | take (15)) + ' ... '
-          return <Option
-            key={option}
-            data={option_short}
-            selected={optionMap | mapGet (option)}
-            onSelect={onSelect (option)}
-          />
-        }
-        )}
-      </DropDown>
-    </div>
-  </FilterS>
-}
-
-const FiltersS = styled.div`
-  > .x__button {
-    padding: 20px;
-  }
-`
-
-// @todo find a nice place for this
-// probably possible to use remapMapTuples from kattenluik
-const mapToList = (m) => {
-  const ret = []
-  m | mapForEach ((options, name) => options
-    | mapForEach ((val, option) => val | whenTrue (
-      () => ret.push ([name, option]))))
-  return ret
-}
-
-const Filters = container2 (
-  ['Filters'],
-  (props) => {
-    const filters = useSelector (selectFilters)
-    const buckets = useSelector (selectSearchBucket)
-    // @todo do something with it
-    // console.log ('buckets', buckets)
-    const filterMapProp = useSelector (selectFilterMap)
-    // --- the query that has been accepted, and may or may not have already been executed.
-    const searchQuery = useSelector (selectSearchQuery)
-    const navigate = useNavigate ()
-
-    // @todo can we use a selector as starting point for state like this?
-    const [filterMap, setFilterMap] = useState (new Map ())
-
-    useEffect (() => {
-      setFilterMap (filterMapProp)
-    }, [filterMapProp])
-
-    const onChange = useCallback (
-      (name) => (option) => {
-        setFilterMap (
-          filterMap | mapUpdateM (
-            name,
-            mapUpdateM (option, not),
-        ))
-      }, [filterMap, setFilterMap],
-    )
-
-    // --- @mock
-    const onClickSubmit = useCallback (() => {
-      const filterMapTemp = filterMap | mapToList
-      const params = new URLSearchParams (filterMapTemp)
-      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
-        '/search/%s?%s',
-      ))
-    }, [navigate, filterMap, searchQuery])
-
-    // --- don't show the filters if there isn't an active search query
-    if (nil (searchQuery)) return
-
-    return <FiltersS>
-      {filters | requestResults ({
-        spinnerProps: { color: 'black', size: 20, delayMs: 400, },
-          onError: noop,
-          onResults: (results) => <>
-            {results | map (
-              ({ name, options, }) => <Filter
-                key={name}
-                name={name}
-                options={options}
-                optionMap={filterMap | mapGet (name)}
-                onChange={onChange (name)}
-              />
-            )}
-          </>,
-      })}
-      <div className='x__button'>
-        <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
-      </div>
-    </FiltersS>
-  }
-)
-
-const SidebarS = styled.div`
-  height: 100%;
-  width: 100%;
-  padding: 20px;
-  background: #FFFFFF66;
-  backdrop-filter: blur(5px);
-`
-
-const Sidebar = () => {
-  // these categories  are all that occur (checked with a script)
-  return <SidebarS>
-    <Filters/>
-  </SidebarS>
-}
-
 const FondsS = styled.div`
   display: inline-block;
   height: 500px;
@@ -1195,7 +995,7 @@ const UserPage = container (
 )
 
 const SearchWrapperS = styled.div`
-  width: 1000px;
+  width: 100%;
   height: 75%;
   margin: auto;
   margin-top: 50px;
@@ -1236,16 +1036,7 @@ const ContentsS = styled.div`
   overflow-y: scroll;
   display: flex;
   width: 100vw;
-  .x__sidebar {
-    position: relative;
-    flex: 0 0 300px;
-    left: 0;
-    transition: left 0.1s;
-    &.x--hide {
-      left: -300px;
-    }
-  }
-  .x__main {
+  > .x__main {
     // --- @todo
     flex: 1 0 calc(100vw - 300px);
     > .x__logo {
@@ -1288,21 +1079,18 @@ const Contents = container (
   ['Contents', {}, {}],
   ({ isMobile, page, }) => {
     const params = useParams ()
-    const [showSidebar, element] = page | lookupOnOrDie ('Invalid page ' + page) ({
-      overview: [false, () => <FondsMain/>],
-      detail: [false, () => <FondsDetail/>],
-      login: [false, () => <Login isMobile={isMobile} email={params.email}/>],
-      search: [true, () => <SearchWrapper query={params.query} searchParamsString={document.location.search} showResults={true}/>],
-      user: [false, () => <UserPage/>],
-      'init-password': [false, () => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
-      'reset-password': [false, () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
-      'user-admin': [false, () => <Admin/>],
+    const element = page | lookupOnOrDie ('Invalid page ' + page) ({
+      overview: () => <FondsMain/>,
+      detail: () => <FondsDetail/>,
+      login: () => <Login isMobile={isMobile} email={params.email}/>,
+      search: () => <SearchWrapper query={params.query} searchParamsString={document.location.search} showResults={true}/>,
+      user: () => <UserPage/>,
+      'init-password': () => <UserActivate email={params.email} token={params.token} mode='init-password'/>,
+      'reset-password': () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>,
+      'user-admin': () => <Admin/>,
     })
 
     return <ContentsS>
-      <div className={clss ('x__sidebar', showSidebar || 'x--hide')}>
-        <Sidebar/>
-      </div>
       <div className='x__main'>
         <div className='x__logo'>
           <Logo/>

@@ -1,10 +1,10 @@
 import {
   pipe, compose, composeRight,
-  path, noop, ok, join, map, not, recurry,
-  sprintfN, nil, tap, concatM, concat,
+  path, noop, ok, join, map, not, recurry, ifTrue,
+  sprintfN, nil, tap, concatM, concat, take,
   ifOk, dot, id, always, defaultToV,
   prop, whenOk, split,
-  whenFalse,
+  whenFalse, whenTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -27,17 +27,26 @@ import { createReducer, } from '../../redux'
 import { queryUpdated, searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
-import { selectQuery as selectSearchQuery, selectResultsAutocomplete, selectResultsSearch, selectNumResultsSearch, } from './selectors'
+import {
+  selectFilters,
+  selectFilterMap,
+  selectSearchBucket,
+  selectQuery as selectSearchQuery,
+  selectResultsAutocomplete,
+  selectResultsSearch,
+  selectNumResultsSearch,
+} from './selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
-import { PaginationAndExplanation, } from '../../components/shared'
+import { BigButton, DropDown, PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
   effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
   whenIsNotEmptyList,
+  mapForEach, mapGet, mapUpdateM,
 } from '../../util-general'
 import { mkURLSearchParams, } from '../../util-web'
 
@@ -50,38 +59,49 @@ const targetValue = path (['target', 'value'])
 const Pagination = mkPagination (paginationKey)
 
 const SearchS = styled.div`
-  > * {
-    vertical-align: middle;
-  }
-  > .x__search {
-    width: 50%;
-    margin: auto;
+  display: flex;
+  // > * {
+    // vertical-align: middle;
+  // }
+  > .x__sidebar {
     position: relative;
-    z-index: 3;
-    > .x__zoeken {
-      position: absolute;
-      border-radius: 10px;
-      cursor: pointer;
-      left: 550px;
-      top: 5px;
-      padding: 10px;
-      background: white;
-      margin-left: 20px;
-      &.x--disabled {
-        cursor: inherit;
-        > .x__text {
-          opacity: 0.6;
+    flex: 0 0 300px;
+    left: 0;
+    transition: left 0.1s;
+    // &.x--hide { left: -300px; }
+  }
+  > .x__main {
+    flex: 1 0 0px;
+    > .x__search {
+      width: 50%;
+      margin: auto;
+      position: relative;
+      z-index: 3;
+      > .x__zoeken {
+        position: absolute;
+        border-radius: 10px;
+        cursor: pointer;
+        left: 550px;
+        top: 5px;
+        padding: 10px;
+        background: white;
+        margin-left: 20px;
+        &.x--disabled {
+          cursor: inherit;
+          > .x__text {
+            opacity: 0.6;
+          }
         }
       }
     }
-  }
-  > .x__search-results-wrapper {
-    background: white;
-    width: 95%;
-    text-align: left;
-    position: relative;
-    margin-top: 40px;
-    padding-top: 20px;
+    > .x__search-results-wrapper {
+      background: white;
+      width: 95%;
+      text-align: left;
+      position: relative;
+      margin-top: 40px;
+      padding-top: 20px;
+    }
   }
 `
 
@@ -244,6 +264,201 @@ const highlightString = highlightJoin ((idx) => {
   return ''
 })
 
+// @todo find a nice place for this
+// probably possible to use remapMapTuples from kattenluik
+const mapToList = (m) => {
+  const ret = []
+  m | mapForEach ((options, name) => options
+    | mapForEach ((val, option) => val | whenTrue (
+      () => ret.push ([name, option]))))
+  return ret
+}
+
+const OptionS = styled.div`
+  .x__select {
+    display: inline-block;
+    padding-right: 20px;
+  }
+  .x__data {
+    display: inline-block;
+    &:hover {
+      background: #ffcbcb6b;
+    }
+  }
+`
+
+const Option = ({
+  data,
+  onSelect,
+  selected: selectedProp,
+}) => {
+  const [selected, setSelected] = useState (selectedProp)
+  const onClick = useCallback (() => {
+    setSelected (not)
+    onSelect ()
+  }, [onSelect, setSelected])
+  return <OptionS>
+    <div className='x__select'>
+      {selected ? 'yes' : 'no'}
+    </div>
+    <div
+      className='x__data'
+      onClick={onClick}
+    >
+      {data}
+    </div>
+  </OptionS>
+}
+
+const FilterS = styled.div`
+  .x__dropdown-wrapper {
+  }
+  .x__filter {
+    background: white;
+    display: inline-block;
+    font-size: 20px;
+    width: 100%;
+    height: 35px;
+    .x__filter-name {
+      padding-left: 10px;
+      display: inline-block;
+      width: 200px;
+    }
+    .x__filter-open-char, .x__filter-close-char {
+      display: inline-block;
+      font-size: 35px;
+      padding-left: 20px;
+      position: absolute;
+    }
+    .x__filter-open-char {
+      margin-top: -1px;
+    }
+    .x__filter-close-char {
+      margin-top: -16px;
+    }
+  }
+`
+
+const Filter = ({ name, options, optionMap, onChange, }) => {
+  const [open, setOpen] = useState (false)
+  const onClick = useCallbackConst (
+    () => setOpen (not),
+  )
+  const onSelect = useCallback (
+    (option) => () => {
+      onChange (option)
+  }, [onChange])
+
+  // --- @todo this means something is probably wrong higher up
+  if (nil (optionMap)) return
+
+  return <FilterS>
+    <div className='x__filter' onClick={onClick}>
+      {open | ifTrue (
+        () => <><div className='x__filter-name'> {name}</div><div className='x__filter-open-char'>⌃</div></>,
+        () => <><div className='x__filter-name'> {name}</div> <div className='x__filter-close-char'>⌄</div></>
+      )}
+    </div>
+    <div className='x__dropdown-wrapper'>
+      <DropDown open={open} contentsStyle={{ position: 'relative', maxWidth: '200px', textWrap: 'wrap' }}>
+        {options | mapX ((option, idx) => {
+          // @todo make nice option_short
+          const option_short = (option | take (15)) + ' ... '
+          return <Option
+            key={option}
+            data={option_short}
+            selected={optionMap | mapGet (option)}
+            onSelect={onSelect (option)}
+          />
+        }
+        )}
+      </DropDown>
+    </div>
+  </FilterS>
+}
+
+const FiltersS = styled.div`
+  > .x__button {
+    padding: 20px;
+  }
+`
+
+const Filters = container2 (
+  ['Filters'],
+  (props) => {
+    const filters = useSelector (selectFilters)
+    const buckets = useSelector (selectSearchBucket)
+    // @todo do something with it
+    // console.log ('buckets', buckets)
+    const filterMapProp = useSelector (selectFilterMap)
+    // --- the query that has been accepted, and may or may not have already been executed.
+    const searchQuery = useSelector (selectSearchQuery)
+    const navigate = useNavigate ()
+
+    // @todo can we use a selector as starting point for state like this?
+    const [filterMap, setFilterMap] = useState (new Map ())
+
+    useEffect (() => {
+      setFilterMap (filterMapProp)
+    }, [filterMapProp])
+
+    const onChange = useCallback (
+      (name) => (option) => {
+        setFilterMap (
+          filterMap | mapUpdateM (
+            name,
+            mapUpdateM (option, not),
+        ))
+      }, [filterMap, setFilterMap],
+    )
+
+    // --- @mock
+    const onClickSubmit = useCallback (() => {
+      const filterMapTemp = filterMap | mapToList
+      const params = new URLSearchParams (filterMapTemp)
+      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
+        '/search/%s?%s',
+      ))
+    }, [navigate, filterMap, searchQuery])
+
+    // --- don't show the filters if there isn't an active search query
+    if (nil (searchQuery)) return
+
+    return <FiltersS>
+      {filters | requestResults ({
+        spinnerProps: { color: 'black', size: 20, delayMs: 400, },
+          onError: noop,
+          onResults: (results) => <>
+            {results | map (
+              ({ name, options, }) => <Filter
+                key={name}
+                name={name}
+                options={options}
+                optionMap={filterMap | mapGet (name)}
+                onChange={onChange (name)}
+              />
+            )}
+          </>,
+      })}
+      <div className='x__button'>
+        <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
+      </div>
+    </FiltersS>
+  }
+)
+
+const SidebarS = styled.div`
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  background: #FFFFFF66;
+  backdrop-filter: blur(5px);
+`
+
+const Sidebar = () => <SidebarS>
+  <Filters/>
+</SidebarS>
+
 const SearchResults = container2 (
   ['SearchResults'],
   (props) => {
@@ -287,6 +502,7 @@ const SearchResults = container2 (
     </ResultsS>
   }
 )
+
 export const Search = container (
   ['Search',
     {
@@ -395,36 +611,41 @@ export const Search = container (
     useSaga ({ saga, key: 'Search', })
 
     return <SearchS>
-      <div className='x__search'>
-        <InputWithAutocomplete
-          Input={Input}
-          inputWrapperProps={{
-            withIcon: ['search', 'left'],
-            showClearIcon: true,
-            style: { display: 'inline-block', },
-            inputProps: {
-              autoFocus: true,
-              style: {
-                height: '100%',
-                fontSize: '25px',
-                border: '2px solid black',
-                borderRadius: '1000px',
-                background: 'white',
-              },
-            },
-          }}
-          initValue={query}
-          closeOnSelected={true}
-          suggestions={suggestions}
-          onChange={(event) => onChange (event)}
-          onClear={onClear}
-          onSelect={onSelect}
-        />
-        <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+      <div className='x__sidebar'>
+        <Sidebar/>
       </div>
-      {showResults && <div className='x__search-results-wrapper'>
-        <SearchResults query={querySubmitted}/>
-      </div>}
+      <div className='x__main'>
+        <div className='x__search'>
+          <InputWithAutocomplete
+            Input={Input}
+            inputWrapperProps={{
+              withIcon: ['search', 'left'],
+              showClearIcon: true,
+              style: { display: 'inline-block', },
+              inputProps: {
+                autoFocus: true,
+                style: {
+                  height: '100%',
+                  fontSize: '25px',
+                  border: '2px solid black',
+                  borderRadius: '1000px',
+                  background: 'white',
+                },
+              },
+            }}
+            initValue={query}
+            closeOnSelected={true}
+            suggestions={suggestions}
+            onChange={(event) => onChange (event)}
+            onClear={onClear}
+            onSelect={onSelect}
+          />
+          <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+        </div>
+        {showResults && <div className='x__search-results-wrapper'>
+          <SearchResults query={querySubmitted}/>
+        </div>}
+      </div>
     </SearchS>
   }
 )
