@@ -24,6 +24,8 @@ const { select, selectTop, selectVal, } = initSelectors (
 
 export const selectError = selectVal ('error')
 
+export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
+
 /*
  * Request ({
  *   metadata: { totalAvailable, },

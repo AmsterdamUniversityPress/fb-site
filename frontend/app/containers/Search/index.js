@@ -24,7 +24,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { queryUpdated, searchFetch, searchReset, } from './actions'
+import { searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
@@ -32,10 +32,11 @@ import {
   selectFilterMap,
   selectSearchBucket,
   selectQuery as selectSearchQuery,
-  selectResultsAutocomplete,
   selectResultsSearch,
   selectNumResultsSearch,
 } from './selectors'
+import { autocompleteQueryUpdated, } from '../App/actions/main'
+import { selectResultsAutocomplete, } from '../App/store/domain/selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
@@ -484,7 +485,7 @@ export const SearchBar = container2 (
     // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
-      dispatch << queryUpdated,
+      dispatch << autocompleteQueryUpdated,
       // () => setSearchParamsString (null),
     ]))
     const onChange = useCallback (targetValue >> trim >> onChangeValue, [onChangeValue])
@@ -501,7 +502,6 @@ export const SearchBar = container2 (
     const onSelect = useCallback ((value) => {
       setQuery (value)
       onSelectProp (value !== query)
-      console.log ('value', value)
       startSearch (value)
       // --- @todo we've changed the order, is that ok?
       // if (value !== query) setIsNewQuery (true)

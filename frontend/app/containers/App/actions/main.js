@@ -16,6 +16,21 @@ export const appMounted = action (
   'appMounted',
 )
 
+export const autocompleteFetch = action (
+  (query) => query,
+  'autocompleteFetch',
+)
+
+export const autocompleteFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'autocompleteFetchCompleted',
+)
+
+export const autocompleteQueryUpdated = action (
+  (query) => query,
+  'autocompleteQueryUpdated',
+)
+
 export const filtersFetch = action (
   noop,
   'filtersFetch',

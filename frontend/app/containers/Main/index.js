@@ -1006,6 +1006,10 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
   <Search {... rest}/>
 </SearchWrapperS>
 
+const SearchBarWrapper = ({ style, }) => <SearchWrapperS style={style}>
+  <SearchBar/>
+</SearchWrapperS>
+
 const FondsMainS = styled.div`
   display: flex;
   flex-direction: column;
@@ -1020,10 +1024,7 @@ const FondsMainS = styled.div`
 
 const FondsMain = () => {
   return <FondsMainS>
-    {/*
-    <SearchWrapper style={{ flex: '0 0 104px', }} query={null} showResults={false}/>
-    */}
-    <SearchBar/>
+    <SearchBarWrapper style={{ flex: '0 0 104px', width: '500px', }}/>
 
     {
       /*

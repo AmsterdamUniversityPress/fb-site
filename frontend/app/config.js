@@ -66,6 +66,7 @@ export default {
     reducers: debugReducers && {
       // domain: true,
       app: true,
+      Search: true,
     },
     selectors: debugSelectors && {
       domain: {

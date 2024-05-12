@@ -9,8 +9,6 @@ import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
-  autocompleteFetch,
-  autocompleteFetchCompleted,
   searchFetch,
   searchFetchCompleted,
 } from './actions'
@@ -21,7 +19,6 @@ import {
 import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../common'
 
 export const initialState = {
-  resultsAutocomplete: RequestInit,
   // --- a URLSearchParams object
   filterSearchParams: null,
   filters: RequestInit,
@@ -36,15 +33,6 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
-  // --- @todo causes a flicker in the AC component, but we probably want something like this to
-  // avoid a sort of weird effect where AC results lazily load after the suggestions have already
-  // been displayed.
-  // autocompleteFetch, () => assoc (
-    // 'resultsAutocomplete', RequestLoading (Nothing),
-  // ),
-  autocompleteFetchCompleted, (rcomplete) => assoc (
-    'resultsAutocomplete', rcompleteToResults (rcomplete),
-  ),
   filtersFetch, () => assoc (
     'filters', RequestLoading (Nothing),
   ),

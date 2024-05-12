@@ -17,8 +17,6 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
-
 // --- @todo consistent naming for selectors involving a request
 
 const _selectFilters = selectVal ('filters')

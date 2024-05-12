@@ -16,6 +16,9 @@ import { cata, } from 'alleycat-js/es/bilby'
 
 import {
   appMounted as a_appMounted,
+  autocompleteFetch as a_autocompleteFetch,
+  autocompleteFetchCompleted as a_autocompleteFetchCompleted,
+  autocompleteQueryUpdated as a_autocompleteQueryUpdated,
   filtersFetch as a_filtersFetch,
   filtersFetchCompleted as a_filtersFetchCompleted,
   fondsenFetch as a_fondsenFetch,
@@ -194,6 +197,20 @@ function *s_appMounted () {
   yield call (hello, true)
   yield delay (helloInterval)
   yield callForever (helloInterval, helloWrapper)
+}
+
+function *s_autocompleteFetch (query) {
+  yield call (doApiCall, {
+    url: '/api/search/autocomplete-query/' + query,
+    resultsModify: map (prop ('results')),
+    continuation: EffAction (a_autocompleteFetchCompleted),
+    oops: toastError,
+  })
+}
+
+function *s_autocompleteQueryUpdated (query) {
+  if (query === '') return
+  yield put (a_autocompleteFetch (query))
 }
 
 function *s_filtersFetch () {
@@ -436,6 +453,8 @@ function *s_usersFetch () {
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_appMounted, s_appMounted),
+    saga (takeLatest, a_autocompleteFetch, s_autocompleteFetch),
+    saga (takeLatest, a_autocompleteQueryUpdated, s_autocompleteQueryUpdated),
     saga (takeLatest, a_filtersFetch, s_filtersFetch),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logInUser),
