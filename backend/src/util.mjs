@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke, addIndex, not, eq, dot, fromPairs,
+  map, spreadTo, lets, flip, invoke, addIndex, not, eq, ne, dot, fromPairs,
   sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
@@ -478,6 +478,7 @@ export const truncate = recurry (2) (
 )
 
 export const ifLengthOne = (length >> eq (1)) | ifPredicate
+export const ifNotLengthOne = (length >> ne (1)) | ifPredicate
 
 // --- unicode-aware version of /[\d\w]/
 const charClassAlphaNum = [

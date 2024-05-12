@@ -11,7 +11,7 @@ import { info, warn, } from 'alleycat-js/es/io'
 import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, trim, } from 'alleycat-js/es/general'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifNotLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
 
 // --- debug / analyze
 const analyze = false
@@ -179,15 +179,53 @@ const mkSearchLuceneQuery = invoke (() => {
     | join (' ')
 })
 
+const _mkSearchQuery = (query, searchFilters, filterValues) => ({
+  analyze_wildcard: true,
+  q: '*:*',
+        aggregations: {
+          "categories": {
+            terms: { field: "categories" }
+          },
+          "trefwoorden": {
+            terms: { field: "trefwoorden" }
+          }
+        }
+})
+
 const mkSearchQuery = (query, searchFilters, filterValues) => {
   const { categories, trefwoorden, } = searchFilters
+  const aggregations = {
+    categories: {
+      terms: { field: 'categories', },
+    },
+    trefwoorden: {
+      terms: { field: 'trefwoorden', },
+    },
+  }
+
+  if (query === '*') return {
+    aggregations,
+    q: '*:*',
+  }
 
   return query
     | stripNonAlphaNum
     | trim
     | split (/\s+/)
-    | ifLengthOne (
+    | ifNotLengthOne (
+      // --- for multiple words we assemble the Lucene query manually (not clear how to do what we
+      // want using the Elastic Query DSL)
+      // --- @todo: doing it this way means we can't do text analysis or use the built-in filter
+      // feature
+      (words) => ({
+        aggregations,
+        q: mkSearchLuceneQuery (words) | tapWhen (
+          () => inspectLuceneQuery,
+          logWith ('lucene query:'),
+        ),
+      }),
       () => ({
+        aggregations,
         query: {
           bool: {
             minimum_should_match: 1,
@@ -228,24 +266,6 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
             },
           },
         },
-        // @todo
-        // aggregations: categories_aggregations
-        aggregations: {
-          "categories": {
-            terms: { field: "categories" }
-          },
-          "trefwoorden": {
-            terms: { field: "trefwoorden" }
-          }
-        }
-      }),
-      (words) => ({
-        // --- for multiple words we assemble the Lucene query manually (not clear
-        // how to do what we want using the Elastic Query DSL)
-        q: mkSearchLuceneQuery (words) | tapWhen (
-          () => inspectLuceneQuery,
-          logWith ('lucene query:'),
-        ),
       }),
     )
 }
