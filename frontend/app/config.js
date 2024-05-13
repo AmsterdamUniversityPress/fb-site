@@ -73,6 +73,7 @@ export default {
         error: true,
       },
       Pagination: true,
+      Search: true,
     },
   },
   general: {

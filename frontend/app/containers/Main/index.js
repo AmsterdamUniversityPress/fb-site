@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tap, gt, gte, nil,
+  tap, gt, gte, nil, ok,
   not, noop, ifTrue, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
@@ -48,10 +48,6 @@ import {
 import {
   selectPasswordUpdated,
 } from '../App/store/ui/selectors'
-import {
-  selectQuery as selectSearchQuery,
-  selectSearchBucket,
-} from '../Search/selectors'
 
 import saga from './saga'
 

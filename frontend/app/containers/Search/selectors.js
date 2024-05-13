@@ -1,10 +1,10 @@
 import {
   pipe, compose, composeRight,
-  map, prop,
-  reduce,
+  map, prop, tap, reduce,
 } from 'stick-js/es'
 
-import {} from 'alleycat-js/es/general'
+import { cata, } from 'alleycat-js/es/bilby'
+import { logWith, } from 'alleycat-js/es/general'
 
 import { initialState, } from './reducer'
 
@@ -20,8 +20,9 @@ const { select, selectTop, selectVal, } = initSelectors (
 // --- @todo consistent naming for selectors involving a request
 
 const _selectFilters = selectVal ('filters')
+export const selectBucketsSearch = selectVal ('bucketsSearch')
 export const selectResultsSearch = selectVal ('resultsSearch')
-export const selectSearchBucket = selectVal ('searchBuckets')
+
 export const selectNumResultsSearch = selectVal ('numResultsSearch')
 export const selectQuery = selectVal ('querySearch')
 export const selectFilterSearchParams = selectVal ('filterSearchParams')

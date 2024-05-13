@@ -25,9 +25,8 @@ export const initialState = {
   querySearch: null,
   // --- request results
   resultsSearch: RequestInit,
-  // @todo do we want to store this here, and do we not use RequestInit?
-  searchBuckets: null,
-  // --- simple value
+  bucketsSearch: RequestInit,
+  // --- simple value, not RequestInit etc. (though it could just as well have been)
   // (note, not the length of `resultsSearch`, which may contain several snippets per document).
   numResultsSearch: null,
 }
@@ -40,20 +39,24 @@ const reducerTable = makeReducer (
     'filters', rcomplete | rcompleteToResults,
   ),
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
-    assoc ('resultsSearch', RequestLoading (Nothing)),
-    assoc ('querySearch', query),
     assoc ('filterSearchParams', filterSearchParams),
+    assoc ('querySearch', query),
+    assoc ('bucketsSearch', RequestLoading (Nothing)),
+    assoc ('resultsSearch', RequestLoading (Nothing)),
+    assoc ('numResultsSearch', null),
   ),
-  // @todo perhaps rewrite so that rcompleteToResults is not repeated so many times?
-  searchFetchCompleted, (rcomplete) => composeManyRight (
-    assoc ('resultsSearch', rcomplete | rcompleteToResults | map (prop ('results'))),
-    assoc ('searchBuckets', rcomplete | rcompleteToResults | foldWhenRequestResults (
-      path (['metadata', 'buckets']),
-    )),
-    assoc ('numResultsSearch', rcomplete | rcompleteToResults | foldWhenRequestResults (
-      path (['metadata', 'numHits']),
-    ))
-  ),
+  searchFetchCompleted, (rcomplete) => {
+    const results = rcomplete | rcompleteToResults
+    return composeManyRight (
+      assoc ('bucketsSearch', results | map (
+        path (['metadata', 'buckets']),
+      )),
+      assoc ('resultsSearch', results | map (prop ('results'))),
+      assoc ('numResultsSearch', results | foldWhenRequestResults (
+        path (['metadata', 'numHits']),
+      )),
+    )
+  },
 )
 
 export default reducer ('Search', initialState, reducerTable)

@@ -30,7 +30,7 @@ import saga from './saga'
 import {
   selectFilters,
   selectFilterMap,
-  selectSearchBucket,
+  selectBucketsSearch,
   selectQuery as selectSearchQuery,
   selectResultsSearch,
   selectNumResultsSearch,
@@ -388,7 +388,7 @@ const Filters = container2 (
   ['Filters'],
   (props) => {
     const filters = useSelector (selectFilters)
-    const buckets = useSelector (selectSearchBucket)
+    const buckets = useSelector (selectBucketsSearch)
     // @todo do something with it
     // console.log ('buckets', buckets)
     const filterMapProp = useSelector (selectFilterMap)
@@ -422,8 +422,6 @@ const Filters = container2 (
       ))
     }, [navigate, filterMap, searchQuery])
 
-    // --- don't show the filters if there isn't an active search query
-    if (nil (searchQuery)) return
 
     return <FiltersS>
       {filters | requestResults ({
