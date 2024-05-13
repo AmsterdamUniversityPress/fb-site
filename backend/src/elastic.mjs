@@ -137,6 +137,11 @@ const initIndexMain = (data) => startP ()
         categories: keywordMapping,
         trefwoorden: keywordMapping,
         regios: keywordMapping,
+        naam_organisatie: {
+          type: 'text',
+          fields: {
+            keyword: keywordMapping, },
+          }
       },
     },
   }))
@@ -193,13 +198,19 @@ const _mkSearchQuery = (query, searchFilters, filterValues) => ({
 })
 
 const mkSearchQuery = (query, searchFilters, filterValues) => {
-  const { categories, trefwoorden, } = searchFilters
+  const { categories, trefwoorden, naam_organisaties, regios, } = searchFilters
   const aggregations = {
     categories: {
       terms: { field: 'categories', },
     },
     trefwoorden: {
       terms: { field: 'trefwoorden', },
+    },
+    naam_organisatie: {
+      terms: { field: 'naam_organisatie.keyword', },
+    },
+    regios: {
+      terms: { field: 'regios', },
     },
   }
 
@@ -258,6 +269,20 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
                     bool: {
                       should: trefwoorden | map ((trefwoord) => ({
                         term: { trefwoorden: trefwoord, },
+                      })),
+                    }
+                  },
+                  {
+                    bool: {
+                      should: regios | map ((regio) => ({
+                        term: { regios: regio, },
+                      })),
+                    }
+                  },
+                  {
+                    bool: {
+                      should: naam_organisaties | map ((naam_organisatie) => ({
+                        term: { naam_organisatie_keyword: naam_organisatie, },
                       })),
                     }
                   },

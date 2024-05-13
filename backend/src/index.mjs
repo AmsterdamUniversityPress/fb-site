@@ -6,6 +6,7 @@ import {
   not, recurry, ifOk, ifNil, take, dot, join,
   ifPredicate, whenOk, invoke, each, appendM,
   tap,
+  mapValues,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -465,11 +466,9 @@ const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (q
         uuid,
       })
     })
-    const categories_bucket = aggregations | path (['categories', 'buckets'])
-    const buckets = {
-      categories: aggregations | path (['categories', 'buckets']),
-      trefwoorden: aggregations | path (['trefwoorden', 'buckets']),
-    }
+    const buckets = aggregations | mapValues ((v) => {
+      return v | prop ('buckets')
+    })
     return { matches, numHits, buckets }
   })
 
@@ -678,11 +677,15 @@ const init = ({ port, }) => express ()
       basicRequiredValidator ([isNonNegativeInt, Number], 'pageNum'),
       basicListValidator (false, [], 'categories'),
       basicListValidator (false, [], 'trefwoorden'),
+      basicListValidator (false, [], 'naam_organisatie'),
+      basicListValidator (false, [], 'regios'),
     ]),
-    ({ res }, query, pageSize, pageNum, categories, trefwoorden, ) => {
+    ({ res }, query, pageSize, pageNum, categories, trefwoorden, naam_organisaties, regios, ) => {
       const searchFilters = {
         categories,
         trefwoorden,
+        naam_organisaties,
+        regios,
       }
       search (query, searchFilters, pageSize, pageNum, filterValues)
       | then (({ matches, numHits, buckets }) => res | sendStatus (
