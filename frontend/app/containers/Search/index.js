@@ -331,6 +331,10 @@ const Filter2S = styled.div`
     }
     > .x__clickable {
       cursor: pointer;
+      display: inline-block;
+      width: calc(100% - 40px);
+      overflow-x: hidden;
+      text-overflow: ellipsis;
       > input {
         width: 20px;
         height: 20px;
