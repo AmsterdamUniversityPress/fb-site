@@ -30,10 +30,10 @@ import saga from './saga'
 import {
   selectFilters,
   selectFilterMap,
-  selectBucketsSearch,
+  selectBuckets,
   selectQuery as selectSearchQuery,
-  selectResultsSearch,
-  selectNumResultsSearch,
+  selectResults as selectResultsSearch,
+  selectNumResults as selectNumResultsSearch,
 } from './selectors'
 import { autocompleteQueryUpdated, } from '../App/actions/main'
 import { selectResultsAutocomplete, } from '../App/store/domain/selectors'
@@ -388,7 +388,7 @@ const Filters = container2 (
   ['Filters'],
   (props) => {
     const filters = useSelector (selectFilters)
-    const buckets = useSelector (selectBucketsSearch)
+    const buckets = useSelector (selectBuckets)
     // @todo do something with it
     // console.log ('buckets', buckets)
     const filterMapProp = useSelector (selectFilterMap)
@@ -552,12 +552,12 @@ const SearchResults = container2 (
   (props) => {
     const { query, } = props
     const searchResults = useSelector (selectResultsSearch)
-    const numResultsSearch = useSelector (selectNumResultsSearch)
+    const numResults = useSelector (selectNumResultsSearch)
     const imgSrc = imageEyeWall
     const isLoading = searchResults | requestIsLoading
     return <ResultsS>
       <div className='x__pagination'>
-        <PaginationAndExplanation query={query} showExplanation={true} numItems={numResultsSearch ?? 0} Pagination={Pagination}/>
+        <PaginationAndExplanation query={query} showExplanation={true} numItems={numResults ?? 0} Pagination={Pagination}/>
         <div className={clss ('x__separator', isLoading ? 'x--waiting' : 'x--not-waiting')}/>
       </div>
         {searchResults | requestResults ({

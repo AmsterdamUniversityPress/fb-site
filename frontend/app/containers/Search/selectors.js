@@ -20,10 +20,10 @@ const { select, selectTop, selectVal, } = initSelectors (
 // --- @todo consistent naming for selectors involving a request
 
 const _selectFilters = selectVal ('filters')
-export const selectBucketsSearch = selectVal ('bucketsSearch')
-export const selectResultsSearch = selectVal ('resultsSearch')
+export const selectBuckets = selectVal ('buckets')
+export const selectResults = selectVal ('results')
 
-export const selectNumResultsSearch = selectVal ('numResultsSearch')
+export const selectNumResults = selectVal ('numResults')
 export const selectQuery = selectVal ('querySearch')
 export const selectFilterSearchParams = selectVal ('filterSearchParams')
 

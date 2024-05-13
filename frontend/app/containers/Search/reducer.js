@@ -24,11 +24,11 @@ export const initialState = {
   filters: RequestInit,
   querySearch: null,
   // --- request results
-  resultsSearch: RequestInit,
-  bucketsSearch: RequestInit,
+  results: RequestInit,
+  buckets: RequestInit,
   // --- simple value, not RequestInit etc. (though it could just as well have been)
-  // (note, not the length of `resultsSearch`, which may contain several snippets per document).
-  numResultsSearch: null,
+  // (note, not the length of `results`, which may contain several snippets per document).
+  numResults: null,
 }
 
 const reducerTable = makeReducer (
@@ -41,18 +41,18 @@ const reducerTable = makeReducer (
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
     assoc ('filterSearchParams', filterSearchParams),
     assoc ('querySearch', query),
-    assoc ('bucketsSearch', RequestLoading (Nothing)),
-    assoc ('resultsSearch', RequestLoading (Nothing)),
-    assoc ('numResultsSearch', null),
+    assoc ('buckets', RequestLoading (Nothing)),
+    assoc ('results', RequestLoading (Nothing)),
+    assoc ('numResults', null),
   ),
   searchFetchCompleted, (rcomplete) => {
     const results = rcomplete | rcompleteToResults
     return composeManyRight (
-      assoc ('bucketsSearch', results | map (
+      assoc ('buckets', results | map (
         path (['metadata', 'buckets']),
       )),
-      assoc ('resultsSearch', results | map (prop ('results'))),
-      assoc ('numResultsSearch', results | foldWhenRequestResults (
+      assoc ('results', results | map (prop ('results'))),
+      assoc ('numResults', results | foldWhenRequestResults (
         path (['metadata', 'numHits']),
       )),
     )
