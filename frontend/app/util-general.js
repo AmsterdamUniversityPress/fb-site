@@ -167,6 +167,29 @@ export const mapUpdateM = recurry (3) (
     f (map.get (key)))
 )
 
+export const mapClone = (map) => new Map ([... map])
+
+export const mapUpdate = recurry (3) (
+  (key) => (f) => (map) => (map | mapClone).set (
+    key,
+    f (map.get (key)),
+  ),
+)
+
+export const setClone = (set) => new Set ([... set])
+export const setToggle = recurry (2) (
+  (val) => (set) => set | setClone | tap (
+    (setc) => setc.has (val) ? setc.delete (val) : setc.add (val),
+  ),
+)
+export const setAdd = recurry (2) (
+  (val) => (set) => (set | setClone).add (val),
+)
+
+export const setRemove = recurry (2) (
+  (val) => (set) => (set | setClone).delete (val),
+)
+
 // @todo some recurrying?
 export const mapForEach = dot1 ('forEach')
 

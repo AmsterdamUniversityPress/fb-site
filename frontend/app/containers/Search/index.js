@@ -2,8 +2,8 @@ import {
   pipe, compose, composeRight,
   path, noop, ok, join, map, not, recurry, ifTrue,
   sprintfN, nil, tap, concatM, concat, take,
-  ifOk, dot, id, always, defaultToV,
-  prop, whenOk, split,
+  ifOk, dot, id, always, defaultToV, reduce,
+  prop, whenOk, split, lets,
   whenFalse, whenTrue,
 } from 'stick-js/es'
 
@@ -29,7 +29,11 @@ import { searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
-  selectFilters,
+  selectFiltersWithCounts,
+  selectFilterNames,
+  selectFilterValues,
+  // selectFilterSearchParams,
+  selectSelectedFilters,
   // selectBuckets,
   selectQuery as selectSearchQuery,
   selectResults as selectResultsSearch,
@@ -43,12 +47,15 @@ import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete
 import { BigButton, DropDown, PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
-import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
+import { component, container, container2, useWhy, requestIsLoading, requestResults, foldWhenRequestResults, } from '../../common'
 import {
   effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
   whenIsNotEmptyList,
   mapForEach, mapGet, mapUpdateM,
   mapRemapTuples,
+  mapSetM,
+  mapUpdate, setAdd, setRemove,
+  setToggle,
 } from '../../util-general'
 import { mkURLSearchParams, } from '../../util-web'
 
@@ -318,34 +325,65 @@ const Filter2S = styled.div`
     font-weight: bold;
   }
   > .x__row {
-    > input {
-      width: 20px;
-      height: 20px;
-      margin-right: 10px;
+    white-space: nowrap;
+    > * {
+      vertical-align: middle;
     }
-    > .x__value {
-      margin-right: 4px;
+    > .x__clickable {
+      cursor: pointer;
+      > input {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+      }
+      > .x__value {
+        margin-right: 4px;
+      }
     }
-    > .x__count {}
+    > .x__count {
+      float: right;
+      border: 1px solid #666666;
+      border-radius: 50px;
+      background: #dddddd;
+      padding: 1px 7px 1px 7px;
+      font-size: 14px;
+      color: black;
+      font-weight: bold;
+    }
   }
 `
 
-const Filter2 = ({ name, counts, }) => <Filter2S>
-  <div className='x__title'>
-    {name}
-  </div>
-  {counts | mapRemapTuples (
-    (value, count) => <div className='x__row'>
-      <input type='checkbox'/>
-      <span className='x__value'>
-        {value}
-      </span>
-      <span className='x__count'>
-        ({count})
-      </span>
+const Filter2 = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) => {
+  // --- we don't check event -- we simply toggle in the parent
+  const onChange = useCallback (
+    (value, _event) => onChangeProp (name, value),
+    [onChangeProp, name],
+  )
+  return <Filter2S>
+    <div className='x__title'>
+      {name}
     </div>
-  )}
-</Filter2S>
+    {counts | mapRemapTuples (
+      (value, count) => <div key={value} className='x__row'>
+        {/* --- @todo useCallback (2x) */}
+        <div className='x__clickable' onClick={(event) => onChange (value, event)}>
+          <input type='checkbox'
+            checked={selecteds.has (value)}
+            // --- just here to keep react from complaining: we actually handle the change using
+            // onClick on the div
+            onChange={noop}
+          />
+          <span className='x__value'>
+            {value}
+          </span>
+        </div>
+        <span className='x__count'>
+          {count}
+        </span>
+      </div>
+    )}
+  </Filter2S>
+}
 
 const FilterS = styled.div`
   .x__dropdown-wrapper {
@@ -423,19 +461,10 @@ const FiltersS = styled.div`
 const Filters = container2 (
   ['Filters'],
   (props) => {
-    const navigate = useNavigate ()
-    // const buckets = useSelector (selectBuckets)
-    // @todo do something with it
-    // console.log ('buckets', buckets)
-    const filtersProp = useSelector (selectFilters)
-    // --- the query that has been accepted, and may or may not have already been executed.
-    const searchQuery = useSelector (selectSearchQuery)
-
-    const [filtersReq, setFiltersReq] = useState (filtersProp)
-
-    useEffect (() => {
-      setFiltersReq (filtersProp)
-    }, [filtersProp])
+    const filtersReq = useSelector (selectFiltersWithCounts)
+    const filterNamesReq = useSelector (selectFilterNames)
+    const selectedFilters = useSelector (selectSelectedFilters)
+    console.log ('selectFilters', selectedFilters)
 
     // const onChange = useCallback (
       // (name) => (option) => {
@@ -456,8 +485,16 @@ const Filters = container2 (
       // ))
     // }, [navigate, filterMap, searchQuery])
 
-    const onClickSubmit = noop
-    const onChange = noop
+    const onChange = useCallback (
+      (filterName, value) => setSelected (
+        mapUpdate (filterName, setToggle (value)),
+      ),
+    )
+    // --- 'category' => 'onderwijs', 'category' => 'religie', 'trefwoorden' => ...,
+    const [selected, setSelected] = useState (new Map)
+    useEffect (() => {
+      setSelected (selectedFilters)
+    }, [selectedFilters])
     return <FiltersS>
       {filtersReq | requestResults ({
         spinnerProps: { color: 'black', size: 20, delayMs: 400, },
@@ -465,10 +502,12 @@ const Filters = container2 (
           onResults: (filters) => <>
             {
               filters | map (
-                ([name, countsMap]) => <Filter2
-                  key={name}
-                  name={name}
+                ([filterName, countsMap]) => <Filter2
+                  key={filterName}
+                  name={filterName}
                   counts={countsMap}
+                  selecteds={selected.get (filterName)}
+                  onChange={onChange}
                 />
               )
             }
@@ -483,9 +522,6 @@ const Filters = container2 (
             ) */}
           </>,
       })}
-      <div className='x__button'>
-        <BigButton disabled={false} onClick={onClickSubmit}>Zoek</BigButton>
-      </div>
     </FiltersS>
   }
 )

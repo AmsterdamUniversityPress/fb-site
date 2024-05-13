@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
-  map, prop, tap, reduce, remapTuples,
+  map, prop, tap, reduce, remapTuples, nil,
+  each,
 } from 'stick-js/es'
 
 import { cata, } from 'alleycat-js/es/bilby'
@@ -41,9 +42,8 @@ const selectBuckets = select (
   ),
 )
 
-// @todo better name
-export const selectFilters = select (
-  'filters',
+export const selectFiltersWithCounts = select (
+  'filtersWithCounts',
   [selectBuckets],
   (bucketsRequest) => bucketsRequest | map (
     /* [
@@ -60,4 +60,38 @@ export const selectFilters = select (
       )],
     ),
   ),
+)
+
+// --- toch niet nodig
+export const selectFilterValues = select (
+  'filterValues',
+  [selectFiltersWithCounts],
+  (filtersWithCountsReq) => filtersWithCountsReq | map (
+    (filters) => filters | map (
+      ([name, counts]) => [name, [... counts.keys ()]],
+    ),
+  ),
+)
+
+export const selectFilterNames = select (
+  'filterNames',
+  [selectFiltersWithCounts],
+  (filtersWithCountsReq) => filtersWithCountsReq | map (
+    (filters) => filters | map (
+      ([name, _]) => name,
+    ),
+  ),
+)
+
+export const selectSelectedFilters = select (
+  'selectedFilters',
+  [selectFilterNames, selectFilterSearchParams],
+  (filterNames, params) => {
+    const ret = new Map
+    if (nil (params)) return ret
+    filterNames | foldWhenRequestResults (each (
+      (filterName) => ret.set (filterName, new Set (params.getAll (filterName))),
+    ))
+    return ret
+  }
 )
