@@ -19,8 +19,6 @@ import {
   autocompleteFetch as a_autocompleteFetch,
   autocompleteFetchCompleted as a_autocompleteFetchCompleted,
   autocompleteQueryUpdated as a_autocompleteQueryUpdated,
-  filtersFetch as a_filtersFetch,
-  filtersFetchCompleted as a_filtersFetchCompleted,
   fondsenFetch as a_fondsenFetch,
   fondsenFetchCompleted as a_fondsenFetchCompleted,
   logIn as a_logIn,
@@ -136,7 +134,6 @@ function *helloCompleted (rcomplete, first=false) {
   if (ok (user)) {
     if (first) {
       yield call (fondsenRefresh, false)
-      yield put (a_filtersFetch ())
     }
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
@@ -211,15 +208,6 @@ function *s_autocompleteFetch (query) {
 function *s_autocompleteQueryUpdated (query) {
   if (query === '') return
   yield put (a_autocompleteFetch (query))
-}
-
-function *s_filtersFetch () {
-  console.log ('filtersFetch from saga')
-  yield call (doApiCall, {
-    url: '/api/filters',
-    continuation: EffAction (a_filtersFetchCompleted),
-    oops: toastError,
-  })
 }
 
 function *s_fondsenFetch ({ pageNum, ... _ }) {
@@ -337,12 +325,6 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 
 // --- @todo move to Search?
 function *s_searchFetch ({ query, filterSearchParams: searchParams, }) {
-  const filters = {
-    categories: ['onderwijs', 'religie']
-    // note: we only have categories as a 'list' for now, the
-    // rest, like trefwoorden, will be a query.
-    // trefwoorden:
-  }
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
   searchParams.set ('pageSize', pageSize)
@@ -455,7 +437,6 @@ export default function *sagaRoot () {
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_autocompleteFetch, s_autocompleteFetch),
     saga (takeLatest, a_autocompleteQueryUpdated, s_autocompleteQueryUpdated),
-    saga (takeLatest, a_filtersFetch, s_filtersFetch),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logInUser),
     saga (takeLatest, a_loginUserCompleted, s_loginUserCompleted),

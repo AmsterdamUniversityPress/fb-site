@@ -16,6 +16,7 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
+import { RequestInit, } from 'alleycat-js/es/fetch'
 import { logWith, trim, iwarn, } from 'alleycat-js/es/general'
 import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
@@ -29,8 +30,7 @@ import reducer from './reducer'
 import saga from './saga'
 import {
   selectFilters,
-  selectFilterMap,
-  selectBuckets,
+  // selectBuckets,
   selectQuery as selectSearchQuery,
   selectResults as selectResultsSearch,
   selectNumResults as selectNumResultsSearch,
@@ -48,6 +48,7 @@ import {
   effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
   whenIsNotEmptyList,
   mapForEach, mapGet, mapUpdateM,
+  mapRemapTuples,
 } from '../../util-general'
 import { mkURLSearchParams, } from '../../util-web'
 
@@ -311,6 +312,41 @@ const Option = ({
   </OptionS>
 }
 
+const Filter2S = styled.div`
+  text-align: left;
+  > .x__title {
+    font-weight: bold;
+  }
+  > .x__row {
+    > input {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+    }
+    > .x__value {
+      margin-right: 4px;
+    }
+    > .x__count {}
+  }
+`
+
+const Filter2 = ({ name, counts, }) => <Filter2S>
+  <div className='x__title'>
+    {name}
+  </div>
+  {counts | mapRemapTuples (
+    (value, count) => <div className='x__row'>
+      <input type='checkbox'/>
+      <span className='x__value'>
+        {value}
+      </span>
+      <span className='x__count'>
+        ({count})
+      </span>
+    </div>
+  )}
+</Filter2S>
+
 const FilterS = styled.div`
   .x__dropdown-wrapper {
   }
@@ -387,56 +423,64 @@ const FiltersS = styled.div`
 const Filters = container2 (
   ['Filters'],
   (props) => {
-    const filters = useSelector (selectFilters)
-    const buckets = useSelector (selectBuckets)
+    const navigate = useNavigate ()
+    // const buckets = useSelector (selectBuckets)
     // @todo do something with it
     // console.log ('buckets', buckets)
-    const filterMapProp = useSelector (selectFilterMap)
+    const filtersProp = useSelector (selectFilters)
     // --- the query that has been accepted, and may or may not have already been executed.
     const searchQuery = useSelector (selectSearchQuery)
-    const navigate = useNavigate ()
 
-    // @todo can we use a selector as starting point for state like this?
-    const [filterMap, setFilterMap] = useState (new Map ())
+    const [filtersReq, setFiltersReq] = useState (filtersProp)
 
     useEffect (() => {
-      setFilterMap (filterMapProp)
-    }, [filterMapProp])
+      setFiltersReq (filtersProp)
+    }, [filtersProp])
 
-    const onChange = useCallback (
-      (name) => (option) => {
-        setFilterMap (
-          filterMap | mapUpdateM (
-            name,
-            mapUpdateM (option, not),
-        ))
-      }, [filterMap, setFilterMap],
-    )
+    // const onChange = useCallback (
+      // (name) => (option) => {
+        // setFilterMap (
+          // filterMap | mapUpdateM (
+            // name,
+            // mapUpdateM (option, not),
+        // ))
+      // }, [filterMap, setFilterMap],
+    // )
 
     // --- @mock
-    const onClickSubmit = useCallback (() => {
-      const filterMapTemp = filterMap | mapToList
-      const params = new URLSearchParams (filterMapTemp)
-      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
-        '/search/%s?%s',
-      ))
-    }, [navigate, filterMap, searchQuery])
+    // const onClickSubmit = useCallback (() => {
+      // const filterMapTemp = filterMap | mapToList
+      // const params = new URLSearchParams (filterMapTemp)
+      // navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
+        // '/search/%s?%s',
+      // ))
+    // }, [navigate, filterMap, searchQuery])
 
-
+    const onClickSubmit = noop
+    const onChange = noop
     return <FiltersS>
-      {filters | requestResults ({
+      {filtersReq | requestResults ({
         spinnerProps: { color: 'black', size: 20, delayMs: 400, },
           onError: noop,
-          onResults: (results) => <>
-            {results | map (
+          onResults: (filters) => <>
+            {
+              filters | map (
+                ([name, countsMap]) => <Filter2
+                  key={name}
+                  name={name}
+                  counts={countsMap}
+                />
+              )
+            }
+            {/* filterMap | map (
               ({ name, options, }) => <Filter
                 key={name}
                 name={name}
                 options={options}
-                optionMap={filterMap | mapGet (name)}
+                optionMap={filterMapRequest | mapGet (name)}
                 onChange={onChange (name)}
               />
-            )}
+            ) */}
           </>,
       })}
       <div className='x__button'>

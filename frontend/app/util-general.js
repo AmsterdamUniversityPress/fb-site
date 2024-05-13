@@ -169,3 +169,24 @@ export const mapUpdateM = recurry (3) (
 
 // @todo some recurrying?
 export const mapForEach = dot1 ('forEach')
+
+export const mapMapTuples = recurry (2) (
+  (f) => (m) => {
+    const ret = new Map
+    for (const [k, v] of m) {
+      const [kk, vv] = f (k, v)
+      ret.set (kk, vv)
+    }
+    return ret
+  },
+)
+
+export const mapRemapTuples = recurry (2) (
+  (f) => (m) => {
+    const ret = []
+    for (const [k, v] of m) {
+      ret.push (f (k, v))
+    }
+    return ret
+  },
+)

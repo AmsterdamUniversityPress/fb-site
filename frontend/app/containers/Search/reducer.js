@@ -21,7 +21,6 @@ import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../comm
 export const initialState = {
   // --- a URLSearchParams object
   filterSearchParams: null,
-  filters: RequestInit,
   querySearch: null,
   // --- request results
   results: RequestInit,
@@ -32,12 +31,6 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
-  filtersFetch, () => assoc (
-    'filters', RequestLoading (Nothing),
-  ),
-  filtersFetchCompleted, (rcomplete) => assoc (
-    'filters', rcomplete | rcompleteToResults,
-  ),
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
     assoc ('filterSearchParams', filterSearchParams),
     assoc ('querySearch', query),

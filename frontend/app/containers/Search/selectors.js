@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, prop, tap, reduce,
+  map, prop, tap, reduce, remapTuples,
 } from 'stick-js/es'
 
 import { cata, } from 'alleycat-js/es/bilby'
@@ -19,32 +19,45 @@ const { select, selectTop, selectVal, } = initSelectors (
 
 // --- @todo consistent naming for selectors involving a request
 
-const _selectFilters = selectVal ('filters')
-export const selectBuckets = selectVal ('buckets')
+const _selectBuckets = selectVal ('buckets')
 export const selectResults = selectVal ('results')
 
 export const selectNumResults = selectVal ('numResults')
 export const selectQuery = selectVal ('querySearch')
 export const selectFilterSearchParams = selectVal ('filterSearchParams')
 
-export const selectFilters = select (
-  'filters',
-  _selectFilters,
-  (filtersRequest) => filtersRequest | map (prop ('results'))
+const selectBuckets = select (
+  'buckets',
+  [_selectBuckets],
+  (bucketsRequest) => bucketsRequest | map (
+    /* {
+     *   categories: [{ key, doc_count, }, ...],
+     *   trefwoorden: [...],
+     * }
+     */
+    (buckets) => buckets | remapTuples (
+      (k, v) => [k, v],
+    ),
+  ),
 )
 
 // @todo better name
-export const selectFilterMap = select (
-  'filterMap',
-  [selectFilters],
-  // (filters) => filters | map (
-  (filters) => filters | foldWhenRequestResults (
-    (lst) => lst | reduce (
-      (filterMap, { name, options }) => filterMap | mapSetM (
-        name,
-        options | reduce (
-          (optionMap, option) => optionMap | mapSetM (
-            option, false), new Map)
-      ), new Map)
-  )
+export const selectFilters = select (
+  'filters',
+  [selectBuckets],
+  (bucketsRequest) => bucketsRequest | map (
+    /* [
+     *   'categories', [{ key, doc_count, }, ...],
+     *   'trefwoorden', ...,
+     * ]
+     */
+    (buckets) => buckets | map (
+      ([name, data]) => [name, data | reduce (
+        (filterMap, { key, doc_count, }) => filterMap | mapSetM (
+          key, doc_count,
+        ),
+        new Map,
+      )],
+    ),
+  ),
 )
