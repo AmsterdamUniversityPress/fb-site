@@ -114,5 +114,17 @@ export const selectSelectedFiltersTuplesWithUpdate = select (
         (value) => [filterName, value],
       )
     ))
-  },
+  }
+)
+
+const selectSelectedFiltersTuples = select (
+  'selectSelectedFiltersTuples',
+  [selectSelectedFiltersTuplesWithUpdate],
+  (selector) => selector (),
+)
+
+export const selectHasSelectedFilters = select (
+  'selectHasSelectedFilters',
+  [selectSelectedFiltersTuples],
+  (tuples) => tuples.length !== 0,
 )

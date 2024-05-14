@@ -6,6 +6,11 @@ import {
 import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
+export const clearFilters = action (
+  (navigate) => navigate,
+  'clearFilters',
+)
+
 export const searchFetch = action (
   (query, filterSearchParams) => ({ query, filterSearchParams, }),
   'searchFetch',

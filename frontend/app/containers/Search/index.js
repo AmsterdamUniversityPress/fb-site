@@ -24,11 +24,12 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { updateFilterToggle, } from './actions'
+import { clearFilters, updateFilterToggle, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
   selectFiltersWithCounts,
+  selectHasSelectedFilters,
   selectSelectedFilters,
   selectQuery as selectSearchQuery,
   selectResults as selectResultsSearch,
@@ -288,12 +289,14 @@ const FilterBubbleTextS = styled (FilterBubble)`
   }
 `
 
-const FilterBubbleText = ({ children, }) => <FilterBubbleTextS>
-  {children}
-  <span className='x__close'>
-    ×
-  </span>
-</FilterBubbleTextS>
+const FilterBubbleText = ({ style={}, onClick=noop, children, }) => <>
+  <FilterBubbleTextS style={style} onClick={onClick}>
+    {children}
+    <span className='x__close'>
+      ×
+    </span>
+  </FilterBubbleTextS>
+</>
 
 const FilterS = styled.div`
   text-align: left;
@@ -530,29 +533,41 @@ const ActiveFilters = container2 (
   () => {
     const navigate = useNavigate ()
     const dispatch = useDispatch ()
+    const hasFilters = useSelector (selectHasSelectedFilters)
     const selectedFilters = useSelector (selectSelectedFilters)
 
-    const onClick = useCallbackConst ((filterName, value) => {
+    const onClickBubble = useCallbackConst ((filterName, value) => {
       dispatch (updateFilterToggle (navigate, filterName, value))
+    })
+    const onClickClear = useCallbackConst (() => {
+      dispatch (clearFilters (navigate))
     })
 
     return <ActiveFiltersS>
-      <div className='x__title'>
-        Active filters
-      </div>
-      <div className='x__filters'>
-        {selectedFilters | mapFlatRemapTuples (
-          (filterName, values) => values | setRemap (
-          (value) => <span
-            key={filterName + ':' + value}
-            className='x__item'
-            onClick={() => onClick (filterName, value)}
-          ><FilterBubbleText>
-            {filterName}: {value}
-          </FilterBubbleText></span>
-          ),
-        )}
-      </div>
+      {hasFilters && <>
+        <div className='x__title'>
+          Active filters
+        </div>
+        <div className='x__filters'>
+          {selectedFilters | mapFlatRemapTuples (
+            (filterName, values) => values | setRemap (
+            (value) => <span
+              key={filterName + ':' + value}
+              className='x__item'
+              onClick={() => onClickBubble (filterName, value)}
+            ><FilterBubbleText>
+              {filterName}: {value}
+            </FilterBubbleText></span>
+            ),
+          )}
+          <FilterBubbleText
+            style={{ background: '#dc3545', color: 'white', }}
+            onClick={onClickClear}
+          >
+            Clear all filters
+          </FilterBubbleText>
+        </div>
+      </>}
     </ActiveFiltersS>
   },
 )
