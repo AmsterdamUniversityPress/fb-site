@@ -24,6 +24,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
+import { updateFilterToggle, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
@@ -368,59 +369,30 @@ const FiltersS = styled.div`
 const Filters = container2 (
   ['Filters'],
   () => {
+    const dispatch = useDispatch ()
     const navigate = useNavigate ()
     const filtersReq = useSelector (selectFiltersWithCounts)
-    const searchQuery = useSelector (selectSearchQuery)
     // --- 'category' => 'onderwijs', 'category' => 'religie', 'trefwoorden' => ...,
     const selectedFilters = useSelector (selectSelectedFilters)
 
-    const commit = useCallback ((selected) => {
-      const tuples = flatten (1) (selected | mapRemapTuples (
-        (filterName, values) => values | setRemap (
-          (value) => [filterName, value],
-        )
-      ))
-      const params = new URLSearchParams (tuples)
-      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
-        '/search/%s?%s',
-      ))
-    }, [searchQuery, navigate])
-
-    const onChange = useCallback (
-      (filterName, value) => commit (
-        selectedFilters | mapUpdate (
-          filterName, setToggle (value),
-        ),
-      ),
-      [selectedFilters],
-    )
+    const onChange = useCallbackConst ((filterName, value) => {
+      dispatch (updateFilterToggle (navigate, filterName, value))
+    })
 
     return <FiltersS>
       {filtersReq | requestResults ({
         spinnerProps: { color: 'black', size: 20, delayMs: 400, },
           onError: noop,
           onResults: (filters) => <>
-            {
-              filters | map (
-                ([filterName, countsMap]) => <Filter
-                  key={filterName}
-                  name={filterName}
-                  counts={countsMap}
-                  // selecteds={selected.get (filterName)}
-                  selecteds={selectedFilters.get (filterName)}
-                  onChange={onChange}
-                />
-              )
-            }
-            {/* filterMap | map (
-              ({ name, options, }) => <Filter
-                key={name}
-                name={name}
-                options={options}
-                optionMap={filterMapRequest | mapGet (name)}
-                onChange={onChange (name)}
+            {filters | map (
+              ([filterName, countsMap]) => <Filter
+                key={filterName}
+                name={filterName}
+                counts={countsMap}
+                selecteds={selectedFilters.get (filterName)}
+                onChange={onChange}
               />
-            ) */}
+            )}
           </>,
       })}
     </FiltersS>
@@ -557,31 +529,12 @@ const ActiveFilters = container2 (
   ['ActiveFilters'],
   () => {
     const navigate = useNavigate ()
+    const dispatch = useDispatch ()
     const selectedFilters = useSelector (selectSelectedFilters)
-    console.log ('filters', selectedFilters)
 
-    const searchQuery = useSelector (selectSearchQuery)
-    // --- @todo heavily repeated from <Filters>
-    const commit = useCallback ((selected) => {
-      const tuples = flatten (1) (selected | mapRemapTuples (
-        (filterName, values) => values | setRemap (
-          (value) => [filterName, value],
-        )
-      ))
-      const params = new URLSearchParams (tuples)
-      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
-        '/search/%s?%s',
-      ))
-    }, [navigate, searchQuery])
-
-    const onClick = useCallback (
-      (filterName, value) => commit (
-        selectedFilters | mapUpdate (
-          filterName, setToggle (value),
-        ),
-      ),
-      [selectedFilters],
-    )
+    const onClick = useCallbackConst ((filterName, value) => {
+      dispatch (updateFilterToggle (navigate, filterName, value))
+    })
 
     return <ActiveFiltersS>
       <div className='x__title'>
@@ -590,7 +543,11 @@ const ActiveFilters = container2 (
       <div className='x__filters'>
         {selectedFilters | mapFlatRemapTuples (
           (filterName, values) => values | setRemap (
-          (value) => <span className='x__item' onClick={() => onClick (filterName, value)}><FilterBubbleText>
+          (value) => <span
+            key={filterName + ':' + value}
+            className='x__item'
+            onClick={() => onClick (filterName, value)}
+          ><FilterBubbleText>
             {filterName}: {value}
           </FilterBubbleText></span>
           ),

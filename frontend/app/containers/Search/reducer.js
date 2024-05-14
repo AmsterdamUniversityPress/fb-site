@@ -11,8 +11,11 @@ import { makeReducer, } from 'alleycat-js/es/redux'
 import {
   searchFetch,
   searchFetchCompleted,
+  updateFilterToggle,
 } from './actions'
+
 import { initialState, } from './reducer-initial-state'
+import { selectSelectedFilters, } from './selectors'
 import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../common'
 
 const reducerTable = makeReducer (

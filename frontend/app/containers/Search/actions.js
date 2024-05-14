@@ -20,3 +20,8 @@ export const searchReset = action (
   () => {},
   'searchReset',
 )
+
+export const updateFilterToggle = action (
+  (navigate, filterName, value) => ({ navigate, filterName, value, }),
+  'updateFilterToggle',
+)
