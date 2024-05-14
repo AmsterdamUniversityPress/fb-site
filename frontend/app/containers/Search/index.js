@@ -348,32 +348,35 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
     (value, _event) => onChangeProp (name, value),
     [onChangeProp, name],
   )
+  const show = useMemo (() => counts.size > 1, [counts])
   return <FilterS>
-    <div className='x__title'>
-      {name | lookupOnOrDie ('no label for ' + name, filterLabels)}
-    </div>
-    <div className='x__sep'/>
-    {counts | mapRemapTuples (
-      (value, count) => <div key={value} className='x__row'>
-        {/* --- @todo useCallback (2x) */}
-        <div className='x__clickable' onClick={(event) => onChange (value, event)}>
-          <input type='checkbox'
-            checked={selecteds.has (value)}
-            // --- just here to keep react from complaining: we actually handle the change using
-            // onClick on the div
-            onChange={noop}
-          />
-          <span className='x__value'>
-            {value}
+    {show && <>
+      <div className='x__title'>
+        {name | lookupOnOrDie ('no label for ' + name, filterLabels)}
+      </div>
+      <div className='x__sep'/>
+      {counts | mapRemapTuples (
+        (value, count) => <div key={value} className='x__row'>
+          {/* --- @todo useCallback (2x) */}
+          <div className='x__clickable' onClick={(event) => onChange (value, event)}>
+            <input type='checkbox'
+              checked={selecteds.has (value)}
+              // --- just here to keep react from complaining: we actually handle the change using
+              // onClick on the div
+              onChange={noop}
+            />
+            <span className='x__value'>
+              {value}
+            </span>
+          </div>
+          <span className='x__count'>
+            <FilterBubble>
+              {count}
+            </FilterBubble>
           </span>
         </div>
-        <span className='x__count'>
-          <FilterBubble>
-            {count}
-          </FilterBubble>
-        </span>
-      </div>
-    )}
+      )}
+    </>}
   </FilterS>
 }
 
