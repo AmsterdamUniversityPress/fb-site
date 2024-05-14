@@ -101,13 +101,9 @@ const SearchS = styled.div`
   }
 `
 
-const ResultsInnerS = styled.div`
+const ResultsS = styled.div`
   background: white;
   min-width: 100px;
-  margin-top: 30px;
-`
-
-const ResultsS = styled.div`
   > .x__pagination {
     > .x__separator {
       --width: 60%;
@@ -510,37 +506,35 @@ const SearchResults = container2 (
     const imgSrc = imageEyeWall
     const isLoading = searchResults | requestIsLoading
     return <ResultsS>
-      <div className='x__pagination'>
-        <PaginationAndExplanation query={query} showExplanation={true} numItems={numResults ?? 0} Pagination={Pagination}/>
-        <div className={clss ('x__separator', isLoading ? 'x--waiting' : 'x--not-waiting')}/>
-      </div>
-        {searchResults | requestResults ({
-          spinnerProps: {
-            color: 'black', size: 30, delayMs: 400,
-            style: {
-              marginLeft: '50%',
-              marginTop: '30px',
-              marginBottom: '30px',
-            },
+      {searchResults | requestResults ({
+        spinnerProps: {
+          color: 'black', size: 30, delayMs: 400,
+          style: {
+            marginLeft: '50%',
+            marginTop: '30px',
+            marginBottom: '30px',
           },
-          onError: noop,
-          onResults: (results) => <>
-            <ResultsInnerS>
-              {results | map (
-                ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
-                  key={uuid}
-                  imgSrc={imgSrc}
-                  categories={highlightList (categories)}
-                  name={highlightString (name)}
-                  objective={highlightString (objective)}
-                  targetGroup={highlightString (targetGroup)}
-                  type={type}
-                  uuid={uuid}
-                  workingRegion={workingRegion}
-              />)}
-            </ResultsInnerS>
-          </>
-        })}
+        },
+        onError: noop,
+        onResults: (results) => <>
+          <div className='x__pagination'>
+            <PaginationAndExplanation query={query} showExplanation={true} numItems={numResults ?? 0} Pagination={Pagination}/>
+            <div className={clss ('x__separator', isLoading ? 'x--waiting' : 'x--not-waiting')}/>
+          </div>
+          {results | map (
+            ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
+              key={uuid}
+              imgSrc={imgSrc}
+              categories={highlightList (categories)}
+              name={highlightString (name)}
+              objective={highlightString (objective)}
+              targetGroup={highlightString (targetGroup)}
+              type={type}
+              uuid={uuid}
+              workingRegion={workingRegion}
+          />)}
+        </>
+      })}
     </ResultsS>
   }
 )

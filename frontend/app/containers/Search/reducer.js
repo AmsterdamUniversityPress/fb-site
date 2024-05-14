@@ -30,7 +30,8 @@ const reducerTable = makeReducer (
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
     assoc ('filterSearchParams', filterSearchParams),
     assoc ('querySearch', query),
-    assoc ('buckets', RequestLoading (Nothing)),
+    // --- it seems a bit nicer not to reset this on a new search so that the sidebar doesn't flicker
+    // assoc ('buckets', RequestLoading (Nothing)),
     assoc ('results', RequestLoading (Nothing)),
     assoc ('numResults', null),
   ),
