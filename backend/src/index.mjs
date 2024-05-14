@@ -466,9 +466,7 @@ const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (q
         uuid,
       })
     })
-    const buckets = aggregations | mapValues ((v) => {
-      return v | prop ('buckets')
-    })
+    const buckets = aggregations | mapValues ((v) => v | prop ('buckets'))
     return { matches, numHits, buckets }
   })
 
@@ -680,11 +678,11 @@ const init = ({ port, }) => express ()
       basicListValidator (false, [], 'naam_organisatie'),
       basicListValidator (false, [], 'regios'),
     ]),
-    ({ res }, query, pageSize, pageNum, categories, trefwoorden, naam_organisaties, regios, ) => {
+    ({ res }, query, pageSize, pageNum, categories, trefwoorden, naam_organisatie, regios, ) => {
       const searchFilters = {
         categories,
         trefwoorden,
-        naam_organisaties,
+        naam_organisatie,
         regios,
       }
       search (query, searchFilters, pageSize, pageNum, filterValues)

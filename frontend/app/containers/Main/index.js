@@ -1096,7 +1096,7 @@ const Contents = container (
           if (nil (query)) return
           const searchParams = document.location.search | mkURLSearchParams (
             // --- @todo add more
-            ['categories', 'trefwoorden', 'naam_organisatie', 'regio'],
+            ['categories', 'trefwoorden', 'naam_organisatie', 'regios'],
           )
           dispatch (searchReset ())
           dispatch (searchFetch (query, searchParams))
