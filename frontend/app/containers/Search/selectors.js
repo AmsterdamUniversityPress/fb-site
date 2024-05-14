@@ -1,8 +1,10 @@
 import {
   pipe, compose, composeRight,
   map, prop, tap, reduce, remapTuples, nil,
-  each, ifOk
+  each, ifOk, recurry, invoke,
 } from 'stick-js/es'
+
+import sortWith  from 'ramda/es/sortWith'
 
 import { cata, } from 'alleycat-js/es/bilby'
 import { logWith, } from 'alleycat-js/es/general'
@@ -42,6 +44,22 @@ const selectBuckets = select (
   ),
 )
 
+const filterNamesAscend = invoke (() => {
+  const filterNames = {
+    categories: 0,
+    naam_organisatie: 1,
+    trefwoorden: 2,
+    regios: 3,
+  }
+  return recurry (3) (
+    (f) => (a) => (b) => filterNames [f (a)] - filterNames [f (b)],
+  )
+})
+
+const sortBuckets = sortWith ([
+  filterNamesAscend (([name, _]) => name),
+])
+
 export const selectFiltersWithCounts = select (
   'filtersWithCounts',
   [selectBuckets],
@@ -51,7 +69,7 @@ export const selectFiltersWithCounts = select (
      *   'trefwoorden', ...,
      * ]
      */
-    (buckets) => buckets | map (
+    (buckets) => buckets | sortBuckets | map (
       ([name, data]) => [name, data | reduce (
         (filterMap, { key, doc_count, }) => filterMap | mapSetM (
           key, doc_count,
