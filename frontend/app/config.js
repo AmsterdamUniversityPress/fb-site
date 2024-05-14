@@ -105,6 +105,14 @@ export default {
     user: iconUser,
     update: iconUpdate,
   },
+  text: {
+    filterLabels: {
+      categories: 'Categorieën',
+      trefwoorden: 'Trefwoorden',
+      naam_organisatie: 'Fondsnaam',
+      regios: `Regio's`,
+    },
+  },
   images: {
     background: imageBackground,
     fonds: imageEyeWall,

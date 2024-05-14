@@ -53,6 +53,7 @@ import {
   setToggle,
   flatten,
   mapFlatRemapTuples,
+  lookupOnOrDie,
 } from '../../util-general'
 
 import config from '../../config'
@@ -60,6 +61,8 @@ const configTop = configure.init (config)
 const paginationKey = configTop.get ('app.keys.Pagination.search')
 const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
+const filterLabels = configTop.get ('text.filterLabels')
+// const filterLabelCategories = filterLabels.get ('categories')
 
 const Pagination = mkPagination (paginationKey)
 
@@ -265,10 +268,10 @@ const highlightString = highlightJoin ((idx) => {
 
 const FilterBubble = styled.span`
   border: 1px solid #666666;
-  border-radius: 50px;
+  border-radius: 10rem;
   background-color: #f8f9fa;
   transition: background-color .1s;
-  padding: 1px 15px 1px 15px;
+  padding: 1px .6em 1px .6em;
   font-size: 14px;
   color: black;
   white-space: nowrap;
@@ -300,8 +303,15 @@ const FilterBubbleText = ({ style={}, onClick=noop, children, }) => <>
 
 const FilterS = styled.div`
   text-align: left;
+  margin-bottom: 20px;
   > .x__title {
-    font-weight: bold;
+    font-size: 120%;
+  }
+  > .x__sep {
+    background: #00000022;
+    height: 2px;
+    width: 90%;
+    margin-bottom: 8px;
   }
   > .x__row {
     white-space: nowrap;
@@ -318,8 +328,8 @@ const FilterS = styled.div`
       overflow-x: hidden;
       text-overflow: ellipsis;
       > input {
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
         margin-right: 10px;
       }
       > .x__value {
@@ -340,8 +350,9 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
   )
   return <FilterS>
     <div className='x__title'>
-      {name}
+      {name | lookupOnOrDie ('no label for ' + name, filterLabels)}
     </div>
+    <div className='x__sep'/>
     {counts | mapRemapTuples (
       (value, count) => <div key={value} className='x__row'>
         {/* --- @todo useCallback (2x) */}
@@ -367,6 +378,7 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
 }
 
 const FiltersS = styled.div`
+  font-size: 15px;
 `
 
 const Filters = container2 (
@@ -513,15 +525,11 @@ const ActiveFiltersS = styled.div`
   margin-left: 30px;
   margin-right: 30px;
   > .x__title {
-    font-size: 24px;
+    font-size: 21px;
   }
   > .x__filters {
-    // display: flex;
-    // align-items: space-between;
-    // flex-wrap: wrap;
     line-height: 50px;
     > .x__item {
-      // flex: 1 0 0px;
       margin-right: 10px;
       display: inline-block;
     }
@@ -546,7 +554,7 @@ const ActiveFilters = container2 (
     return <ActiveFiltersS>
       {hasFilters && <>
         <div className='x__title'>
-          Active filters
+          Actieve filters
         </div>
         <div className='x__filters'>
           {selectedFilters | mapFlatRemapTuples (
@@ -564,7 +572,7 @@ const ActiveFilters = container2 (
             style={{ background: '#dc3545', color: 'white', }}
             onClick={onClickClear}
           >
-            Clear all filters
+            Alle filters wissen
           </FilterBubbleText>
         </div>
       </>}
