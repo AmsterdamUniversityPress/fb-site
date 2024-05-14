@@ -23,6 +23,7 @@ import {
 
 const InputWithAutocompleteS = styled.div`
   text-align: left;
+  position: relative;
   .x__dropdown-wrapper {
     position: absolute;
     width: 100%;

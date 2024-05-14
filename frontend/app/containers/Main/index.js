@@ -341,10 +341,7 @@ const MainS = styled.div`
   font-family: Arial;
   > .x__contents {
     height: 100%;
-    display: flex;
-    flex-direction: column;
     > .x__header {
-      flex: 0 0 auto;
       z-index: 2;
     }
     > .x__logo {
