@@ -301,10 +301,13 @@ const FilterS = styled.div`
   }
   > .x__row {
     white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
     > * {
       vertical-align: middle;
     }
     > .x__clickable {
+      flex: 1 0 0px;
       cursor: pointer;
       display: inline-block;
       width: calc(100% - 40px);
@@ -320,7 +323,7 @@ const FilterS = styled.div`
       }
     }
     > .x__count {
-      float: right;
+      flex: 0 0 50px;
     }
   }
 `
