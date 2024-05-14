@@ -56,12 +56,15 @@ import {
   lookupOnOrDie,
 } from '../../util-general'
 
+const lowercase = dot ('toLowerCase')
+
 import config from '../../config'
 const configTop = configure.init (config)
 const paginationKey = configTop.get ('app.keys.Pagination.search')
 const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
 const filterLabels = configTop.get ('text.filterLabels')
+const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, filterLabels)
 // const filterLabelCategories = filterLabels.get ('categories')
 
 const Pagination = mkPagination (paginationKey)
@@ -352,7 +355,7 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
   return <FilterS>
     {show && <>
       <div className='x__title'>
-        {name | lookupOnOrDie ('no label for ' + name, filterLabels)}
+        {name | toFilterLabel}
       </div>
       <div className='x__sep'/>
       {counts | mapRemapTuples (
@@ -567,7 +570,7 @@ const ActiveFilters = container2 (
               className='x__item'
               onClick={() => onClickBubble (filterName, value)}
             ><FilterBubbleText>
-              {filterName}: {value}
+              {filterName | toFilterLabel | lowercase}: {value}
             </FilterBubbleText></span>
             ),
           )}
