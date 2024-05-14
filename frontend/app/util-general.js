@@ -7,10 +7,10 @@ import {
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
   againstAny, contains, containsV, flip,
   map, addIndex, ifTrue, ifPredicate, whenPredicate,
-  dot2, dot1,
+  dot2, dot1, repeatF,
 } from 'stick-js/es'
 
-import { fold, Right, Left, } from 'alleycat-js/es/bilby'
+import { fold, Right, Left, flatMap, } from 'alleycat-js/es/bilby'
 import {
   doApiCall as _doApiCall, requestCompleteFold,
   RequestInit, RequestLoading, RequestError, RequestResults,
@@ -189,6 +189,14 @@ export const setAdd = recurry (2) (
 export const setRemove = recurry (2) (
   (val) => (set) => (set | setClone).delete (val),
 )
+export const setRemap = recurry (2) (
+  (f) => (set) => {
+    const ret = []
+    for (const x of set.values ())
+      ret.push (f (x))
+    return ret
+  },
+)
 
 // @todo some recurrying?
 export const mapForEach = dot1 ('forEach')
@@ -212,4 +220,14 @@ export const mapRemapTuples = recurry (2) (
     }
     return ret
   },
+)
+
+export const flatten = recurry (2) (
+  (n) => (xs) => {
+    let ys = xs
+    n | repeatF (
+      () => ys = ys | flatMap (id),
+    )
+    return ys
+  }
 )

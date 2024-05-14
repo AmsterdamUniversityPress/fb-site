@@ -16,7 +16,6 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
-import { RequestInit, } from 'alleycat-js/es/fetch'
 import { logWith, trim, iwarn, } from 'alleycat-js/es/general'
 import { allV, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
@@ -29,11 +28,7 @@ import reducer from './reducer'
 import saga from './saga'
 import {
   selectFiltersWithCounts,
-  selectFilterNames,
-  selectFilterValues,
-  // selectFilterSearchParams,
   selectSelectedFilters,
-  // selectBuckets,
   selectQuery as selectSearchQuery,
   selectResults as selectResultsSearch,
   selectNumResults as selectNumResultsSearch,
@@ -43,18 +38,18 @@ import { selectResultsAutocomplete, } from '../App/store/domain/selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
-import { BigButton, DropDown, PaginationAndExplanation, } from '../../components/shared'
+import { PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
-import { component, container, container2, useWhy, requestIsLoading, requestResults, foldWhenRequestResults, } from '../../common'
+import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
-  effects, isNotEmptyString, whenIsNotEmptyString, mapX, reduceX, ifEven,
+  effects, isNotEmptyString, mapX, ifEven,
   whenIsNotEmptyList,
-  mapForEach, mapGet, mapUpdateM,
   mapRemapTuples,
-  mapSetM,
-  mapUpdate, setAdd, setRemove,
+  mapUpdate,
+  setRemap,
   setToggle,
+  flatten,
 } from '../../util-general'
 
 import config from '../../config'
@@ -271,53 +266,7 @@ const highlightString = highlightJoin ((idx) => {
   return ''
 })
 
-// @todo find a nice place for this
-// probably possible to use remapMapTuples from kattenluik
-const mapToList = (m) => {
-  const ret = []
-  m | mapForEach ((options, name) => options
-    | mapForEach ((val, option) => val | whenTrue (
-      () => ret.push ([name, option]))))
-  return ret
-}
-
-const OptionS = styled.div`
-  .x__select {
-    display: inline-block;
-    padding-right: 20px;
-  }
-  .x__data {
-    display: inline-block;
-    &:hover {
-      background: #ffcbcb6b;
-    }
-  }
-`
-
-const Option = ({
-  data,
-  onSelect,
-  selected: selectedProp,
-}) => {
-  const [selected, setSelected] = useState (selectedProp)
-  const onClick = useCallback (() => {
-    setSelected (not)
-    onSelect ()
-  }, [onSelect, setSelected])
-  return <OptionS>
-    <div className='x__select'>
-      {selected ? 'yes' : 'no'}
-    </div>
-    <div
-      className='x__data'
-      onClick={onClick}
-    >
-      {data}
-    </div>
-  </OptionS>
-}
-
-const Filter2S = styled.div`
+const FilterS = styled.div`
   text-align: left;
   > .x__title {
     font-weight: bold;
@@ -355,13 +304,13 @@ const Filter2S = styled.div`
   }
 `
 
-const Filter2 = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) => {
+const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) => {
   // --- we don't check event -- we simply toggle in the parent
   const onChange = useCallback (
     (value, _event) => onChangeProp (name, value),
     [onChangeProp, name],
   )
-  return <Filter2S>
+  return <FilterS>
     <div className='x__title'>
       {name}
     </div>
@@ -384,73 +333,6 @@ const Filter2 = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =
         </span>
       </div>
     )}
-  </Filter2S>
-}
-
-const FilterS = styled.div`
-  .x__dropdown-wrapper {
-  }
-  .x__filter {
-    background: white;
-    display: inline-block;
-    font-size: 20px;
-    width: 100%;
-    height: 35px;
-    .x__filter-name {
-      padding-left: 10px;
-      display: inline-block;
-      width: 200px;
-    }
-    .x__filter-open-char, .x__filter-close-char {
-      display: inline-block;
-      font-size: 35px;
-      padding-left: 20px;
-      position: absolute;
-    }
-    .x__filter-open-char {
-      margin-top: -1px;
-    }
-    .x__filter-close-char {
-      margin-top: -16px;
-    }
-  }
-`
-
-const Filter = ({ name, options, optionMap, onChange, }) => {
-  const [open, setOpen] = useState (false)
-  const onClick = useCallbackConst (
-    () => setOpen (not),
-  )
-  const onSelect = useCallback (
-    (option) => () => {
-      onChange (option)
-  }, [onChange])
-
-  // --- @todo this means something is probably wrong higher up
-  if (nil (optionMap)) return
-
-  return <FilterS>
-    <div className='x__filter' onClick={onClick}>
-      {open | ifTrue (
-        () => <><div className='x__filter-name'> {name}</div><div className='x__filter-open-char'>⌃</div></>,
-        () => <><div className='x__filter-name'> {name}</div> <div className='x__filter-close-char'>⌄</div></>
-      )}
-    </div>
-    <div className='x__dropdown-wrapper'>
-      <DropDown open={open} contentsStyle={{ position: 'relative', maxWidth: '200px', textWrap: 'wrap' }}>
-        {options | mapX ((option, idx) => {
-          // @todo make nice option_short
-          const option_short = (option | take (15)) + ' ... '
-          return <Option
-            key={option}
-            data={option_short}
-            selected={optionMap | mapGet (option)}
-            onSelect={onSelect (option)}
-          />
-        }
-        )}
-      </DropDown>
-    </div>
   </FilterS>
 }
 
@@ -462,41 +344,34 @@ const FiltersS = styled.div`
 
 const Filters = container2 (
   ['Filters'],
-  (props) => {
+  () => {
+    const navigate = useNavigate ()
     const filtersReq = useSelector (selectFiltersWithCounts)
-    const filterNamesReq = useSelector (selectFilterNames)
+    const searchQuery = useSelector (selectSearchQuery)
+    // --- 'category' => 'onderwijs', 'category' => 'religie', 'trefwoorden' => ...,
     const selectedFilters = useSelector (selectSelectedFilters)
-    console.log ('selectFilters', selectedFilters)
 
-    // const onChange = useCallback (
-      // (name) => (option) => {
-        // setFilterMap (
-          // filterMap | mapUpdateM (
-            // name,
-            // mapUpdateM (option, not),
-        // ))
-      // }, [filterMap, setFilterMap],
-    // )
-
-    // --- @mock
-    // const onClickSubmit = useCallback (() => {
-      // const filterMapTemp = filterMap | mapToList
-      // const params = new URLSearchParams (filterMapTemp)
-      // navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
-        // '/search/%s?%s',
-      // ))
-    // }, [navigate, filterMap, searchQuery])
+    const commit = useCallback ((selected) => {
+      const tuples = flatten (1) (selected | mapRemapTuples (
+        (filterName, values) => values | setRemap (
+          (value) => [filterName, value],
+        )
+      ))
+      const params = new URLSearchParams (tuples)
+      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
+        '/search/%s?%s',
+      ))
+    }, [searchQuery])
 
     const onChange = useCallback (
-      (filterName, value) => setSelected (
-        mapUpdate (filterName, setToggle (value)),
+      (filterName, value) => commit (
+        selectedFilters | mapUpdate (
+          filterName, setToggle (value),
+        ),
       ),
+      [selectedFilters],
     )
-    // --- 'category' => 'onderwijs', 'category' => 'religie', 'trefwoorden' => ...,
-    const [selected, setSelected] = useState (new Map)
-    useEffect (() => {
-      setSelected (selectedFilters)
-    }, [selectedFilters])
+
     return <FiltersS>
       {filtersReq | requestResults ({
         spinnerProps: { color: 'black', size: 20, delayMs: 400, },
@@ -504,11 +379,12 @@ const Filters = container2 (
           onResults: (filters) => <>
             {
               filters | map (
-                ([filterName, countsMap]) => <Filter2
+                ([filterName, countsMap]) => <Filter
                   key={filterName}
                   name={filterName}
                   counts={countsMap}
-                  selecteds={selected.get (filterName)}
+                  // selecteds={selected.get (filterName)}
+                  selecteds={selectedFilters.get (filterName)}
                   onChange={onChange}
                 />
               )

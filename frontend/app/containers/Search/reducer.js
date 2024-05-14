@@ -12,10 +12,6 @@ import {
   searchFetch,
   searchFetchCompleted,
 } from './actions'
-import {
-  filtersFetch,
-  filtersFetchCompleted,
-} from '../App/actions/main'
 import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../common'
 
 export const initialState = {
