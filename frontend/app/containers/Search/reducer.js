@@ -12,19 +12,8 @@ import {
   searchFetch,
   searchFetchCompleted,
 } from './actions'
+import { initialState, } from './reducer-initial-state'
 import { rcompleteToResults, foldWhenRequestResults, reducer, } from '../../common'
-
-export const initialState = {
-  // --- a URLSearchParams object
-  filterSearchParams: null,
-  querySearch: null,
-  // --- request results
-  results: RequestInit,
-  buckets: RequestInit,
-  // --- simple value, not RequestInit etc. (though it could just as well have been)
-  // (note, not the length of `results`, which may contain several snippets per document).
-  numResults: null,
-}
 
 const reducerTable = makeReducer (
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (

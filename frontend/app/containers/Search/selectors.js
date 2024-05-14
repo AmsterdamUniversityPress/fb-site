@@ -7,7 +7,7 @@ import {
 import { cata, } from 'alleycat-js/es/bilby'
 import { logWith, } from 'alleycat-js/es/general'
 
-import { initialState, } from './reducer'
+import { initialState, } from './reducer-initial-state'
 
 import { initSelectors, foldWhenRequestResults, } from '../../common'
 
