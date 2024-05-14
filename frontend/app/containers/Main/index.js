@@ -333,7 +333,8 @@ const Logo = () => <Link to='/'>
 </Link>
 
 const MainS = styled.div`
-  background: url(${imageBackground});
+  // background: url(${imageBackground});
+  background: white;
   background-size: 100%;
   height: 100%;
   font-size: 20px;

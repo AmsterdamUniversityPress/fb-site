@@ -62,15 +62,9 @@ const Pagination = mkPagination (paginationKey)
 
 const SearchS = styled.div`
   display: flex;
-  // > * {
-    // vertical-align: middle;
-  // }
   > .x__sidebar {
     position: relative;
-    flex: 0 0 300px;
-    left: 0;
-    transition: left 0.1s;
-    // &.x--hide { left: -300px; }
+    flex: 0 0 0px;
   }
   > .x__main {
     flex: 1 0 0px;
@@ -295,8 +289,8 @@ const FilterS = styled.div`
       float: right;
       border: 1px solid #666666;
       border-radius: 50px;
-      background: #dddddd;
-      padding: 1px 7px 1px 7px;
+      background: #eaeaea;
+      padding: 1px 15px 1px 15px;
       font-size: 14px;
       color: black;
       font-weight: bold;
@@ -337,9 +331,6 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
 }
 
 const FiltersS = styled.div`
-  > .x__button {
-    padding: 20px;
-  }
 `
 
 const Filters = container2 (
@@ -406,7 +397,8 @@ const Filters = container2 (
 
 const SidebarS = styled.div`
   height: 100%;
-  width: 100%;
+  min-width: 400px;
+  max-width: 400px;
   padding: 20px;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
@@ -500,7 +492,11 @@ export const SearchBar = container2 (
         onClear={onClear}
         onSelect={onSelect}
       />
-      <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+      {
+        /*
+        <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
+          */
+      }
     </SearchBarS>
   },
 )
