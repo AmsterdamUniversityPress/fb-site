@@ -50,6 +50,7 @@ import {
   setRemap,
   setToggle,
   flatten,
+  mapFlatRemapTuples,
 } from '../../util-general'
 
 import config from '../../config'
@@ -61,13 +62,17 @@ const targetValue = path (['target', 'value'])
 const Pagination = mkPagination (paginationKey)
 
 const SearchS = styled.div`
-  display: flex;
+  > * {
+    vertical-align: top;
+  }
   > .x__sidebar {
     position: relative;
-    flex: 0 0 0px;
+    display: inline-block;
+    width: 400px;
   }
   > .x__main {
-    flex: 1 0 0px;
+    display: inline-block;
+    width: calc(100% - 450px);
     > .x__search {
       width: 50%;
       margin: auto;
@@ -256,6 +261,39 @@ const highlightString = highlightJoin ((idx) => {
   return ''
 })
 
+const FilterBubble = styled.span`
+  border: 1px solid #666666;
+  border-radius: 50px;
+  background-color: #f8f9fa;
+  transition: background-color .1s;
+  padding: 1px 15px 1px 15px;
+  font-size: 14px;
+  color: black;
+  white-space: nowrap;
+`
+
+const FilterBubbleTextS = styled (FilterBubble)`
+  padding: 10px 15px 10px 15px;
+  &:hover {
+    background-color: #dae0e5;
+    cursor: pointer;
+  }
+  > .x__close {
+    position: relative;
+    top: 2px;
+    margin-left: 5px;
+    font-weight: bold;
+    font-size: 20px;
+  }
+`
+
+const FilterBubbleText = ({ children, }) => <FilterBubbleTextS>
+  {children}
+  <span className='x__close'>
+    ×
+  </span>
+</FilterBubbleTextS>
+
 const FilterS = styled.div`
   text-align: left;
   > .x__title {
@@ -283,13 +321,6 @@ const FilterS = styled.div`
     }
     > .x__count {
       float: right;
-      border: 1px solid #666666;
-      border-radius: 50px;
-      background: #eaeaea;
-      padding: 1px 15px 1px 15px;
-      font-size: 14px;
-      color: black;
-      font-weight: bold;
     }
   }
 `
@@ -319,7 +350,9 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
           </span>
         </div>
         <span className='x__count'>
-          {count}
+          <FilterBubble>
+            {count}
+          </FilterBubble>
         </span>
       </div>
     )}
@@ -348,7 +381,7 @@ const Filters = container2 (
       navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
         '/search/%s?%s',
       ))
-    }, [searchQuery])
+    }, [searchQuery, navigate])
 
     const onChange = useCallback (
       (filterName, value) => commit (
@@ -497,6 +530,73 @@ export const SearchBar = container2 (
   },
 )
 
+const ActiveFiltersS = styled.div`
+  text-align: left;
+  margin-left: 30px;
+  margin-right: 30px;
+  > .x__title {
+    font-size: 24px;
+  }
+  > .x__filters {
+    // display: flex;
+    // align-items: space-between;
+    // flex-wrap: wrap;
+    line-height: 50px;
+    > .x__item {
+      // flex: 1 0 0px;
+      margin-right: 10px;
+      display: inline-block;
+    }
+  }
+`
+
+const ActiveFilters = container2 (
+  ['ActiveFilters'],
+  () => {
+    const navigate = useNavigate ()
+    const selectedFilters = useSelector (selectSelectedFilters)
+    console.log ('filters', selectedFilters)
+
+    const searchQuery = useSelector (selectSearchQuery)
+    // --- @todo heavily repeated from <Filters>
+    const commit = useCallback ((selected) => {
+      const tuples = flatten (1) (selected | mapRemapTuples (
+        (filterName, values) => values | setRemap (
+          (value) => [filterName, value],
+        )
+      ))
+      const params = new URLSearchParams (tuples)
+      navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
+        '/search/%s?%s',
+      ))
+    }, [navigate, searchQuery])
+
+    const onClick = useCallback (
+      (filterName, value) => commit (
+        selectedFilters | mapUpdate (
+          filterName, setToggle (value),
+        ),
+      ),
+      [selectedFilters],
+    )
+
+    return <ActiveFiltersS>
+      <div className='x__title'>
+        Active filters
+      </div>
+      <div className='x__filters'>
+        {selectedFilters | mapFlatRemapTuples (
+          (filterName, values) => values | setRemap (
+          (value) => <span className='x__item' onClick={() => onClick (filterName, value)}><FilterBubbleText>
+            {filterName}: {value}
+          </FilterBubbleText></span>
+          ),
+        )}
+      </div>
+    </ActiveFiltersS>
+  },
+)
+
 const SearchResults = container2 (
   ['SearchResults'],
   (props) => {
@@ -593,6 +693,9 @@ export const Search = container (
       <div className='x__main'>
         <div className='x__search'>
           <SearchBar query={queryProp} onSelect={onSelect}/>
+        </div>
+        <div className='x__filters'>
+          <ActiveFilters/>
         </div>
         {showResults && <div className='x__search-results-wrapper'>
           <SearchResults query={querySubmitted}/>

@@ -222,6 +222,19 @@ export const mapRemapTuples = recurry (2) (
   },
 )
 
+// --- note that this is slightly different from JS's own Array.prototype.flatMap: `f` must return
+// list, which the native one also allows primitive values.
+
+export const mapFlatRemapTuples = recurry (2) (
+  (f) => (m) => {
+    const ret = []
+    for (const [k, v] of m) {
+      ret.push (... f (k, v))
+    }
+    return ret
+  },
+)
+
 export const flatten = recurry (2) (
   (n) => (xs) => {
     let ys = xs
