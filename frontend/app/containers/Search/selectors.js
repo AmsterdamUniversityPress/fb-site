@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, prop, tap, reduce, remapTuples, nil,
-  each,
+  each, ifOk
 } from 'stick-js/es'
 
 import { cata, } from 'alleycat-js/es/bilby'
@@ -11,7 +11,7 @@ import { initialState, } from './reducer-initial-state'
 
 import { initSelectors, foldWhenRequestResults, } from '../../common'
 
-import { mapSetM, } from '../../util-general'
+import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, } from '../../util-general'
 
 const { select, selectTop, selectVal, } = initSelectors (
   'Search',
@@ -94,4 +94,25 @@ export const selectSelectedFilters = select (
     ))
     return ret
   }
+)
+
+export const selectSelectedFiltersTuplesWithUpdate = select (
+  'selectedFiltersTuples',
+  [selectSelectedFilters],
+  (selectedFilters) => (updateSpec) => {
+    const filters = updateSpec | ifOk (
+      () => {
+        const [filterName, value] = updateSpec
+        return selectedFilters | mapUpdate (
+          filterName, setToggle (value),
+        )
+      },
+      () => selectedFilters,
+    )
+    return flatten (1) (filters | mapRemapTuples (
+      (filterName, values) => values | setRemap (
+        (value) => [filterName, value],
+      )
+    ))
+  },
 )
