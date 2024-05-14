@@ -25,7 +25,6 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { searchFetch, searchReset, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
@@ -57,7 +56,6 @@ import {
   mapUpdate, setAdd, setRemove,
   setToggle,
 } from '../../util-general'
-import { mkURLSearchParams, } from '../../util-web'
 
 import config from '../../config'
 const configTop = configure.init (config)
@@ -677,10 +675,7 @@ const SearchResults = container2 (
 
 export const Search = container (
   ['Search',
-    {
-      searchFetchDispatch: searchFetch,
-      searchResetDispatch: searchReset,
-    },
+    {},
     {
       resultsSearch: selectResultsSearch,
       searchQuery: selectSearchQuery,
@@ -694,19 +689,12 @@ export const Search = container (
       resultsSearch,
       // --- `searchQuery` is the query that has actually been executed (contrast with `queryProp`)
       searchQuery,
-      searchFetchDispatch, searchResetDispatch,
     } = props
-    const filterSearchParams = searchParamsStringProp | mkURLSearchParams (
-      // --- @todo add more
-      ['categories', 'trefwoorden'],
-    )
     // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
     // again by React Router. If this is the first time this component sees this value for `queryProp` then it hasn't been searched on yet (it's our job to do it using the effect below).
     // If it's nil it means there hasn't been a search yet; e.g., we're looking at Main.
-    // --- keep track of this so that the effect doesn't continually fire
-    const [searchParamsString, setSearchParamsString] = useState (null)
-    useEffect (() => { setSearchParamsString (searchParamsStringProp) }, [searchParamsStringProp])
     const [querySubmitted, setQuerySubmitted] = useState (null)
+    useEffect (() => { setQuerySubmitted (queryProp) }, [queryProp])
     // --- we want to distinguish the case of starting a new search, with a new query, and searching
     // on a different page or page size with the existing query. In the first case we want the text
     // about the number of results to disappear and get redrawn, and in the second case, we want the
@@ -723,13 +711,6 @@ export const Search = container (
       ),
       [showResultsProp, isNewQuery],
     )
-    useEffect (() => {
-      if (nil (queryProp)) return
-      setQuerySubmitted (queryProp)
-      if (queryProp === searchQuery && searchParamsString === searchParamsStringProp) return
-      searchResetDispatch ()
-      searchFetchDispatch (queryProp, filterSearchParams)
-    }, [queryProp, searchQuery, searchParamsString, searchParamsStringProp, searchResetDispatch, searchFetchDispatch, filterSearchParams])
 
     useEffect (() => {
       setIsNewQuery (false)

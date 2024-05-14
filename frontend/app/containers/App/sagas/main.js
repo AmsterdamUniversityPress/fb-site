@@ -324,13 +324,13 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 }
 
 // --- @todo move to Search?
-function *s_searchFetch ({ query, filterSearchParams: searchParams, }) {
+function *s_searchFetch ({ query, filterSearchParams, }) {
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
-  searchParams.set ('pageSize', pageSize)
-  searchParams.set ('pageNum', pageNum)
+  filterSearchParams.set ('pageSize', pageSize)
+  filterSearchParams.set ('pageNum', pageNum)
   yield call (doApiCall, {
-    url: [encodeURIComponent (query), searchParams.toString ()] | sprintfN (
+    url: [encodeURIComponent (query), filterSearchParams.toString ()] | sprintfN (
       '/api/search/search/%s?%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),

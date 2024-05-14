@@ -31,6 +31,8 @@ import {
   sendResetEmail,
 } from '../App/actions/main'
 
+import { searchFetch, searchReset, } from '../Search/actions'
+
 import {
   selectEmailRequestPending,
   selectEmailRequestSuccess,
@@ -70,6 +72,7 @@ import {
 import {
   foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapGet, mapSetM, mapUpdateM, mapX,
 } from '../../util-general'
+import { mkURLSearchParams, } from '../../util-web'
 import config from '../../config'
 
 const configTop = configure.init (config)
@@ -1076,20 +1079,36 @@ const ContentsS = styled.div`
   }
 `
 
+// --- few props, no state
 const Contents = container (
   ['Contents', {}, {}],
   ({ isMobile, page, }) => {
     const params = useParams ()
-    const element = page | lookupOnOrDie ('Invalid page ' + page) ({
-      overview: () => <FondsMain/>,
-      detail: () => <FondsDetail/>,
-      login: () => <Login isMobile={isMobile} email={params.email}/>,
-      search: () => <SearchWrapper query={params.query} searchParamsString={document.location.search} showResults={true}/>,
-      user: () => <UserPage/>,
-      'init-password': () => <UserActivate email={params.email} token={params.token} mode='init-password'/>,
-      'reset-password': () => <UserActivate email={params.email} token={params.token} mode='reset-password'/>,
-      'user-admin': () => <Admin/>,
+    const dispatch = useDispatch ()
+    const [element, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
+      overview: [() => <FondsMain/>],
+      detail: [() => <FondsDetail/>],
+      login: [() => <Login isMobile={isMobile} email={params.email}/>],
+      search: [
+        () => <SearchWrapper query={params.query} showResults={true}/>,
+        () => {
+          const query = params.query
+          if (nil (query)) return
+          const searchParams = document.location.search | mkURLSearchParams (
+            // --- @todo add more
+            ['categories', 'trefwoorden'],
+          )
+          dispatch (searchReset ())
+          dispatch (searchFetch (query, searchParams))
+        },
+      ],
+      user: [() => <UserPage/>],
+      'init-password': [() => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
+      'reset-password': [() => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
+      'user-admin': [() => <Admin/>],
     })
+
+    useEffect (effect)
 
     return <ContentsS>
       <div className='x__main'>
