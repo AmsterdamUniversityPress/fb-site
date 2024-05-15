@@ -11,6 +11,7 @@ export const clearFilters = action (
   'clearFilters',
 )
 
+// --- causes 2 queries to be fired, one for determining the search results and one for the buckets.
 export const searchFetch = action (
   (query, filterSearchParams) => ({ query, filterSearchParams, }),
   'searchFetch',
@@ -19,6 +20,11 @@ export const searchFetch = action (
 export const searchFetchCompleted = action (
   (rcomplete) => rcomplete,
   'searchFetchCompleted',
+)
+
+export const searchBucketsFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'searchBucketsFetchCompleted',
 )
 
 export const searchReset = action (

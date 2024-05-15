@@ -43,6 +43,7 @@ import {
 import {
   searchFetch as a_searchFetch,
   searchFetchCompleted as a_searchFetchCompleted,
+  searchBucketsFetchCompleted as a_searchBucketsFetchCompleted,
   searchReset as a_searchReset,
 } from '../../Search/actions'
 import {
@@ -327,6 +328,7 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 function *s_searchFetch ({ query, filterSearchParams, }) {
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
+
   filterSearchParams.set ('pageSize', pageSize)
   filterSearchParams.set ('pageNum', pageNum)
   yield call (doApiCall, {
@@ -334,6 +336,16 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
       '/api/search/search/%s?%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),
+    oops: toastError,
+  })
+  const bucketSearchParams = new URLSearchParams (filterSearchParams)
+  // --- @todo delete appropriate filter
+  bucketSearchParams.delete ('categories')
+  yield call (doApiCall, {
+    url: [encodeURIComponent (query), bucketSearchParams.toString ()] | sprintfN (
+      '/api/search/search/%s?%s',
+    ),
+    continuation: EffAction (a_searchBucketsFetchCompleted),
     oops: toastError,
   })
 }
