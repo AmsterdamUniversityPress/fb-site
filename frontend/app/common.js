@@ -226,6 +226,18 @@ export const foldWhenRequestResults = (f) => cata ({
   RequestResults: (res) => f (res),
 })
 
+// --- not a great name, but what it does is convert RequestInit to the value `initVal`, map
+// the RequestResults case using `resultsF`, and otherwise identity.
+
+export const mapRequestInitResults = recurry (3) (
+  (initVal) => (resultsF) => cata ({
+    RequestInit: () => RequestResults (initVal),
+    RequestLoading: (mbCombiner) => RequestLoading (mbCombiner),
+    RequestError: (e) => RequestError (e),
+    RequestResults: (old_data) => RequestResults (resultsF (old_data)),
+  }),
+)
+
 export const requestIsLoading = cata ({
   RequestInit: F,
   RequestLoading: T,

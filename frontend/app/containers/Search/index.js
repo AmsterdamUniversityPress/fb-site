@@ -387,14 +387,14 @@ const FiltersS = styled.div`
   font-size: 15px;
 `
 
-const Filters = container (
-  ['Filters', {}, { selectedFilters: selectSelectedFilters, }],
-  ({ selectedFilters, }) => {
+const Filters = container2 (
+  ['Filters'],
+  () => {
     const dispatch = useDispatch ()
     const navigate = useNavigate ()
     const filtersReq = useSelector (selectFiltersWithCounts)
     // --- 'category' => 'onderwijs', 'category' => 'religie', 'trefwoorden' => ...,
-    // const selectedFilters = useSelector (selectSelectedFilters)
+    const selectedFilters = useSelector (selectSelectedFilters)
 
     const onChange = useCallbackConst ((filterName, value) => {
       dispatch (updateFilterToggle (navigate, filterName, value))
