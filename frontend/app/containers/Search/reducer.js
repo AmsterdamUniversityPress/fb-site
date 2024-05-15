@@ -20,6 +20,7 @@ import {
 import { initialState, } from './reducer-initial-state'
 import { selectSelectedFilters, } from './selectors'
 import { rcompleteToResults, foldWhenRequestResults, mapRequestInitResults, reducer, } from '../../common'
+import { remove, } from '../../util-general'
 
 const reducerTable = makeReducer (
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
@@ -30,18 +31,15 @@ const reducerTable = makeReducer (
     assoc ('results', RequestLoading (Nothing)),
     assoc ('numResults', null),
   ),
-  searchFetchCompleted, (rcomplete) => {
+  searchFetchCompleted, (rcomplete) => (state) => {
     const results = rcomplete | rcompleteToResults
+    const { lastUpdatedFilterName, } = state
     const new_bucket_data = results | foldWhenRequestResults (
-      (res) => ({
-        naam_organisatie: res.metadata.buckets.naam_organisatie,
-        regios: res.metadata.buckets.regios,
-        trefwoorden: res.metadata.buckets.trefwoorden,
-      })
+      (res) => res.metadata.buckets | remove (lastUpdatedFilterName),
     )
     return new_bucket_data | ifNil (
-      () => id,
-      () => composeManyRight (
+      () => state,
+      () => state | composeManyRight (
         update ('buckets', mapRequestInitResults (
           new_bucket_data,
           merge (new_bucket_data),
@@ -53,18 +51,22 @@ const reducerTable = makeReducer (
       ),
     )
   },
-  searchBucketsFetchCompleted, (rcomplete) => {
-    const new_categories = rcomplete | rcompleteToResults | foldWhenRequestResults (
-      (res) => res.metadata.buckets.categories,
+  searchBucketsFetchCompleted, (rcomplete) => (state) => {
+    const { lastUpdatedFilterName, } = state
+    const new_single_filter = rcomplete | rcompleteToResults | foldWhenRequestResults (
+      (res) => res.metadata.buckets [lastUpdatedFilterName],
     )
-    return new_categories | ifNil (
-      () => id,
-      () => update ('buckets', mapRequestInitResults (
-        new_categories,
-        assoc ('categories', new_categories),
+    return new_single_filter | ifNil (
+      () => state,
+      () => state | update ('buckets', mapRequestInitResults (
+        new_single_filter,
+        assoc (lastUpdatedFilterName, new_single_filter),
       )),
     )
   },
+  updateFilterToggle, ({ filterName, ... _ }) => assoc (
+    'lastUpdatedFilterName', filterName,
+  )
 )
 
 export default reducer ('Search', initialState, reducerTable)

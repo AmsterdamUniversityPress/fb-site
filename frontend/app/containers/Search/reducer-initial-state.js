@@ -14,4 +14,5 @@ export const initialState = {
   // --- simple value, not RequestInit etc. (though it could just as well have been)
   // (note, not the length of `results`, which may contain several snippets per document).
   numResults: null,
+  lastUpdatedFilterName: null,
 }

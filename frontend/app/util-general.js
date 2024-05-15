@@ -8,6 +8,7 @@ import {
   againstAny, contains, containsV, flip,
   map, addIndex, ifTrue, ifPredicate, whenPredicate,
   dot2, dot1, repeatF,
+  mergeInM,
 } from 'stick-js/es'
 
 import { fold, Right, Left, flatMap, } from 'alleycat-js/es/bilby'
@@ -243,4 +244,15 @@ export const flatten = recurry (2) (
     )
     return ys
   }
+)
+
+// --- @todo made the same way as `assoc` in stick, with the same caveat about
+// arrays being converted to objects (see source of `assoc` in stick)
+
+export const remove = recurry (2) (
+  (prop) => (o) => {
+    const oo = mergeInM (o) (Object.create (null))
+    delete oo [prop]
+    return oo
+  },
 )

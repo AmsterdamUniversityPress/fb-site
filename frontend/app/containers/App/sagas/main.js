@@ -52,7 +52,11 @@ import {
 } from '../../shared/Pagination/actions'
 import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
-import { selectFilterSearchParams as selectSearchFilterSearchParams, selectQuery as selectSearchQuery, } from '../../../containers/Search/selectors'
+import {
+  selectFilterSearchParams as selectSearchFilterSearchParams,
+  selectQuery as selectSearchQuery,
+  selectLastUpdatedFilterName,
+} from '../../../containers/Search/selectors'
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
 import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
@@ -328,7 +332,6 @@ function *s_resetPasswordCompleted (rcomplete, email, navigate) {
 function *s_searchFetch ({ query, filterSearchParams, }) {
   const pageSize = yield select (selectNumSearchResultsPerPage)
   const pageNum = yield select (selectSearchResultsPage)
-
   filterSearchParams.set ('pageSize', pageSize)
   filterSearchParams.set ('pageNum', pageNum)
   yield call (doApiCall, {
@@ -339,8 +342,8 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
     oops: toastError,
   })
   const bucketSearchParams = new URLSearchParams (filterSearchParams)
-  // --- @todo delete appropriate filter
-  bucketSearchParams.delete ('categories')
+  const lastUpdatedFilterName = yield select (selectLastUpdatedFilterName)
+  bucketSearchParams.delete (lastUpdatedFilterName)
   yield call (doApiCall, {
     url: [encodeURIComponent (query), bucketSearchParams.toString ()] | sprintfN (
       '/api/search/search/%s?%s',

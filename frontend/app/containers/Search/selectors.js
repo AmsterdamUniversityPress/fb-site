@@ -146,3 +146,5 @@ export const selectHasSelectedFilters = select (
   [selectSelectedFiltersTuples],
   (tuples) => tuples.length !== 0,
 )
+
+export const selectLastUpdatedFilterName = selectVal ('lastUpdatedFilterName')
