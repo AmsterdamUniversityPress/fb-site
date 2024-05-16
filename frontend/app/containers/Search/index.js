@@ -351,7 +351,7 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
     (value, _event) => onChangeProp (name, value),
     [onChangeProp, name],
   )
-  const show = useMemo (() => counts.size > 1, [counts])
+  const show = useMemo (() => counts.size > 0, [counts])
   return <FilterS>
     {show && <>
       <div className='x__title'>
