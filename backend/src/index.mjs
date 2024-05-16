@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil,
-  rangeTo, prop, xReplace, path,
+  rangeTo, prop, xReplace, path, ok,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, recurry, ifOk, ifNil, take, dot, join,
   ifPredicate, whenOk, invoke, each, appendM,
@@ -325,8 +325,9 @@ const alleycatAuth = authFactory.create ().init ({
     return authIP.checkProxyIP (req)
   },
   jwtSecret,
-  onHello: async (email, { session: { sessionId, }}) => {
-    decorateAndRethrow (
+  onHello: async (email, { session=null, }) => {
+    const sessionId = session?.sessionId
+    if (ok (sessionId)) decorateAndRethrow (
       [email, sessionId] | sprintfN (
         'Unable to look up session for email=%s session id=%s: ',
       ),
@@ -334,11 +335,12 @@ const alleycatAuth = authFactory.create ().init ({
     )
   },
   // --- arg 2 = { username, userinfo, session=null, }
-  onLogin: async (email, { session: { sessionId, }}) => {
-    addLoggedIn (email, sessionId)
+  onLogin: async (email, { session=null, }) => {
+    addLoggedIn (email, session?.sessionId)
   },
-  onLogout: async (email, { session: { sessionId, }}) => {
-    decorateAndRethrow (
+  onLogout: async (email, { session=null, }) => {
+    const sessionId = session?.sessionId
+    if (ok (sessionId)) decorateAndRethrow (
       [email, sessionId] | sprintfN (
         'Unable to look up session for email=%s session id=%s: ',
       ),

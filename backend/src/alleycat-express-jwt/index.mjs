@@ -353,10 +353,10 @@ const init = ({
       (req, res) => {
         if (nil (req.alleycat)) iwarn ('Unexpected, req.alleycat does not exist (3)')
         const { user, session=null, } = req.alleycat
-        if (!user || !user.userinfo || !user.username) return res | sendStatus (serverErrorJSONCode, {
+        if (!user || !user.userinfo) return res | sendStatus (serverErrorJSONCode, {
           imsg: routeHello + ': missing user info',
         })
-        const { userinfo, username, } = user
+        const { userinfo, username=null, } = user
         const cookie = doCookie (req)
         res | cookie.set (mkJwt (username, session, jwtSecret))
         onHello (username, { username, userinfo, session, })
