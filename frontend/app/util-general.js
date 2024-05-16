@@ -248,6 +248,15 @@ export const mapTake = recurry (2) (
   }
 )
 
+export const mapFilterKeys = recurry (2) (
+  (f) => (m) => {
+    const ret = new Map
+    for (const [k, v] of m)
+      if (f (k)) ret.set (k, v)
+    return ret
+  }
+)
+
 export const flatten = recurry (2) (
   (n) => (xs) => {
     let ys = xs

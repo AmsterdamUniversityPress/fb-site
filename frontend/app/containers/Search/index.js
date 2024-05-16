@@ -53,17 +53,17 @@ import {
   setToggle,
   flatten,
   mapFlatRemapTuples,
+  mapFilterKeys,
   mapTake,
   lookupOnOrDie,
 } from '../../util-general'
-
-const lowercase = dot ('toLowerCase')
 
 import config from '../../config'
 const configTop = configure.init (config)
 const paginationKey = configTop.get ('app.keys.Pagination.search')
 const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
+const lowercase = dot ('toLowerCase')
 const filterLabels = configTop.get ('text.filterLabels')
 const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, filterLabels)
 // const filterLabelCategories = filterLabels.get ('categories')
@@ -314,8 +314,14 @@ const FilterS = styled.div`
   > .x__sep {
     background: #00000022;
     height: 2px;
-    width: 90%;
     margin-bottom: 8px;
+    width: 94%;
+  }
+  > .x__input {
+    width: 92%;
+    position: relative;
+    left: 7%;
+    margin-bottom: 10px;
   }
   > .x__row {
     white-space: nowrap;
@@ -356,6 +362,7 @@ const FilterS = styled.div`
 `
 
 const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) => {
+  const [inputValue, setInputValue] = useState ('')
   const [showAll, setShowAll] = useState (false)
   // --- we don't check event -- we simply toggle in the parent
   const onChange = useCallback (
@@ -363,8 +370,16 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
     [onChangeProp, name],
   )
   const onClickShowMore = useCallback (() => setShowAll (not))
+  const onChangeInput = useCallbackConst (setInputValue << targetValue)
+  const filteredCounts = useMemo (() => {
+    if (inputValue.length < 3) return counts
+    // --- not efficient, but performance is acceptable (checked on Samsung A5 2017)
+    return counts | mapFilterKeys (
+      (key) => key.match (new RegExp (inputValue.trim (), 'i')),
+    )
+  }, [counts, inputValue])
   const show = useMemo (() => counts.size > 0, [counts])
-  const showShowMoreLessButton = useMemo (() => counts.size > 10, [counts])
+  const showShowMoreLessButton = useMemo (() => filteredCounts.size > 10, [filteredCounts])
   const showMoreLessButtonText = useMemo (() => showAll ? '- Minder tonen' : '+ Meer tonen', [showAll])
   const abridge = useMemo (() => showAll ? id : mapTake (10), [showAll])
   return <FilterS>
@@ -373,7 +388,10 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
         {name | toFilterLabel}
       </div>
       <div className='x__sep'/>
-      {counts | abridge | mapRemapTuples (
+      <div className='x__input'>
+        <Input type='text' inputProps={{ style: { padding: '7px', }}} value={inputValue} onChange={onChangeInput}/>
+      </div>
+      {filteredCounts | abridge | mapRemapTuples (
         (value, count) => <div key={value} className='x__row'>
           {/* --- @todo useCallback (2x) */}
           <div className='x__clickable' onClick={(event) => onChange (value, event)}>
@@ -519,6 +537,7 @@ export const SearchBar = container2 (
         inputWrapperProps={{
           withIcon: ['search', 'left'],
           showClearIcon: true,
+          doFocusFix: false,
           style: { display: 'inline-block', },
           inputProps: {
             autoFocus: true,
