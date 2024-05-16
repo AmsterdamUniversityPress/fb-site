@@ -33,7 +33,7 @@ export const highlightTags = [
 
 const keywordMapping = {
   type: 'keyword',
-  normalizer: 'my_normalizer',
+  normalizer: null,
 }
 
 let esClient
@@ -124,6 +124,8 @@ const initIndexMain = (data) => startP ()
           default: customDutchAnalyzer,
         },
         normalizer: {
+          // --- we ended up not using this (this is where it gets defined, mappings.properties is
+          // where it gets enabled).
           my_normalizer: {
             type: "custom",
             filter: ["lowercase", "asciifolding"]
@@ -208,6 +210,8 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
       terms: { field: 'trefwoorden', },
     },
     naam_organisatie: {
+      // --- @todo should this maybe use the fulltext variant and not the keyword?
+      // --- @todo shouldn't these 4 either all use keyword or all use fulltext?
       terms: { field: 'naam_organisatie.keyword', },
     },
     regios: {
