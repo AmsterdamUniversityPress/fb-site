@@ -53,6 +53,7 @@ import {
   setToggle,
   flatten,
   mapFlatRemapTuples,
+  mapTake,
   lookupOnOrDie,
 } from '../../util-general'
 
@@ -344,22 +345,35 @@ const FilterS = styled.div`
       text-align: right;
     }
   }
+  > .x__show-all {
+    margin-top: 10px;
+    > span {
+      padding: 5px;
+      border: 1px solid #dee2e6;
+      cursor: pointer;
+    }
+  }
 `
 
 const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) => {
+  const [showAll, setShowAll] = useState (false)
   // --- we don't check event -- we simply toggle in the parent
   const onChange = useCallback (
     (value, _event) => onChangeProp (name, value),
     [onChangeProp, name],
   )
+  const onClickShowMore = useCallback (() => setShowAll (not))
   const show = useMemo (() => counts.size > 0, [counts])
+  const showShowMoreLessButton = useMemo (() => counts.size > 10, [counts])
+  const showMoreLessButtonText = useMemo (() => showAll ? '- Minder tonen' : '+ Meer tonen', [showAll])
+  const abridge = useMemo (() => showAll ? id : mapTake (10), [showAll])
   return <FilterS>
     {show && <>
       <div className='x__title'>
         {name | toFilterLabel}
       </div>
       <div className='x__sep'/>
-      {counts | mapRemapTuples (
+      {counts | abridge | mapRemapTuples (
         (value, count) => <div key={value} className='x__row'>
           {/* --- @todo useCallback (2x) */}
           <div className='x__clickable' onClick={(event) => onChange (value, event)}>
@@ -380,6 +394,11 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
           </span>
         </div>
       )}
+      {showShowMoreLessButton && <div className='x__show-all'>
+        <span onClick={onClickShowMore}>
+          {showMoreLessButtonText}
+        </span>
+      </div>}
     </>}
   </FilterS>
 }

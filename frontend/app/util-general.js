@@ -236,6 +236,18 @@ export const mapFlatRemapTuples = recurry (2) (
   },
 )
 
+export const mapTake = recurry (2) (
+  (n) => (m) => {
+    const ret = new Map
+    let i = 0
+    for (const [k, v] of m) {
+      ret.set (k, v)
+      if ((i += 1) >= n) break
+    }
+    return ret
+  }
+)
+
 export const flatten = recurry (2) (
   (n) => (xs) => {
     let ys = xs

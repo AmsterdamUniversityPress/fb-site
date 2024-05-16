@@ -13,6 +13,12 @@ import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, trim, } from 'alleycat-js/es/general'
 import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifNotLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
 
+// --- how many unique buckets to return per filter. The Elastic docs recommend 1000 as a general
+// limit so this is quite high. But we have more than 1000 funds and want to try to show the entire
+// list of unique values for naam_organsatie. Note that if the number exceeds FILTER_VALUE_COUNT
+// then the list will be truncated.
+const FILTER_VALUE_COUNT = 2000
+
 // --- debug / analyze
 const analyze = false
 const analyzeText = `
@@ -202,20 +208,21 @@ const _mkSearchQuery = (query, searchFilters, filterValues) => ({
 
 const mkSearchQuery = (query, searchFilters, filterValues) => {
   const { categories, trefwoorden, naam_organisatie, regios, } = searchFilters
+  const size = FILTER_VALUE_COUNT
   const aggregations = {
     categories: {
-      terms: { field: 'categories', },
+      terms: { size, field: 'categories', },
     },
     trefwoorden: {
-      terms: { field: 'trefwoorden', },
+      terms: { size, field: 'trefwoorden', },
     },
     naam_organisatie: {
       // --- @todo should this maybe use the fulltext variant and not the keyword?
       // --- @todo shouldn't these 4 either all use keyword or all use fulltext?
-      terms: { field: 'naam_organisatie.keyword', },
+      terms: { size, field: 'naam_organisatie.keyword', },
     },
     regios: {
-      terms: { field: 'regios', },
+      terms: { size, field: 'regios', },
     },
   }
 
