@@ -53,6 +53,7 @@ const reducerTable = makeReducer (
   },
   searchBucketsFetchCompleted, (rcomplete) => (state) => {
     const { lastUpdatedFilterName, } = state
+    console.log ('fetch 2 completed, lastUpdatedFilterName', lastUpdatedFilterName)
     const new_single_filter = rcomplete | rcompleteToResults | foldWhenRequestResults (
       (res) => res.metadata.buckets [lastUpdatedFilterName],
     )

@@ -343,7 +343,9 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
   })
   const bucketSearchParams = new URLSearchParams (filterSearchParams)
   const lastUpdatedFilterName = yield select (selectLastUpdatedFilterName)
+  console.log ('deleting, lastUpdatedFilterName', lastUpdatedFilterName)
   bucketSearchParams.delete (lastUpdatedFilterName)
+  console.log ('after delete, bucketSearchParams', bucketSearchParams.toString ())
   yield call (doApiCall, {
     url: [encodeURIComponent (query), bucketSearchParams.toString ()] | sprintfN (
       '/api/search/search/%s?%s',

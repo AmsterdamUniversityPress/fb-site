@@ -270,7 +270,7 @@ const highlightString = highlightJoin ((idx) => {
 })
 
 const FilterBubble = styled.span`
-  border: 1px solid #666666;
+  border: 1px solid #dee2e6;
   border-radius: 10rem;
   background-color: #f8f9fa;
   transition: background-color .1s;
@@ -341,6 +341,7 @@ const FilterS = styled.div`
     }
     > .x__count {
       flex: 0 0 50px;
+      text-align: right;
     }
   }
 `
