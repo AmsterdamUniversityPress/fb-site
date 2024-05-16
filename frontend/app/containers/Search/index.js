@@ -502,14 +502,12 @@ export const SearchBar = container2 (
       if (ok (queryProp)) setQuery (queryProp)
     }, [queryProp])
 
-    // --- @todo start at null, move useMemo down, easier to follow
     const [suggestions, setSuggestions] = useState (null)
 
     // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
       setQuery,
       dispatch << autocompleteQueryUpdated,
-      // () => setSearchParamsString (null),
     ]))
     const onChange = useCallback (targetValue >> trim >> onChangeValue, [onChangeValue])
     const onClear = useCallback (() => {
@@ -526,10 +524,8 @@ export const SearchBar = container2 (
       setQuery (value)
       onSelectProp (value !== query)
       startSearch (value)
-      // --- @todo we've changed the order, is that ok?
-      // if (value !== query) setIsNewQuery (true)
     }, [onSelectProp, query, startSearch])
-    const canSearch = useMemo (() => query | isNotEmptyString, [query])
+    // const canSearch = useMemo (() => query | isNotEmptyString, [query])
     // --- the autocomplete results
     // @todo better name
     const results = useMemo (
@@ -539,7 +535,7 @@ export const SearchBar = container2 (
       }),
       [resultsRequest],
     )
-    const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
+    // const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
     useEffect (() => { setSuggestions (results) }, [results])
 
     return <SearchBarS>

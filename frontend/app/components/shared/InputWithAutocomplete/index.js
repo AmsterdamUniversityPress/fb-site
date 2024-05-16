@@ -10,7 +10,7 @@ import styled from 'styled-components'
 
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
 import { logWith, min, max, warn, trim, } from 'alleycat-js/es/general'
-import { allV, } from 'alleycat-js/es/predicate'
+import { allV, ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
@@ -41,10 +41,14 @@ const SuggestionS = styled.div`
       background: #ffcbcb6b;
     }
   }
+  .x__highlight {
+    font-weight: bold;
+  }
 `
 
 const Suggestion = ({
-  data,
+  value,
+  query=null,
   selected=false,
   selectedStyle={},
   onSelect,
@@ -54,6 +58,19 @@ const Suggestion = ({
   const onClick = useCallback (() => {
     onSelect ()
   }, [onSelect])
+  const highlight = useCallbackConst ((value, query) =>
+    value.indexOf (query) | ifEquals (-1) (
+      () => value,
+      // --- the string is generally at the beginning (we only do autcomplete on prefixes, not in
+      // the middle of a token), but we do it this way so we also catch something like
+      // 'medisch-polemologische' for query 'pol'.
+      (idx) => <>
+        {value.substring (0, idx)}
+        <span className='x__highlight'>{value.substr (idx, query.length)}</span>
+        {value.slice (idx + query.length)}
+      </>,
+    )
+  )
   return <SuggestionS>
     <div
       className={clss ('x__data', selected && 'x--selected')}
@@ -62,7 +79,7 @@ const Suggestion = ({
       onMouseOut={onHoverOut}
       onClick={onClick}
     >
-      {data}
+      {highlight (value, query)}
     </div>
   </SuggestionS>
 }
@@ -211,7 +228,8 @@ export default component (
         >
           {suggestions | mapX (([result, key], idx) => <Suggestion
             key={key}
-            data={result}
+            value={result}
+            query={value}
             selected={idx === selectedIdx || idx == hoverIdx}
             style={suggestionStyle}
             selectedStyle={selectedSuggestionStyle}
