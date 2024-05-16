@@ -371,13 +371,15 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
   )
   const onClickShowMore = useCallback (() => setShowAll (not))
   const onChangeInput = useCallbackConst (setInputValue << targetValue)
+  const doAutocomplete = useMemo (() => inputValue.length >= 3, [inputValue])
+  const filterIconCls = useMemo (() => doAutocomplete ? '' : 'u-opacity-25', [doAutocomplete])
   const filteredCounts = useMemo (() => {
-    if (inputValue.length < 3) return counts
+    if (not (doAutocomplete)) return counts
     // --- not efficient, but performance is acceptable (checked on Samsung A5 2017)
     return counts | mapFilterKeys (
       (key) => key.match (new RegExp (inputValue.trim (), 'i')),
     )
-  }, [counts, inputValue])
+  }, [doAutocomplete, counts, inputValue])
   const show = useMemo (() => counts.size > 0, [counts])
   const showShowMoreLessButton = useMemo (() => filteredCounts.size > 10, [filteredCounts])
   const showMoreLessButtonText = useMemo (() => showAll ? '- Minder tonen' : '+ Meer tonen', [showAll])
@@ -412,7 +414,13 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
       </div>
       <div className='x__sep'/>
       <div className='x__input'>
-        <Input type='text' inputProps={{ style: { padding: '7px', }}} value={inputValue} onChange={onChangeInput}/>
+        <Input
+          type='text'
+          inputProps={{ style: { padding: '7px', }}}
+          value={inputValue}
+          onChange={onChangeInput}
+          withIcon={['filter', 'right', [filterIconCls]]}
+        />
       </div>
       {Contents}
       {showShowMoreLessButton && <div className='x__show-all'>

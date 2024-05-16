@@ -52,6 +52,14 @@ export const GlobalStyle = createGlobalStyle`
     cursor: pointer !important;
   }
 
+  .u-opacity-25 {
+    opacity: 0.25;
+  }
+
+  .u-opacity-50 {
+    opacity: 0.5;
+  }
+
   .u--display-none {
     display: none !important;
   }

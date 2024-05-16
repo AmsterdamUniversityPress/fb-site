@@ -13,13 +13,15 @@ import { useCallbackConst, withDisplayName, } from 'alleycat-js/es/react'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { mediaPhone, mediaPhoneOnly, mediaTablet, mediaDesktop, } from '../../../common'
-import { isNotEmptyString, isNotEmptyList, } from '../../../util-general'
+import { isNotEmptyString, isNotEmptyList, lookupOn, } from '../../../util-general'
 
 import config from '../../../config'
 
 const configTop = config | configure.init
 
+const filterIcon = configTop.get ('icons.filter')
 const searchIcon = configTop.get ('icons.search')
+import Filter from '../../../images/icons/filter.svg.js'
 
 // --- @todo styling is repeated here and SearchField.
 const InputBaseMixin = `
@@ -69,6 +71,9 @@ const InputWrapperS = styled.div`
     &.x--right {
       right: 15px;
     }
+    .icon {}
+    .icon-filter {
+    }
   }
   .x__clear-icon {
     position: absolute;
@@ -104,9 +109,10 @@ const InputWrapper = invoke (() => {
   const styleForClearIcon = (show) => not (show) ? null : {
     paddingRight: '47px',
   }
-  const icons = {
-    search: <img src={searchIcon}/>,
-  }
+  const icons = (which, classes) => which | lookupOn ({
+    filter: <Filter height='14px' className={clss ('icon', 'icon-filter', ... classes)}/>,
+    search: <img src={searchIcon} className='icon icon-search'/>,
+  })
   return (props) => {
     const {
       withIcon=[],
@@ -120,7 +126,7 @@ const InputWrapper = invoke (() => {
       inputProps={},
     } = props
     const { style: inputStyle={}, ... restInputProps } = inputProps
-    const [icon, whereIcon] = withIcon
+    const [icon, whereIcon, iconClasses=[]] = withIcon
     const hasIcon = withIcon | isNotEmptyList
     const inputRef = useRef (null)
     const theInputRef = inputRefProp ?? inputRef
@@ -146,7 +152,7 @@ const InputWrapper = invoke (() => {
     const { padding, ... restInputStyle } = inputStyle
     return <InputWrapperS style={{ width, ... style, }}>
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
-        {icons [icon] || null}
+        {icons (icon, iconClasses) || null}
       </div>}
       {showTheClearIcon && <div className='x__clear-icon' onClick={onClickClear}>
         <span>
