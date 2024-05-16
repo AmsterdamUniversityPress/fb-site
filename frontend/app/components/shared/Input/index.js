@@ -42,9 +42,10 @@ const InputS = styled.input`
   ${InputBaseMixin}
   ${({ padding, }) => padding | whenOk (() => `
     padding: ${padding};
-    :focus {
-      padding: calc(${padding} - 1px);
-    }
+    // --- @todo removing this, but need to check on mobile
+    // :focus {
+      // padding: calc(${padding} - 1px);
+    // }
   `)}
 `
 
