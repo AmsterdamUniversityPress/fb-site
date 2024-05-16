@@ -382,6 +382,29 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
   const showShowMoreLessButton = useMemo (() => filteredCounts.size > 10, [filteredCounts])
   const showMoreLessButtonText = useMemo (() => showAll ? '- Minder tonen' : '+ Meer tonen', [showAll])
   const abridge = useMemo (() => showAll ? id : mapTake (10), [showAll])
+
+  const Contents = useMemo (() => filteredCounts | abridge | mapRemapTuples (
+    (value, count) => <div key={value} className='x__row'>
+      {/* --- @todo useCallback (2x) */}
+      <div className='x__clickable' onClick={(event) => onChange (value, event)}>
+        <input type='checkbox'
+          checked={selecteds.has (value)}
+          // --- just here to keep react from complaining: we actually handle the change using
+          // onClick on the div
+          onChange={noop}
+        />
+        <span className='x__value'>
+          {value}
+        </span>
+      </div>
+      <span className='x__count'>
+        <FilterBubble>
+          {count}
+        </FilterBubble>
+      </span>
+    </div>
+  ), [filteredCounts, abridge, selecteds, onChange])
+
   return <FilterS>
     {show && <>
       <div className='x__title'>
@@ -391,27 +414,7 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
       <div className='x__input'>
         <Input type='text' inputProps={{ style: { padding: '7px', }}} value={inputValue} onChange={onChangeInput}/>
       </div>
-      {filteredCounts | abridge | mapRemapTuples (
-        (value, count) => <div key={value} className='x__row'>
-          {/* --- @todo useCallback (2x) */}
-          <div className='x__clickable' onClick={(event) => onChange (value, event)}>
-            <input type='checkbox'
-              checked={selecteds.has (value)}
-              // --- just here to keep react from complaining: we actually handle the change using
-              // onClick on the div
-              onChange={noop}
-            />
-            <span className='x__value'>
-              {value}
-            </span>
-          </div>
-          <span className='x__count'>
-            <FilterBubble>
-              {count}
-            </FilterBubble>
-          </span>
-        </div>
-      )}
+      {Contents}
       {showShowMoreLessButton && <div className='x__show-all'>
         <span onClick={onClickShowMore}>
           {showMoreLessButtonText}
