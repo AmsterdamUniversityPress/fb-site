@@ -42,10 +42,11 @@ const InputS = styled.input`
   ${InputBaseMixin}
   ${({ padding, }) => padding | whenOk (() => `
     padding: ${padding};
-    // --- @todo removing this, but need to check on mobile
-    // :focus {
-      // padding: calc(${padding} - 1px);
-    // }
+    &.focus-fix {
+      :focus {
+        padding: calc(${padding} - 1px);
+      }
+    }
   `)}
 `
 
@@ -108,7 +109,12 @@ const InputWrapper = invoke (() => {
   }
   return (props) => {
     const {
-      withIcon=[], showClearIcon=false, inputRef: inputRefProp=null, style={}, width,
+      withIcon=[],
+      showClearIcon=false,
+      inputRef: inputRefProp=null,
+      style={},
+      doFocusFix=true,
+      width,
       clear: clearProp={},
       onBlur=noop, onChange=noop, onClear=noop, onKeyDown=noop,
       inputProps={},
@@ -149,14 +155,15 @@ const InputWrapper = invoke (() => {
       </div>}
       <div className={clsInput}>
         <InputS
+          className={clss (doFocusFix && 'focus-fix')}
           onChange={onChange}
           onKeyDown={onKeyDown}
           onBlur={onBlur}
           {... restInputProps}
           ref={theInputRef}
           // --- this is for avoiding a weird jump / blue outline on mobile. It probably won't work
-          // right if the caller gives varying values for paddingLeft, paddingRight, etc. The
-          // padding stuff is pretty terrible -- works for now but needs a rewrite.
+          // right if the caller gives varying values for paddingLeft, paddingRight, etc.
+          // --- @todo the padding stuff is pretty terrible -- works for now but needs a rewrite.
           padding={inputStyle.padding}
           style={{
             ... restInputStyle,
@@ -171,13 +178,13 @@ const InputWrapper = invoke (() => {
 
 export const Input = withDisplayName ('InputAuto') (
   (props) => {
-    const { theRef, withIcon=[], height='35px', width='100%', padding='10px', border=void 8, } = props
+    const { theRef, withIcon=[], height='35px', width='100%', padding='10px', } = props
     // --- @future this is quite messy with the props
     return <InputWrapper
       {...props}
       withIcon={withIcon}
       theRef={theRef}
-      height={height} width={width} padding={padding} border={border}
+      height={height} width={width} padding={padding}
     />
   },
 )
