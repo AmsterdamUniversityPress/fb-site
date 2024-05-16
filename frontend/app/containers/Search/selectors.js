@@ -48,8 +48,8 @@ const selectBuckets = select (
 
 const filterNamesAscend = invoke (() => {
   const filterNames = {
-    categories: 0,
-    naam_organisatie: 1,
+    naam_organisatie: 0,
+    categories: 1,
     trefwoorden: 2,
     regios: 3,
   }
