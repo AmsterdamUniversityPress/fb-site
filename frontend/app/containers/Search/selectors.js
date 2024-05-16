@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, prop, tap, reduce, remapTuples, nil,
-  each, ifOk, recurry, invoke,
+  each, ifOk, recurry, invoke, dot1,
 } from 'stick-js/es'
 
 import sortWith  from 'ramda/es/sortWith'
@@ -14,6 +14,8 @@ import { initialState, } from './reducer-initial-state'
 import { initSelectors, foldWhenRequestResults, } from '../../common'
 
 import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, } from '../../util-general'
+
+const searchParamsGetAll = dot1 ('getAll')
 
 const { select, selectTop, selectVal, } = initSelectors (
   'Search',
@@ -62,21 +64,37 @@ const sortBuckets = sortWith ([
 
 export const selectFiltersWithCounts = select (
   'filtersWithCounts',
-  [selectBuckets],
-  (bucketsRequest) => bucketsRequest | map (
+  [selectBuckets, selectFilterSearchParams],
+  (bucketsRequest, searchParams) => bucketsRequest | map (
     /* [
      *   'categories', [{ key, doc_count, }, ...],
      *   'trefwoorden', ...,
      * ]
      */
-    (buckets) => buckets | sortBuckets | map (
-      ([name, data]) => [name, data | reduce (
-        (filterMap, { key, doc_count, }) => filterMap | mapSetM (
-          key, doc_count,
-        ),
-        new Map,
-      )],
-    ),
+    (buckets) => {
+      const newBuckets = buckets | sortBuckets | map (
+        ([filterName, data]) => {
+          // --- build the map based on the returned buckets ...
+          const newData = data | reduce (
+            (filterMap, { key: value, doc_count, }) => filterMap | mapSetM (
+              value, doc_count,
+            ),
+            new Map,
+          )
+          // --- ... but now we need to cycle through the searchParams, which contains the list of
+          // currently selected filters, and manually add back the filters which have been selected
+          // by the user but which were not returned by the search results, in other words, filters
+          // which in the current configuration have a doc count of 0. If we don't do this the UI
+          // gets confusing because a previously selected filter seems to disappear.
+          searchParams | searchParamsGetAll (filterName) | each (
+            (value) => newData.has (value) || newData.set (value, 0),
+          )
+          return [filterName, newData]
+        },
+      )
+
+      return newBuckets
+    },
   ),
 )
 
