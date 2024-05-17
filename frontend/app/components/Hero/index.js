@@ -35,6 +35,10 @@ const colors = [
   'b4ababff',
   '95acacff',
   'f7a8a6ff',
+  '93aaaaff',
+  '8fababff',
+  '472e2eff',
+  'c62e2eff',
 ]
 const randomColor = () => '#' + colors [Math.floor (Math.random () * colors.length)]
 

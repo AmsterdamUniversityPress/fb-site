@@ -1068,9 +1068,34 @@ const Landing = () => <>
 </>
 
 const AboutS = styled.div`
-  .x__hero {
+  cursor: text;
+  > .x__hero {
     width: 1200px;
+    height: 640px;
     margin: auto;
+  }
+  > .x__contents {
+    display: flex;
+    margin-left: 100px;
+    margin-right: 100px;
+    margin-top: 30px;
+    > .x__outline {
+      flex: 0 0 400px;
+    }
+    > .x__text {
+      flex: 1 0 0px;
+      > .x__heading-1 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      > .x__heading-2 {
+        font-size: 21px;
+      }
+      > p {
+        font-size: 16px;
+      }
+    }
   }
 `
 
@@ -1078,7 +1103,48 @@ const About = () => <AboutS>
   <div className='x__hero'>
     <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' />
   </div>
-  over FB
+  <div className='x__contents'>
+    <div className='x__outline'>
+      <div className='x__item'>
+        Over
+      </div>
+      <div className='x__item'>
+        Wetenschappelijke publicaties
+      </div>
+      <div className='x__item'>
+        Educative publicaties
+      </div>
+    </div>
+    <div className='x__text'>
+      <div className='x__heading-1'>
+        Over Amsterdam University Press
+      </div>
+      <div className='x__heading-2'>
+        Amsterdam University Press is een voorsaanstaande uitgeverij gespecialiseerd in academische boeken in het Engels en tijdschriften en studieboeken in ht Nederlands en Engels, voor de geesteswetenschappen en sociale wetenschappen.
+      </div>
+      <p>
+        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+        gemeenschap.
+      </p>
+      <p>
+        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+        gemeenschap.
+      </p>
+      <p>
+        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+        gemeenschap.
+      </p>
+    </div>
+  </div>
 </AboutS>
 
 const FooterS = styled.div`
