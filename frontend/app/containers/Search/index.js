@@ -499,7 +499,7 @@ export const SearchBar = container2 (
     // --- this is the query as it's being entered, but hasn't been accepted yet.
     const [query, setQuery] = useState ('')
     useEffect (() => {
-      if (ok (queryProp)) setQuery (queryProp)
+      if (ok (queryProp) && queryProp !== '*') setQuery (queryProp)
     }, [queryProp])
 
     const [suggestions, setSuggestions] = useState (null)
