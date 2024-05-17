@@ -275,6 +275,8 @@ const User = container (
 
 const HeaderS = styled.div`
   height: 100px;
+  font-size: 25px;
+  font-weight: 700;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
   border-bottom: 2px solid black;
@@ -283,12 +285,29 @@ const HeaderS = styled.div`
   align-items: center;
   padding-left: 50px;
   .x__logo-aup {
+    height: 5vw;
+    min-height: 60px;
     img {
-      width: 200px;
+      height: 100%;
+    }
+    flex: 0 0 auto;
+  }
+  .x__logo-fb {
+    margin-left: -1%;
+    flex: 0 0 auto;
+  }
+  .x__nav-links {
+    flex: 0 0 25%;
+    display: flex;
+    justify-content: space-between;
+    a {
+      color: inherit;
+      text-decoration: none;
     }
   }
   .x__menu {
     flex: 0 0 auto;
+    font-weight: normal;
     margin-right: 30px;
     z-index: 20;
   }
@@ -300,6 +319,14 @@ const Header = ({ isLoggedIn, }) => <HeaderS>
   </div>
   <div className='x__logo-fb'>
     <Logo/>
+  </div>
+  <div className='x__nav-links'>
+    <Link to={'/search/*'}>
+      Zoek een fonds
+    </Link>
+    <Link to={'/about'}>
+      About
+    </Link>
   </div>
   <div className='x__menu'>
     {isLoggedIn && <User/>}
@@ -1003,35 +1030,10 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
   <Search {... rest}/>
 </SearchWrapperS>
 
-const SearchBarWrapper = ({ style, }) => <SearchWrapperS style={style}>
-  <SearchBar/>
-</SearchWrapperS>
-
-const FondsMainS = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  > .x__main {
-    // --- @todo
-    flex: 0 0 calc(100vh - 104px);
-    // overflow-y: auto;
-    margin: auto;
-  }
-`
-
-const FondsMain = () => {
-  return <FondsMainS>
-    <SearchBarWrapper style={{ flex: '0 0 104px', width: '500px', }}/>
-
-    {
-      /*
-      <div className='x__main'>
-      <Fondsen/>
-        </div>
-    */
-    }
-  </FondsMainS>
-}
+const Landing = () => null
+const About = () => <>
+  over FB
+</>
 
 const ContentsS = styled.div`
   height: 100%;
@@ -1077,7 +1079,8 @@ const Contents = container (
     const params = useParams ()
     const dispatch = useDispatch ()
     const [element, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
-      overview: [() => <FondsMain/>],
+      landing: [() => <Landing/>],
+      about: [() => <About/>],
       detail: [() => <FondsDetail/>],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
       search: [
