@@ -39,8 +39,6 @@ const colors = [
 const randomColor = () => '#' + colors [Math.floor (Math.random () * colors.length)]
 
 const BlockS = styled.div`
-  height: 30px;
-  width: 30px;
   display: inline-block;
   position: relative;
   .x__img, .x__overlay {
@@ -60,7 +58,7 @@ const BlockS = styled.div`
   }
 `
 
-const Block = ({ color, left, top, opacity, }) => <BlockS>
+const Block = ({ color, left, top, opacity, blockWidth='40px', blockHeight='40px', }) => <BlockS style={{ height: blockHeight, width: blockWidth, }}>
   <div className='x__img' style={{
     opacity,
   }}>
@@ -84,7 +82,7 @@ const HeroS = styled.div`
   > .x__text {
     position: absolute;
     top: 100px;
-    left: 0px;
+    left: 100px;
     z-index: 3;
   }
 `
@@ -92,7 +90,7 @@ const HeroS = styled.div`
 export default component (
   ['Hero', null],
   (props) => {
-    const { rows, cols, } = props
+    const { rows, cols, blockWidth, blockHeight, } = props
     const n = rows * cols
     const [lefts, setLefts] = useState (null)
     const [tops, setTops] = useState (null)
@@ -149,13 +147,15 @@ export default component (
                 left={lefts [row*cols + col] + 'px'}
                 top={tops [row*cols + col] + 'px'}
                 opacity={opacities [row*cols + col]}
+                blockWidth={blockWidth}
+                blockHeight={blockHeight}
               />,
             ))
           }</div>,
         )}
       </div>
       <div className='x__text'>
-        <ImageText fill='white' width='150mm' height='150mm'/>
+        <ImageText fill='white' width='700' height='700'/>
       </div>
     </HeroS>
   },

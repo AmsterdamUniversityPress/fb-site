@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default ({ fill='black', width='73.7mm', height='21.16mm', }) => <svg
+export default ({ fill='black', width='73.7', height='21.16', }) => <svg
    height={height}
    width={width}
    viewBox="0 0 73.752754 21.159271"

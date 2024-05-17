@@ -1067,12 +1067,19 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
 const Landing = () => <>
 </>
 
-const About = () => <>
+const AboutS = styled.div`
+  .x__hero {
+    width: 1200px;
+    margin: auto;
+  }
+`
+
+const About = () => <AboutS>
   <div className='x__hero'>
-    <Hero rows={16} cols={30}/>
+    <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' />
   </div>
   over FB
-</>
+</AboutS>
 
 const FooterS = styled.div`
   > .x__main {
