@@ -327,11 +327,11 @@ const HeaderS = styled.div`
       text-decoration: none;
     }
   }
-  .x__menu {
+  .x__user-menu {
     flex: 0 0 auto;
     font-weight: normal;
     margin-right: 30px;
-    z-index: 20;
+    z-index: 40;
   }
 `
 
@@ -358,7 +358,7 @@ const Header = ({ isLoggedIn, page, }) => {
         <div className={clss ('x__cursor', cls ('about'))}/>
       </div>
     </div>
-    <div className='x__menu'>
+    <div className='x__user-menu'>
       {isLoggedIn && <User/>}
     </div>
   </HeaderS>
@@ -400,7 +400,8 @@ const MainS = styled.div`
   > .x__contents {
     height: 100%;
     > .x__header {
-      z-index: 2;
+      z-index: 4;
+      position: relative;
     }
     > .x__logo {
       padding: 5px;
@@ -814,7 +815,6 @@ const UserActivate = ({ email, mode, token: resetPasswordToken, }) => <UserActiv
 const FondsS = styled.div`
   display: inline-block;
   height: 500px;
-  // background: #aaaa66ff;
   background: ${colors.highlightAlpha};
   vertical-align: top;
   width: 350px;

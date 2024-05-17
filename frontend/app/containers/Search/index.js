@@ -109,8 +109,8 @@ const SearchS = styled.div`
       width: 95%;
       text-align: left;
       position: relative;
-      margin-top: -5px;
-      padding-top: 20px;
+      margin-top: -15px;
+      // padding-top: 20px;
     }
   }
 `
@@ -578,6 +578,7 @@ const ActiveFiltersS = styled.div`
   margin-left: 30px;
   margin-right: 30px;
   margin-top: 30px;
+  margin-bottom: 25px;
   > .x__title {
     font-size: 21px;
   }
