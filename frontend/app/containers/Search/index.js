@@ -109,7 +109,7 @@ const SearchS = styled.div`
       width: 95%;
       text-align: left;
       position: relative;
-      margin-top: 40px;
+      margin-top: -5px;
       padding-top: 20px;
     }
   }

@@ -20,6 +20,7 @@ import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
 import { logWith, } from 'alleycat-js/es/general'
 import { all, ifUndefined, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
+import { media, mediaQuery, } from 'alleycat-js/es/styled'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
 import {
@@ -275,7 +276,11 @@ const User = container (
 
 const HeaderS = styled.div`
   height: 100px;
-  font-size: 25px;
+  ${mediaQuery (
+    mediaPhone (`font-size: 20px`),
+    mediaTablet (``),
+    mediaDesktop (`font-size: 25px`),
+  )}
   font-weight: 700;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
@@ -294,12 +299,13 @@ const HeaderS = styled.div`
   }
   .x__logo-fb {
     margin-left: -1%;
-    flex: 0 0 auto;
+    flex: 0 0 30%;
   }
   .x__nav-links {
     flex: 0 0 25%;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
     a {
       color: inherit;
       text-decoration: none;
@@ -1035,8 +1041,64 @@ const About = () => <>
   over FB
 </>
 
+const FooterS = styled.div`
+  > .x__main {
+    background: ${colors.highlight};
+    height: 300px;
+  }
+
+  // --- 300px = sidebar.
+  // width: calc(100% - 300px);
+  > .x__ac-footer {
+    width: 440px;
+    margin: auto;
+    // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
+    // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
+    // and double padding.
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 50px;
+    > .x__inner {
+      overflow: hidden;
+      box-shadow: 1px 1px 2px 1px;
+      height: 30px;
+      background: white;
+      padding-top: 0px;
+      padding-bottom: 0px;
+    }
+  }
+
+`
+
+const Footer = () => <FooterS>
+  <div className='x__main'>
+  </div>
+
+  <div className='x__ac-footer'>
+    <div className='x__inner'>
+      <AlleyCatFooter type='simple'
+        style={{
+          fontSize: '16px',
+          paddingBottom: '30px',
+          color: 'black',
+        }}
+        textStyle={{
+          position: 'relative',
+          top: '2px',
+        }}
+        linkStyle={{
+          fontVariant: 'small-caps',
+          position: 'relative',
+          fontSize: '100%',
+          top: '0px',
+        }}
+      />
+    </div>
+  </div>
+</FooterS>
+
 const ContentsS = styled.div`
-  height: 100%;
+  height: calc(100% - 100px);
   overflow-y: scroll;
   display: flex;
   width: 100vw;
@@ -1047,27 +1109,7 @@ const ContentsS = styled.div`
       // --- @todo just a guess, fix when mock-ups are complete
       min-height: 77%;
     }
-    > .x__footer-wrapper {
-      // --- 300px = sidebar.
-      // width: calc(100% - 300px);
-      > .x__footer {
-        width: 440px;
-        margin: auto;
-        // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
-        // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
-        // and double padding.
-        padding-top: 10px;
-        padding-bottom: 10px;
-        height: 50px;
-        > .x__inner {
-          overflow: hidden;
-          box-shadow: 1px 1px 2px 1px;
-          height: 30px;
-          background: white;
-          padding-top: 0px;
-          padding-bottom: 0px;
-        }
-      }
+    > .x__footer {
     }
   }
 `
@@ -1109,28 +1151,9 @@ const Contents = container (
         <div className='x__contents-wrapper'>
           {element ()}
         </div>
-        <div className='x__footer-wrapper'>
-          <div className='x__footer'>
-            <div className='x__inner'>
-              <AlleyCatFooter type='simple'
-                style={{
-                  fontSize: '16px',
-                  paddingBottom: '30px',
-                  color: 'black',
-                }}
-                textStyle={{
-                  position: 'relative',
-                  top: '2px',
-                }}
-                linkStyle={{
-                  fontVariant: 'small-caps',
-                  position: 'relative',
-                  fontSize: '100%',
-                  top: '0px',
-                }}
-              />
-            </div>
-          </div>
+        <div className='x__footer'>
+              <Footer/>
+          
         </div>
       </div>
     </ContentsS>
