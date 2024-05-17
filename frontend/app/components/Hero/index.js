@@ -16,10 +16,13 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, } from '../../common'
 import config from '../../config'
 
+import ImageText from '../../images/hero-text-svg'
+
 import { mapX, } from '../../util-general'
 
 const configTop = config | configure.init
 const imageE = configTop.get ('images.hero-e')
+const imageText = configTop.get ('images.hero-text')
 
 const [[ll, lr], [tl, tr]] = [
   [-20, 20], [-20, 20],
@@ -72,8 +75,17 @@ const Block = ({ color, left, top, opacity, }) => <BlockS>
 const randInt = (x, y) => x + Math.floor (Math.random () * (y - x))
 
 const HeroS = styled.div`
-  .x__row {
-    line-height: 0px;
+  position: relative;
+  > .x__blocks {
+    > .x__row {
+      line-height: 0px;
+    }
+  }
+  > .x__text {
+    position: absolute;
+    top: 100px;
+    left: 0px;
+    z-index: 3;
   }
 `
 
@@ -127,22 +139,24 @@ export default component (
 
     useWhy ('Hero', props)
     return <HeroS>
-      {rows | repeatF (
-        (row) => <div key={row} className='x__row'>{
-          updateStep.current >= 1 && (cols | repeatF (
-            (col) => <Block
-              key={col}
-              color={data [row*cols + col]}
-              left={lefts [row*cols + col] + 'px'}
-              top={tops [row*cols + col] + 'px'}
-              opacity={opacities [row*cols + col]}
-            />,
-          ))
-        }
-      </div>,
-    )}
-
-
+      <div className='x__blocks'>
+        {rows | repeatF (
+          (row) => <div key={row} className='x__row'>{
+            updateStep.current >= 1 && (cols | repeatF (
+              (col) => <Block
+                key={col}
+                color={data [row*cols + col]}
+                left={lefts [row*cols + col] + 'px'}
+                top={tops [row*cols + col] + 'px'}
+                opacity={opacities [row*cols + col]}
+              />,
+            ))
+          }</div>,
+        )}
+      </div>
+      <div className='x__text'>
+        <ImageText fill='white' width='150mm' height='150mm'/>
+      </div>
     </HeroS>
   },
 )

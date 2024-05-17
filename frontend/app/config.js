@@ -27,6 +27,7 @@ import imageLogoFB from './images/logo-fb.svg'
 import imageBackground from './images/background.jpg'
 import imageUitgave from './images/uitgave.svg'
 import imageHeroE from './images/hero-e.png'
+import imageHeroText from './images/hero-text.svg'
 
 // const debugRenders = envIsDev
 // const debugReducers = envIsDev
@@ -124,6 +125,7 @@ export default {
     'logo-aup': imageLogoAUP,
     uitgave: imageUitgave,
     'hero-e': imageHeroE,
+    'hero-text': imageHeroText,
   },
   colors: {
     header: {
