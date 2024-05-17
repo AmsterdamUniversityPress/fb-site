@@ -22,7 +22,8 @@ import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
-import imageLogoHelvetica from './images/fb-logo-helvetica.svg'
+import imageLogoAUP from './images/logo-aup.svg'
+import imageLogoFB from './images/logo-fb.svg'
 import imageBackground from './images/background.jpg'
 import imageUitgave from './images/uitgave.svg'
 
@@ -118,7 +119,8 @@ export default {
   images: {
     background: imageBackground,
     fonds: imageEyeWall,
-    logo: imageLogoHelvetica,
+    'logo-fb': imageLogoFB,
+    'logo-aup': imageLogoAUP,
     uitgave: imageUitgave,
   },
   colors: {

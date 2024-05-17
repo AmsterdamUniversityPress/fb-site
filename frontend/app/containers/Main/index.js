@@ -90,7 +90,8 @@ const iconShowPasswordShown = configIcons.get ('show-password-shown')
 const iconUser = configIcons.get ('user')
 
 const imageFonds = configImages.get ('fonds')
-const imageLogo = configImages.get ('logo')
+const imageLogoFB = configImages.get ('logo-fb')
+const imageLogoAUP = configImages.get ('logo-aup')
 const imageBackground = configImages.get ('background')
 
 const minimumPasswordScore = configGeneral.get ('minimumPasswordScore')
@@ -278,14 +279,13 @@ const HeaderS = styled.div`
   backdrop-filter: blur(5px);
   border-bottom: 2px solid black;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  .x__logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 350px;
-    height: 90px;
+  padding-left: 50px;
+  .x__logo-aup {
+    img {
+      width: 200px;
+    }
   }
   .x__menu {
     flex: 0 0 auto;
@@ -295,18 +295,18 @@ const HeaderS = styled.div`
 `
 
 const Header = ({ isLoggedIn, }) => <HeaderS>
+  <div className='x__logo-aup'>
+    <img src={imageLogoAUP}/>
+  </div>
+  <div className='x__logo-fb'>
+    <Logo/>
+  </div>
   <div className='x__menu'>
     {isLoggedIn && <User/>}
   </div>
 </HeaderS>
 
 const LogoS = styled.div`
-  border: 1px solid black;
-  padding: 20px;
-  background: ${colors.highlight4Alpha};
-  &, .x__background {
-    border-radius: 7px;
-  }
   .x__item {
     width: 100%;
     height: 100%;
@@ -327,7 +327,7 @@ const LogoS = styled.div`
 const Logo = () => <Link to='/'>
   <LogoS>
     <div className='x__item x__link'>
-      <img src={imageLogo}/>
+      <img src={imageLogoFB}/>
     </div>
   </LogoS>
 </Link>
@@ -1041,13 +1041,6 @@ const ContentsS = styled.div`
   > .x__main {
     // --- @todo
     flex: 1 0 calc(100vw - 300px);
-    > .x__logo {
-      margin-top: 50px;
-      position: relative;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-    }
     > .x__contents-wrapper {
       // --- @todo just a guess, fix when mock-ups are complete
       min-height: 77%;
@@ -1110,9 +1103,6 @@ const Contents = container (
 
     return <ContentsS>
       <div className='x__main'>
-        <div className='x__logo'>
-          <Logo/>
-        </div>
         <div className='x__contents-wrapper'>
           {element ()}
         </div>
