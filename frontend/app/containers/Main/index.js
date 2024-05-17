@@ -58,6 +58,7 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { AlleyCatFooter, spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
+import Hero from '../../components/Hero'
 import { Search, SearchBar, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
@@ -1063,8 +1064,13 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
   <Search {... rest}/>
 </SearchWrapperS>
 
-const Landing = () => null
+const Landing = () => <>
+</>
+
 const About = () => <>
+  <div className='x__hero'>
+    <Hero rows={16} cols={30}/>
+  </div>
   over FB
 </>
 
@@ -1178,9 +1184,15 @@ const Contents = container (
         <div className='x__contents-wrapper'>
           {element ()}
         </div>
+        <div className='x__hero'>
+          {
+            /*
+            <Hero rows={16} cols={30}/>
+          */
+        }
+        </div>
         <div className='x__footer'>
-              <Footer/>
-          
+          <Footer/>
         </div>
       </div>
     </ContentsS>
