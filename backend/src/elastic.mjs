@@ -11,6 +11,7 @@ import { info, warn, } from 'alleycat-js/es/io'
 import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, trim, } from 'alleycat-js/es/general'
+import { ifEquals, } from 'alleycat-js/es/predicate'
 import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifNotLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
 
 // --- how many unique buckets to return per filter. The Elastic docs recommend 1000 as a general
@@ -226,10 +227,32 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
     },
   }
 
-  if (query === '*') return {
-    aggregations,
-    q: '*:*',
-  }
+  const queryClause = query | ifEquals ('*') (
+    () => ({
+      should: {
+        match_all: {},
+      },
+    }),
+    () => ({
+            // --- i.e., group phrases together using OR
+            should: [
+              { match: { categories: { query, }}},
+              // --- we need to use full-text queries (`match` etc.) and not
+              // term-level queries (`term` etc.) because of the stemming &
+              // tokenizing and so on which we do for Dutch.
+              { match: { doelgroep: { query, }}},
+              { match: { doelstelling: { query, }}},
+              { match: { naam_organisatie: { query, }}},
+              { match: { trefwoorden: { query, }}},
+              { match: { type_organisatie: { query, }}},
+              // --- @todo this is 'Lokaal', 'Internationaal', etc.; how useful is that?
+              { match: { werk_regio: { query, }}},
+              { match: { regios: { query, }}},
+            ],
+
+
+    })
+  )
 
   return query
     | stripNonAlphaNum
@@ -252,21 +275,7 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
         query: {
           bool: {
             minimum_should_match: 1,
-            // --- i.e., group phrases together using OR
-            should: [
-              { match: { categories: { query, }}},
-              // --- we need to use full-text queries (`match` etc.) and not
-              // term-level queries (`term` etc.) because of the stemming &
-              // tokenizing and so on which we do for Dutch.
-              { match: { doelgroep: { query, }}},
-              { match: { doelstelling: { query, }}},
-              { match: { naam_organisatie: { query, }}},
-              { match: { trefwoorden: { query, }}},
-              { match: { type_organisatie: { query, }}},
-              // --- @todo this is 'Lokaal', 'Internationaal', etc.; how useful is that?
-              { match: { werk_regio: { query, }}},
-              { match: { regios: { query, }}},
-            ],
+            ... queryClause,
             filter: {
               bool: {
                 must: [
@@ -294,7 +303,7 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
                   {
                     bool: {
                       should: naam_organisatie | map ((naam) => ({
-                        term: { 'naam_organisatie.keyword': naam | tap (logWith ('naam_organisatie')), },
+                        term: { 'naam_organisatie.keyword': naam, },
                       })),
                     }
                   },
