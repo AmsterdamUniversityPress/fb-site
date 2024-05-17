@@ -306,6 +306,23 @@ const HeaderS = styled.div`
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    > .x__wrapper {
+      position: relative;
+      overflow-y: visible;
+      overflow-x: hidden;
+      > .x__cursor {
+        height: 1px;
+        width: 95%;
+        margin: auto;
+        background: #00000066;
+        transition: left .1s;
+        position: relative;
+        left: -300px;
+        &.x--selected {
+          left: 0px;
+        }
+      }
+    }
     a {
       color: inherit;
       text-decoration: none;
@@ -319,25 +336,34 @@ const HeaderS = styled.div`
   }
 `
 
-const Header = ({ isLoggedIn, }) => <HeaderS>
-  <div className='x__logo-aup'>
-    <img src={imageLogoAUP}/>
-  </div>
-  <div className='x__logo-fb'>
-    <Logo/>
-  </div>
-  <div className='x__nav-links'>
-    <Link to={'/search/*'}>
-      Zoek een fonds
-    </Link>
-    <Link to={'/about'}>
-      About
-    </Link>
-  </div>
-  <div className='x__menu'>
-    {isLoggedIn && <User/>}
-  </div>
-</HeaderS>
+const Header = ({ isLoggedIn, page, }) => {
+  const cls = useCallback ((which) => page === which && 'x--selected', [page])
+  return <HeaderS>
+    <div className='x__logo-aup'>
+      <img src={imageLogoAUP}/>
+    </div>
+    <div className='x__logo-fb'>
+      <Logo/>
+    </div>
+    <div className='x__nav-links'>
+      <div className='x__wrapper'>
+        <Link to='/search/*'>
+          Zoek een fonds
+        </Link>
+        <div className={clss ('x__cursor', cls ('search'))}/>
+      </div>
+      <div className='x__wrapper'>
+        <Link to='/about'>
+          About
+        </Link>
+        <div className={clss ('x__cursor', cls ('about'))}/>
+      </div>
+    </div>
+    <div className='x__menu'>
+      {isLoggedIn && <User/>}
+    </div>
+  </HeaderS>
+}
 
 const LogoS = styled.div`
   .x__item {
@@ -1204,7 +1230,7 @@ export default container (
     return <MainS tabIndex={-1}>
       <div className='x__contents'>
         <div className='x__header'>
-          <Header isLoggedIn={isLoggedIn}/>
+          <Header isLoggedIn={isLoggedIn} page={page}/>
         </div>
         <Contents isMobile={isMobile} page={page}/>
       </div>
