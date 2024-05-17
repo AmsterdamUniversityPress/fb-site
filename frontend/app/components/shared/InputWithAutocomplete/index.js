@@ -63,7 +63,9 @@ const Suggestion = ({
       () => value,
       // --- the string is generally at the beginning (we only do autcomplete on prefixes, not in
       // the middle of a token), but we do it this way so we also catch something like
-      // 'medisch-polemologische' for query 'pol'.
+      // 'medisch-polemologische' for query 'pol'. It's still a bit flaky on edge cases, like for
+      // exmmple 'tuinhuis-huishouden' with qeury 'huis' will highlight the first occurrence of
+      // 'huis'. But probably good enough for this.
       (idx) => <>
         {value.substring (0, idx)}
         <span className='x__highlight'>{value.substr (idx, query.length)}</span>
