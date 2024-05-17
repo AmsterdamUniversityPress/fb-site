@@ -102,9 +102,6 @@ const enforcePasswordStrength = configGeneral.get ('enforcePasswordStrength')
 const configColors = configTop.focus ('colors')
 const colors = configColors.gets (
   'highlight', 'highlightAlpha',
-  'highlight2Alpha', 'highlight2Alpha',
-  'highlight3Alpha', 'highlight3Alpha',
-  'highlight4Alpha', 'highlight4Alpha',
 )
 
 const Spinner = spinner ('comet')

@@ -577,6 +577,7 @@ const ActiveFiltersS = styled.div`
   text-align: left;
   margin-left: 30px;
   margin-right: 30px;
+  margin-top: 30px;
   > .x__title {
     font-size: 21px;
   }
