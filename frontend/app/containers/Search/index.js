@@ -83,7 +83,7 @@ const SearchS = styled.div`
     display: inline-block;
     width: calc(100% - 450px);
     > .x__search {
-      width: 50%;
+      width: 75%;
       margin: auto;
       position: relative;
       z-index: 3;

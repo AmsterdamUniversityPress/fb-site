@@ -308,6 +308,7 @@ const HeaderS = styled.div`
     flex-wrap: wrap;
     > .x__wrapper {
       position: relative;
+      top: 2px;
       overflow-y: visible;
       overflow-x: hidden;
       > .x__cursor {
