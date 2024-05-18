@@ -132,4 +132,7 @@ export default {
     textBlock2: '#a1142d',
     textBlock3: '#e74b67',
   },
+  links: {
+    aup: 'https://aup.nl',
+  },
 }

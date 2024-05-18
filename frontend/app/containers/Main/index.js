@@ -102,6 +102,7 @@ const configColors = configTop.focus ('colors')
 const colors = configColors.gets (
   'highlight', 'highlightAlpha',
 )
+const linkAUP = configTop.get ('links.aup')
 
 const Spinner = spinner ('comet')
 
@@ -337,9 +338,11 @@ const HeaderS = styled.div`
 const Header = ({ isLoggedIn, page, }) => {
   const cls = useCallback ((which) => page === which && 'x--selected', [page])
   return <HeaderS>
-    <div className='x__logo-aup'>
-      <img src={imageLogoAUP}/>
-    </div>
+    <a href={linkAUP}>
+      <div className='x__logo-aup'>
+        <img src={imageLogoAUP}/>
+      </div>
+    </a>
     <div className='x__logo-fb'>
       <Logo/>
     </div>
