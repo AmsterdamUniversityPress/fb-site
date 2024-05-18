@@ -17,7 +17,7 @@ import zxcvbn from 'zxcvbn'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
-import { logWith, } from 'alleycat-js/es/general'
+import { iwarn, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
 import { all, ifUndefined, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -391,7 +391,6 @@ const Logo = () => <Link to='/'>
 </Link>
 
 const MainS = styled.div`
-  // background: url(${imageBackground});
   background: white;
   background-size: 100%;
   height: 100%;
@@ -1070,6 +1069,7 @@ const AboutS = styled.div`
     width: 1200px;
     height: 640px;
     margin: auto;
+    margin-top: 300px;
   }
   > .x__contents {
     display: flex;
@@ -1096,53 +1096,75 @@ const AboutS = styled.div`
   }
 `
 
-const About = () => <AboutS>
-  <div className='x__hero'>
-    <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' />
-  </div>
-  <div className='x__contents'>
-    <div className='x__outline'>
-      <div className='x__item'>
-        Over
+const About = () => {
+  const [assembleHero, setAssembleHero] = useState (false)
+  const [triggerSecondEffect, setTriggerSecondEffect] = useState (false)
+  const contentsRef = useRef (document.querySelector ('div[class^="Main__ContentsS"]'))
+  const listener = useCallbackConst ((event) => {
+    const st = event.target.scrollTop
+    if (st > 0) setAssembleHero (true)
+  })
+  useEffect (() => {
+    1000 | setTimeoutOn (() => setTriggerSecondEffect (true))
+  }, [])
+  useEffect (() => {
+    if (not (triggerSecondEffect)) return
+    const el = contentsRef.current
+    if (not (el))
+      return iwarn ('contentsRef.current is null')
+    el.addEventListener ('scroll', listener)
+    return () => el.removeEventListener ('scroll', listener)
+  }, [triggerSecondEffect])
+  console.log ('contentsRef.current', contentsRef.current)
+  return <AboutS>
+    <div className='x__hero'>
+      {/* <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' go={assembleHero}/> */}
+      <Hero rows={16} cols={30} blockWidth='20px' blockHeight='20px' go={assembleHero}/>
+    </div>
+    <div className='x__contents'>
+      <div className='x__outline'>
+        <div className='x__item'>
+          Over
+        </div>
+        <div className='x__item'>
+          Wetenschappelijke publicaties
+        </div>
+        <div className='x__item'>
+          Educative publicaties
+        </div>
       </div>
-      <div className='x__item'>
-        Wetenschappelijke publicaties
-      </div>
-      <div className='x__item'>
-        Educative publicaties
+      <div className='x__text'>
+        <div className='x__heading-1'>
+          Over Amsterdam University Press
+        </div>
+        <div className='x__heading-2'>
+          Amsterdam University Press is een voorsaanstaande uitgeverij gespecialiseerd in academische boeken in het Engels en tijdschriften en studieboeken in ht Nederlands en Engels, voor de geesteswetenschappen en sociale wetenschappen.
+        </div>
+        <p>
+          Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+          (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+          naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+          publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+          gemeenschap.
+        </p>
+        <p>
+          Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+          (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+          naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+          publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+          gemeenschap.
+        </p>
+        <p>
+          Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
+          (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
+          naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
+          publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
+          gemeenschap.
+        </p>
       </div>
     </div>
-    <div className='x__text'>
-      <div className='x__heading-1'>
-        Over Amsterdam University Press
-      </div>
-      <div className='x__heading-2'>
-        Amsterdam University Press is een voorsaanstaande uitgeverij gespecialiseerd in academische boeken in het Engels en tijdschriften en studieboeken in ht Nederlands en Engels, voor de geesteswetenschappen en sociale wetenschappen.
-      </div>
-      <p>
-        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
-        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
-        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
-        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
-        gemeenschap.
-      </p>
-      <p>
-        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
-        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
-        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
-        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
-        gemeenschap.
-      </p>
-      <p>
-        Gespecialiseerd in geestes- en sociale wetenschappen, publiceert Amsterdam University Press
-        (AUP), academische titels, waaronder monografieën, samengestelde bundels, handboeken,
-        naslagwerken, tekstboeken, tijdschriften en conferentieverslagen. Met het gevarieerde aanbod aan
-        publicaties wil AUP onderzoek van hoge kwaliteit toegankelijk maken voor de bredere academische
-        gemeenschap.
-      </p>
-    </div>
-  </div>
-</AboutS>
+  </AboutS>
+}
 
 const FooterS = styled.div`
   > .x__main {
