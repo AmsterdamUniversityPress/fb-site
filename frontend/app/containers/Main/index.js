@@ -393,11 +393,9 @@ const Logo = () => <Link to='/'>
 const MainS = styled.div`
   background: white;
   background-size: 100%;
-  height: 100%;
   font-size: 20px;
   font-family: Arial;
   > .x__contents {
-    height: 100%;
     > .x__header {
       z-index: 4;
       position: relative;
@@ -1223,13 +1221,10 @@ const Footer = () => <FooterS>
 </FooterS>
 
 const ContentsS = styled.div`
-  height: calc(100% - 100px);
-  overflow-y: scroll;
-  display: flex;
+  // height: calc(100% - 100px);
+  // overflow-y: scroll;
   width: 100vw;
   > .x__main {
-    // --- @todo
-    flex: 1 0 calc(100vw - 300px);
     > .x__contents-wrapper {
       // --- @todo just a guess, fix when mock-ups are complete
       min-height: 77%;

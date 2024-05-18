@@ -85,7 +85,6 @@ const AppWrapper = styled.div`
   transform: translate3d(0, 0, 0);
   position: relative;
   overflow-x: hidden;
-  overflow-y: hidden;
   margin: 0 auto;
   height: 100%;
   font-family: Arial;
