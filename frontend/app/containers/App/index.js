@@ -138,10 +138,7 @@ const FooterS = styled.div`
     padding-left: 50px;
   }
 
-  // --- 300px = sidebar.
-  // width: calc(100% - 300px);
   > .x__ac-footer {
-display: none;
     width: 440px;
     margin: auto;
     // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,

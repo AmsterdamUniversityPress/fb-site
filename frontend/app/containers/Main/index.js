@@ -94,7 +94,6 @@ const iconUser = configIcons.get ('user')
 const imageFonds = configImages.get ('fonds')
 const imageLogoFB = configImages.get ('logo-fb')
 const imageLogoAUP = configImages.get ('logo-aup')
-const imageBackground = configImages.get ('background')
 
 const minimumPasswordScore = configGeneral.get ('minimumPasswordScore')
 const enforcePasswordStrength = configGeneral.get ('enforcePasswordStrength')
