@@ -1062,10 +1062,16 @@ const Landing = () => <>
 const AboutS = styled.div`
   cursor: text;
   > .x__hero {
+    position: sticky;
+    top: 0;
     width: 1200px;
     height: 640px;
     margin: auto;
     margin-top: 300px;
+    margin-bottom: 200px;
+    &.x--assembled {
+      position: static;
+    }
   }
   > .x__contents {
     display: flex;
@@ -1094,12 +1100,14 @@ const AboutS = styled.div`
 
 const About = () => {
   const [assembleHero, setAssembleHero] = useState (false)
+  const [assembled, setAssembled] = useState (false)
   const [triggerSecondEffect, setTriggerSecondEffect] = useState (false)
   const contentsRef = useRef (document.querySelector ('div[class^="App__AppWrapper"]'))
   const listener = useCallbackConst ((event) => {
     const st = event.target.scrollTop
     if (st > 0) setAssembleHero (true)
   })
+  const onAssembled = useCallbackConst (() => setAssembled (true))
   useEffect (() => {
     1000 | setTimeoutOn (() => setTriggerSecondEffect (true))
   }, [])
@@ -1111,11 +1119,10 @@ const About = () => {
     el.addEventListener ('scroll', listener)
     return () => el.removeEventListener ('scroll', listener)
   }, [triggerSecondEffect])
-  console.log ('contentsRef.current', contentsRef.current)
   return <AboutS>
-    <div className='x__hero'>
+    <div className={clss ('x__hero', assembled && 'x--assembled')}>
       {/* <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' go={assembleHero}/> */}
-      <Hero rows={16} cols={30} blockWidth='20px' blockHeight='20px' go={assembleHero}/>
+      <Hero rows={16} cols={30} blockWidth='20px' blockHeight='20px' go={assembleHero} onAssembled={onAssembled}/>
     </div>
     <div className='x__contents'>
       <div className='x__outline'>
@@ -1212,13 +1219,6 @@ const Contents = container (
       <div className='x__main'>
         <div className='x__contents-wrapper'>
           {element ()}
-        </div>
-        <div className='x__hero'>
-          {
-            /*
-            <Hero rows={16} cols={30}/>
-          */
-        }
         </div>
       </div>
     </ContentsS>

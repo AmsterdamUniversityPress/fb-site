@@ -9,7 +9,7 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
-import { logWith, } from 'alleycat-js/es/general'
+import { logWith, setTimeoutOn, } from 'alleycat-js/es/general'
 import {} from 'alleycat-js/es/react'
 
 import { useWhy, mediaPhone, mediaTablet, mediaDesktop, component, } from '../../common'
@@ -126,7 +126,7 @@ const HeroS = styled.div`
 export default component (
   ['Hero', null],
   (props) => {
-    const { rows, cols, blockWidth, blockHeight, go, } = props
+    const { rows, cols, blockWidth, blockHeight, go, onAssembled=noop, } = props
     const n = rows * cols
     const [assembled, setAssembled] = useState (false)
     const [lefts, setLefts] = useState (null)
@@ -177,6 +177,7 @@ export default component (
       ))
       setAssembled (true)
       updateStep.current = 2
+      500 | setTimeoutOn (() => onAssembled ())
     }, [lefts, rows, cols, go])
 
     useWhy ('Hero', props)
