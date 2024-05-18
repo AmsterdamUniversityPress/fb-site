@@ -45,11 +45,14 @@ const BlockS = styled.div`
   transition: width .5s, height .5s;
   .x__img, .x__overlay {
   }
-  .x__img img {
-    height: 90%;
-    width: 90%;
-    position: relative;
-    z-index: 2;
+  .x__img {
+    img {
+      box-shadow: 1px 1px 2px 2px black;
+      height: 90%;
+      width: 90%;
+      position: relative;
+      z-index: 2;
+    }
   }
   .x__overlay {
     height: 100%;
