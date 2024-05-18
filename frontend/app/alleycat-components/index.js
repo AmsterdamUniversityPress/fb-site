@@ -75,42 +75,48 @@ const FooterS = styled.div`
   position: relative;
   top: 8%;
   margin: auto;
-  text-align: center;
   height: 21px;
-  > .x__text {
-    vertical-align: baseline;
-  }
-  > .x__logo {
-    img { width: 60px; }
-    position: absolute;
-    right: -22px;
-    top: -11px;
-  }
-  > .x__separator, .x__separator-outer {
-    padding-left: 7px;
-    padding-right: 7px;
-  }
-  > .x__link {
-    vertical-align: baseline;
+  > a {
     display: inline-block;
-    &:hover {
-      border-bottom: 1px solid black;
+    width: 100%;
+    text-align: center;
+    color: initial;
+    text-decoration: none;
+    > .x__text {
+      vertical-align: baseline;
     }
-    > a {
-      text-decoration: none;
-      // font-weight: bold;
-      color: black;
+    > .x__logo {
+      img { width: 60px; }
+      position: absolute;
+      right: -22px;
+      top: -11px;
+    }
+    > .x__separator, .x__separator-outer {
+      padding-left: 7px;
+      padding-right: 7px;
+    }
+    > .x__link {
+      vertical-align: baseline;
+      display: inline-block;
+      &:hover {
+        border-bottom: 1px solid black;
+      }
+      > a {
+        text-decoration: none;
+        // font-weight: bold;
+        color: black;
+      }
     }
   }
 `
 
 const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restProps }) => {
   const separatorOuter = ['٭', '٭']
-  // const separatorOuter = ['⯨', '⯩']
   return <FooterS
     {... restProps}
     style={style}
   >
+  <a target="_blank" rel="noopener noreferrer" href="https://alleycat.cc">
     <span className='x__separator-outer'>
       {separatorOuter [0]}
     </span>
@@ -124,11 +130,12 @@ const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restPr
       |
     </span>
     <span className='x__link' style={linkStyle}>
-      <a target="_blank" rel="noopener noreferrer" href="https://alleycat.cc" >alleycat.cc</a>
+      alleycat.cc
     </span>
     <span className='x__separator-outer'>
       {separatorOuter [1]}
     </span>
+  </a>
   </FooterS>
 }
 
