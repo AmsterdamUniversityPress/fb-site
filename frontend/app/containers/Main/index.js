@@ -56,7 +56,7 @@ import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
-import { AlleyCatFooter, spinner, } from '../../alleycat-components'
+import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
 import { Search, SearchBar, } from '../../containers/Search'
@@ -408,8 +408,6 @@ const MainS = styled.div`
       cursor: pointer;
     }
   }
-  // > .x__login-wrapper {
-  // }
 `
 
 const IconShowPasswordS = styled.div`
@@ -1097,7 +1095,7 @@ const AboutS = styled.div`
 const About = () => {
   const [assembleHero, setAssembleHero] = useState (false)
   const [triggerSecondEffect, setTriggerSecondEffect] = useState (false)
-  const contentsRef = useRef (document.querySelector ('div[class^="Main__ContentsS"]'))
+  const contentsRef = useRef (document.querySelector ('div[class^="App__AppWrapper"]'))
   const listener = useCallbackConst ((event) => {
     const st = event.target.scrollTop
     if (st > 0) setAssembleHero (true)
@@ -1164,72 +1162,16 @@ const About = () => {
   </AboutS>
 }
 
-const FooterS = styled.div`
-  > .x__main {
-    background: ${colors.highlight};
-    height: 300px;
-  }
-
-  // --- 300px = sidebar.
-  // width: calc(100% - 300px);
-  > .x__ac-footer {
-    width: 440px;
-    margin: auto;
-    // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
-    // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
-    // and double padding.
-    padding-top: 10px;
-    padding-bottom: 10px;
-    height: 50px;
-    > .x__inner {
-      overflow: hidden;
-      box-shadow: 1px 1px 2px 1px;
-      height: 30px;
-      background: white;
-      padding-top: 0px;
-      padding-bottom: 0px;
-    }
-  }
-
-`
-
-const Footer = () => <FooterS>
-  <div className='x__main'>
-  </div>
-
-  <div className='x__ac-footer'>
-    <div className='x__inner'>
-      <AlleyCatFooter type='simple'
-        style={{
-          fontSize: '16px',
-          paddingBottom: '30px',
-          color: 'black',
-        }}
-        textStyle={{
-          position: 'relative',
-          top: '2px',
-        }}
-        linkStyle={{
-          fontVariant: 'small-caps',
-          position: 'relative',
-          fontSize: '100%',
-          top: '0px',
-        }}
-      />
-    </div>
-  </div>
-</FooterS>
-
 const ContentsS = styled.div`
-  // height: calc(100% - 100px);
-  // overflow-y: scroll;
   width: 100vw;
+  position: relative;
   > .x__main {
+    position: relative;
+    z-index: 1;
+    background: white;
     > .x__contents-wrapper {
       // --- @todo just a guess, fix when mock-ups are complete
       min-height: 77%;
-    }
-    > .x__footer {
     }
   }
 `
@@ -1277,9 +1219,6 @@ const Contents = container (
             <Hero rows={16} cols={30}/>
           */
         }
-        </div>
-        <div className='x__footer'>
-          <Footer/>
         </div>
       </div>
     </ContentsS>

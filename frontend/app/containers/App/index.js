@@ -38,6 +38,7 @@ import { Main, } from '../../containers/Main/Loadable'
 import NotFoundPage from '../../containers/NotFoundPage'
 import Toast from '../../components/Toast'
 
+import { AlleyCatFooter, } from '../../alleycat-components'
 import { container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
 import {
   againstNone, notContainedInV,
@@ -45,7 +46,10 @@ import {
 import config from '../../config'
 
 const configTop = config | configure.init
-
+const configColors = configTop.focus ('colors')
+const colors = configColors.gets (
+  'highlight', 'highlightAlpha',
+)
 const fontMainFamily = 'font.main.family' | configTop.get
 
 const fontStyles = [
@@ -56,7 +60,6 @@ const fontStyles = [
 ]
 
 const loadFont = 'load' | dot
-const slice = dot1 ('slice')
 
 const startFontObserver = fontFamily => fontStyles | map (
     ([weight, style]) => new FontFaceObserver (fontFamily, {
@@ -88,6 +91,21 @@ const AppWrapper = styled.div`
   margin: 0 auto;
   height: 100%;
   font-family: Arial;
+
+  > .x__main {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    background: white;
+  }
+  > .x__footer {
+    position: sticky;
+    left: 0;
+    bottom: 0px;
+    width: 100%;
+    z-index: 0;
+  }
+
 `
 
 const dispatchTable = {
@@ -111,6 +129,77 @@ const router = (passProps) => createBrowserRouter ([
   { path: '/user-admin', element: <Main page='user-admin' passProps={passProps}/>},
   { path: '*', element: <NotFoundPage/>},
 ])
+
+const FooterS = styled.div`
+  > .x__main {
+    background: ${colors.highlight};
+    height: 300px;
+    color: white;
+    padding-left: 50px;
+  }
+
+  // --- 300px = sidebar.
+  // width: calc(100% - 300px);
+  > .x__ac-footer {
+display: none;
+    width: 440px;
+    margin: auto;
+    // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
+    // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
+    // and double padding.
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 50px;
+    > .x__inner {
+      overflow: hidden;
+      box-shadow: 1px 1px 2px 1px;
+      height: 30px;
+      background: white;
+      padding-top: 0px;
+      padding-bottom: 0px;
+    }
+  }
+
+`
+
+const Footer = () => <FooterS>
+  <div className='x__main'>
+      <p>1</p>
+      <p>2</p>
+      <p>3</p>
+      <p>4</p>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+      <p>8</p>
+      <p>9</p>
+      <p>10</p>
+  </div>
+
+  <div className='x__ac-footer'>
+    <div className='x__inner'>
+      <AlleyCatFooter type='simple'
+        style={{
+          fontSize: '16px',
+          paddingBottom: '30px',
+          color: 'black',
+        }}
+        textStyle={{
+          position: 'relative',
+          top: '2px',
+        }}
+        linkStyle={{
+          fontVariant: 'small-caps',
+          position: 'relative',
+          fontSize: '100%',
+          top: '0px',
+        }}
+      />
+    </div>
+  </div>
+</FooterS>
+
+
 
 export default container (
   ['App', dispatchTable, selectorTable],
@@ -172,10 +261,15 @@ export default container (
       () => <ErrorBoundary>
         <Toast/>
         <AppWrapper ref={ref} className={cls}>
-          {fontLoaded | ifFalse (
-            () => '',
-            () => <RouterProvider router={router (passProps)}/>
-          )}
+          <div className='x__main'>
+            {fontLoaded | ifFalse (
+              () => '',
+              () => <RouterProvider router={router (passProps)}/>
+            )}
+          </div>
+          <div className='x__footer'>
+            <Footer/>
+          </div>
         </AppWrapper>,
       </ErrorBoundary>,
     )
