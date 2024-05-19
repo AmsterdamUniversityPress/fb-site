@@ -28,7 +28,7 @@ import { fold, flatMap, } from 'alleycat-js/es/bilby'
 import configure from 'alleycat-js/es/configure'
 import { listen, post, use, sendStatus, sendStatusEmpty, } from 'alleycat-js/es/express'
 import { green, error, info, } from 'alleycat-js/es/io'
-import { decorateRejection, length, setIntervalOn, trim, composeManyRight, logWith, } from 'alleycat-js/es/general'
+import { decorateRejection, length, setIntervalOn, trim, composeManyRight, logWith, ierror, } from 'alleycat-js/es/general'
 import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
@@ -757,11 +757,15 @@ const init = ({ port, }) => express ()
 
   // --- @todo should we also require a token here?
   | securePatch (privsUser) ('/user', gvBodyParams ([
-      basicEmailValidator ('email'),
       basicStringValidator ('oldPassword'),
       basicPasswordValidator (minimumPasswordScore) ('newPassword'),
     ],
-    ({ res }, email, oldPassword, newPassword) => {
+    ({ req, res }, oldPassword, newPassword) => {
+      const email = req.alleycat?.user?.userinfo?.email
+      if (nil (email)) {
+        ierror ('/user: unable to get userinfo/email from req')
+        return res | sendStatus (500)
+      }
       const knownHashed = getUserPassword (email)
       if (nil (knownHashed)) return res | sendStatus (499, {
         umsg: 'Ongeldige gebruiker',

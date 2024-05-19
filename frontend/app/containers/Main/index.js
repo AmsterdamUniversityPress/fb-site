@@ -914,11 +914,10 @@ const UserPage = container (
       passwordUpdateDoneDispatch: passwordUpdateDone,
     },
     {
-      getEmail: selectGetEmail,
       passwordUpdated: selectPasswordUpdated,
     }
   ],
-  ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, getEmail, passwordUpdated, }) => {
+  ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, passwordUpdated, }) => {
     const [oldPassword, setOldPassword] = useState ('')
     const [newPassword, setNewPassword] = useState ('')
     const [showPassword, setShowPassword] = useState (false)
@@ -950,11 +949,8 @@ const UserPage = container (
     )
 
     const doPasswordUpdate = useCallback (
-      () => lets (
-        () => getEmail (),
-        (email) => passwordUpdateDispatch (email, oldPassword, newPassword),
-      ),
-      [getEmail, oldPassword, newPassword, passwordUpdateDispatch],
+      () => passwordUpdateDispatch (oldPassword, newPassword),
+      [oldPassword, newPassword, passwordUpdateDispatch],
     )
 
     const onKeyDownInput = useCallback (

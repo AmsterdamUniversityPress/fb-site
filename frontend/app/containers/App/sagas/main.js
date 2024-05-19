@@ -275,14 +275,14 @@ function *s_logOutUser () {
   })
 }
 
-function *s_passwordUpdate ({ email, oldPassword, newPassword, }) {
+function *s_passwordUpdate ({ oldPassword, newPassword, }) {
   yield call (doApiCall, {
     url: '/api/user',
     optsMerge: {
       method: 'PATCH',
       body: JSON.stringify ({
         // --- @todo hash password before sending?
-        data: { email, oldPassword, newPassword, },
+        data: { oldPassword, newPassword, },
       }),
     },
     continuation: EffAction (a_passwordUpdateCompleted),
