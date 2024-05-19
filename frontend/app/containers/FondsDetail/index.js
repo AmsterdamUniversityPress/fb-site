@@ -33,8 +33,6 @@ const DetailS = styled.div`
   .x__image-and-tag {
     width: 100%;
     position: relative;
-    margin-top: 1%;
-    padding: 2%;
     img {
       height: 100%;
       width: 100%;

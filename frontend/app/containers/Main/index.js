@@ -1157,6 +1157,10 @@ const About = () => {
 const ContentsS = styled.div`
   width: 100vw;
   position: relative;
+  ${prop ('shiftUp') >> ifTrue (
+    () => `margin-top: -300px;`,
+    () => `margin-top: 0px;`,
+  )}
   > .x__main {
     position: relative;
     z-index: 1;
@@ -1174,18 +1178,18 @@ const Contents = container (
   ({ isMobile, page, }) => {
     const params = useParams ()
     const dispatch = useDispatch ()
-    const [element, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
+    const [element, shiftUp=false, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
       landing: [() => <Landing/>],
       about: [() => <About/>],
-      detail: [() => <FondsDetail/>],
+      detail: [() => <FondsDetail/>, true],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
       search: [
         () => <SearchWrapper query={params.query} showResults={true}/>,
+        false,
         () => {
           const query = params.query
           if (nil (query)) return
           const searchParams = document.location.search | mkURLSearchParams (
-            // --- @todo add more
             ['categories', 'trefwoorden', 'naam_organisatie', 'regios'],
           )
           dispatch (searchReset ())
@@ -1200,7 +1204,7 @@ const Contents = container (
 
     useEffect (effect)
 
-    return <ContentsS>
+    return <ContentsS shiftUp={shiftUp}>
       <div className='x__main'>
         <div className='x__contents-wrapper'>
           {element ()}
