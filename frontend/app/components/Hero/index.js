@@ -20,6 +20,7 @@ import ImageText from '../../images/hero-text-svg'
 const configTop = config | configure.init
 const imageE = configTop.get ('images.hero-e')
 const imageText = configTop.get ('images.hero-text')
+const colorHighlight = configTop.get ('colors.highlight')
 
 const [[ll, lr], [tl, tr]] = [
   [-20, 20], [-20, 20],
@@ -200,7 +201,7 @@ export default component (
         )}
       </div>
       <div className='x__text'>
-        <ImageText fill='white' width='700' height='700'/>
+        <ImageText fill='white' stroke='black' strokeWidth='0.2px' width='700' height='700'/>
       </div>
       <div className='x__background'/>
     </HeroS>

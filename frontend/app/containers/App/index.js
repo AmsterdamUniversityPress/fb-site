@@ -94,7 +94,7 @@ const AppWrapper = styled.div`
 
   > .x__main {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     min-height: 100vh;
     background: white;
   }
@@ -103,7 +103,15 @@ const AppWrapper = styled.div`
     left: 0;
     bottom: 0px;
     width: 100%;
+    z-index: 1;
+  }
+  > .x__ac-footer {
+    position: sticky;
+    left: 0;
+    bottom: 0px;
+    width: 100%;
     z-index: 0;
+    padding-bottom: 10px;
   }
 
 `
@@ -136,26 +144,6 @@ const FooterS = styled.div`
     color: white;
     padding-left: 50px;
   }
-
-  > .x__ac-footer {
-    width: 440px;
-    margin: auto;
-    // --- @todo margin-bottom is giving problems, and the heights & scrollbars are a rommeltje,
-    // and we need the mock-ups first before dealing with it, thus this silly thing with x__inner
-    // and double padding.
-    padding-top: 10px;
-    padding-bottom: 10px;
-    height: 50px;
-    > .x__inner {
-      overflow: hidden;
-      box-shadow: 1px 1px 2px 1px;
-      height: 30px;
-      background: white;
-      padding-top: 0px;
-      padding-bottom: 0px;
-    }
-  }
-
 `
 
 const Footer = () => <FooterS>
@@ -182,31 +170,7 @@ const Footer = () => <FooterS>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
   </div>
-
-  <div className='x__ac-footer'>
-    <div className='x__inner'>
-      <AlleyCatFooter type='simple'
-        style={{
-          fontSize: '16px',
-          paddingBottom: '30px',
-          color: 'black',
-        }}
-        textStyle={{
-          position: 'relative',
-          top: '2px',
-        }}
-        linkStyle={{
-          fontVariant: 'small-caps',
-          position: 'relative',
-          fontSize: '100%',
-          top: '0px',
-        }}
-      />
-    </div>
-  </div>
 </FooterS>
-
-
 
 export default container (
   ['App', dispatchTable, selectorTable],
@@ -276,6 +240,12 @@ export default container (
           </div>
           <div className='x__footer'>
             <Footer/>
+          </div>
+          <div className='x__ac-footer'>
+            <AlleyCatFooter type='simple'
+              textStyle={{
+              }}
+            />
           </div>
         </AppWrapper>,
       </ErrorBoundary>,
