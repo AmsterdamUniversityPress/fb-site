@@ -6,6 +6,21 @@ import {
 import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
+export const autocompleteFetch = action (
+  (query) => query,
+  'autocompleteFetch',
+)
+
+export const autocompleteFetchCompleted = action (
+  (rcomplete) => rcomplete,
+  'autocompleteFetchCompleted',
+)
+
+export const autocompleteQueryUpdated = action (
+  (query) => query,
+  'autocompleteQueryUpdated',
+)
+
 export const clearFilters = action (
   (navigate) => navigate,
   'clearFilters',

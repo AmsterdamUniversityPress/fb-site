@@ -10,6 +10,7 @@ export const initialState = {
   querySearch: null,
   // --- request results
   results: RequestInit,
+  resultsAutocomplete: RequestInit,
   buckets: RequestInit,
   // --- simple value, not RequestInit etc. (though it could just as well have been)
   // (note, not the length of `results`, which may contain several snippets per document).

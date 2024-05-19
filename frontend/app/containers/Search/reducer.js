@@ -11,6 +11,7 @@ import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
+  autocompleteFetchCompleted,
   searchFetch,
   searchFetchCompleted,
   searchBucketsFetchCompleted,
@@ -18,11 +19,13 @@ import {
 } from './actions'
 
 import { initialState, } from './reducer-initial-state'
-import { selectSelectedFilters, } from './selectors'
 import { rcompleteToResults, foldWhenRequestResults, mapRequestInitResults, reducer, } from '../../common'
 import { remove, } from '../../util-general'
 
 const reducerTable = makeReducer (
+  autocompleteFetchCompleted, (rcomplete) => assoc (
+    'resultsAutocomplete', rcompleteToResults (rcomplete),
+  ),
   searchFetch, ({ query, filterSearchParams, }) => composeManyRight (
     assoc ('filterSearchParams', filterSearchParams),
     assoc ('querySearch', query),
@@ -53,7 +56,6 @@ const reducerTable = makeReducer (
   },
   searchBucketsFetchCompleted, (rcomplete) => (state) => {
     const { lastUpdatedFilterName, } = state
-    console.log ('fetch 2 completed, lastUpdatedFilterName', lastUpdatedFilterName)
     const new_single_filter = rcomplete | rcompleteToResults | foldWhenRequestResults (
       (res) => res.metadata.buckets [lastUpdatedFilterName],
     )

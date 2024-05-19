@@ -27,6 +27,8 @@ const { select, selectTop, selectVal, } = initSelectors (
 const _selectBuckets = selectVal ('buckets')
 export const selectResults = selectVal ('results')
 
+export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
+
 export const selectNumResults = selectVal ('numResults')
 export const selectQuery = selectVal ('querySearch')
 export const selectFilterSearchParams = selectVal ('filterSearchParams')

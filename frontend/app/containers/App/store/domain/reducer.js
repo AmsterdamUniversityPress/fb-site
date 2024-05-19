@@ -9,8 +9,6 @@ import { composeManyRight, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
-  autocompleteFetch,
-  autocompleteFetchCompleted,
   fondsenFetch,
   fondsenFetchCompleted,
   halt,
@@ -22,7 +20,6 @@ export const initialState = {
   // --- `error=true` means the reducer is totally corrupted and the app should halt.
   error: false,
   fondsen: RequestInit,
-  resultsAutocomplete: RequestInit,
   // --- gets set each time we request a chunk of fonds data -- note that we don't set it to Nothing
   // at the beginning of each request, because we don't want the pagination component (which selects
   // on this) to flicker.
@@ -31,15 +28,6 @@ export const initialState = {
 
 const reducerTable = makeReducer (
   halt, () => assoc ('error', true),
-  // --- @todo causes a flicker in the AC component, but we probably want something like this to
-  // avoid a sort of weird effect where AC results lazily load after the suggestions have already
-  // been displayed.
-  // autocompleteFetch, () => assoc (
-    // 'resultsAutocomplete', RequestLoading (Nothing),
-  // ),
-  autocompleteFetchCompleted, (rcomplete) => assoc (
-    'resultsAutocomplete', rcompleteToResults (rcomplete),
-  ),
   fondsenFetch, ({ resetResults, ... _ }) => not (resetResults) ? id : assoc (
     'fondsen', RequestLoading (Nothing),
   ),

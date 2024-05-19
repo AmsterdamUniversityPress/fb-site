@@ -16,9 +16,6 @@ import { cata, } from 'alleycat-js/es/bilby'
 
 import {
   appMounted as a_appMounted,
-  autocompleteFetch as a_autocompleteFetch,
-  autocompleteFetchCompleted as a_autocompleteFetchCompleted,
-  autocompleteQueryUpdated as a_autocompleteQueryUpdated,
   fondsenFetch as a_fondsenFetch,
   fondsenFetchCompleted as a_fondsenFetchCompleted,
   logIn as a_logIn,
@@ -41,6 +38,9 @@ import {
   usersFetchCompleted as a_usersFetchCompleted,
 } from '../actions/main'
 import {
+  autocompleteFetch as a_autocompleteFetch,
+  autocompleteFetchCompleted as a_autocompleteFetchCompleted,
+  autocompleteQueryUpdated as a_autocompleteQueryUpdated,
   searchFetch as a_searchFetch,
   searchFetchCompleted as a_searchFetchCompleted,
   searchBucketsFetchCompleted as a_searchBucketsFetchCompleted,

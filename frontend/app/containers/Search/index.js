@@ -24,7 +24,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { clearFilters, updateFilterToggle, } from './actions'
+import { autocompleteQueryUpdated, clearFilters, updateFilterToggle, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
@@ -33,10 +33,9 @@ import {
   selectSelectedFilters,
   selectQuery as selectSearchQuery,
   selectResults as selectResultsSearch,
+  selectResultsAutocomplete,
   selectNumResults as selectNumResultsSearch,
 } from './selectors'
-import { autocompleteQueryUpdated, } from '../App/actions/main'
-import { selectResultsAutocomplete, } from '../App/store/domain/selectors'
 
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
