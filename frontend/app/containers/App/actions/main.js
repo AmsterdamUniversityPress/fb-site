@@ -114,6 +114,11 @@ export const sendResetEmailCompleted = action (
   'sendResetEmailCompleted',
 )
 
+export const setAllowAnalytical = action (
+  (allow) => allow,
+  'setAllowAnalytical',
+)
+
 export const userAdd = action (
   ( email, firstName, lastName, privileges ) => ({ email, firstName, lastName, privileges, }),
   'userAdd',

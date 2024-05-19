@@ -23,7 +23,7 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { selectCookiesDecided, } from './store/app/selectors'
+import { selectAllowAnalytical, selectCookiesDecided, } from './store/app/selectors'
 import domainReducer from './store/domain/reducer'
 import { selectError, } from './store/domain/selectors'
 import uiReducer from './store/ui/reducer'
@@ -40,9 +40,7 @@ import Toast from '../../components/Toast'
 import { AlleyCatFooter, } from '../../alleycat-components'
 import { BigButton, Button, } from '../../components/shared'
 import { container, container2, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
-import {
-  againstNone, notContainedInV,
-} from '../../util-general'
+import { notContainedInV, } from '../../util-general'
 import config from '../../config'
 
 const configTop = config | configure.init
@@ -236,6 +234,7 @@ export default container (
   ['App', dispatchTable, selectorTable],
   (props) => {
     const { error, history, appMountedDispatch, } = props
+    const allowAnalytical = useSelector (selectAllowAnalytical)
     const cookiesDecided = useSelector (selectCookiesDecided)
 
     useWhy ('App', props)

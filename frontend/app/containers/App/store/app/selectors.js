@@ -16,7 +16,12 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-export const selectCookiesDecided = selectVal ('cookiesDecided')
+export const selectAllowAnalytical = selectVal ('allowAnalytical')
+export const selectCookiesDecided = select (
+  'cookiesDecided',
+  [selectAllowAnalytical],
+  ok,
+)
 // --- returns Request which wraps (user | null)
 const selectUserUser = selectVal ('userUser')
 const selectUserInstitution = selectVal ('userInstitution')

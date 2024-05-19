@@ -31,6 +31,7 @@ import {
   sendResetEmailCompleted as a_sendResetEmailCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
   sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
+  setAllowAnalytical as a_setAllowAnalytical,
   userRemove as a_userRemove,
   userRemoveCompleted as a_userRemoveCompleted,
   userAdd as a_userAdd,
@@ -139,6 +140,7 @@ function *helloCompleted (rcomplete, first=false) {
   // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
     if (first) yield call (fondsenRefresh, false)
+    yield put (a_setAllowAnalytical (allowAnalytical))
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
@@ -195,6 +197,9 @@ function *sendEmail (email, type) {
 }
 
 function *s_allowAnalyticalUpdate (allow) {
+  function *done (_rcomplete) {
+    yield put (a_setAllowAnalytical (allow))
+  }
   yield call (doApiCall, {
     url: '/api/user-allow-analytical',
     optsMerge: {
@@ -203,6 +208,7 @@ function *s_allowAnalyticalUpdate (allow) {
         data: { allow, },
       }),
     },
+    continuation: EffSaga (done),
     imsgDecorate: 'Error allow analytical update',
     oops: toastError,
   })
