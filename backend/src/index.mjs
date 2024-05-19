@@ -797,7 +797,6 @@ const init = ({ port, }) => express ()
   | securePatch (privsUser) ('/user', gvBodyParams ([
       basicStringValidator ('oldPassword'),
       basicPasswordValidator (minimumPasswordScore) ('newPassword'),
-    basicStringValidator ('something'),
     ],
     ({ req, res }, oldPassword, newPassword) => {
       const email = res | getUserinfoKeyResponse ('email', req)
