@@ -268,22 +268,6 @@ function *s_logInUser ({ email, password, }) {
   })
 }
 
-// --- no longer necessary in the current design
-function *s_loginUserCompleted (rcomplete) {
-  return
-  const onError = (msg) => error ('Error: loginCompleted:', msg)
-  const success = rcomplete | requestCompleteFold (
-    // --- ok
-    (_user) => true,
-    // --- 4xx
-    (umsg) => (onError (umsg), false),
-    // --- 5xx
-    () => (onError ('(no message)'), false),
-  )
-  // yield put (a_userLoggedIn (user))
-  if (success) yield call (fondsenRefresh, false)
-}
-
 function *s_logOutUser () {
   yield call (doApiCall, {
     url: '/api/logout',
@@ -476,7 +460,6 @@ export default function *sagaRoot () {
     saga (takeLatest, a_autocompleteQueryUpdated, s_autocompleteQueryUpdated),
     saga (takeLatest, a_fondsenFetch, s_fondsenFetch),
     saga (takeLatest, a_logIn, s_logInUser),
-    saga (takeLatest, a_loginUserCompleted, s_loginUserCompleted),
     saga (takeLatest, a_logOut, s_logOutUser),
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
