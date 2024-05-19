@@ -790,7 +790,7 @@ const init = ({ port, }) => express ()
         })
       }
       decorateAndRethrow (
-        () => '/user: update password failed: ',
+        '/user: update password failed: ',
         () => updateUserPasswordSync (email, newPassword),
       )
       return sendInfoEmail (email, 'password-changed')
