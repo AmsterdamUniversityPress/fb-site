@@ -183,6 +183,18 @@ export default [
       },
     },
   ]],
+  [5, [
+    {
+      forwards: {
+        sql: `alter table session add column analyticalAllowed smallint default 0`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `alter table session drop column analyticalAllowed`,
+        destructive: true,
+      },
+    },
+  ]],
   /*
     {
       forwards: {

@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  tryCatch, id, die, noop, lets,
+  tryCatch, id, die, noop, lets, isBoolean,
   map, ok, compact, tap,
 } from 'stick-js/es'
 
@@ -88,6 +88,18 @@ export const userRemove = (email) => doEitherWithTransaction (sqliteApi,
   )),
   () => sqliteApi.run (SB (
     `delete from user where email = ?`, email,
+  )),
+)
+
+export const userAllowAnalyticalUpdate = (email, allow) => doEither (
+  // --- just an extra check because unwantd conversions to bool can be so annoying
+  () => isBoolean (allow) ? Right (null) : Left ('userAllowAnalyticalUpdate: not a bool'),
+  () => userIdGet (email),
+  // --- technically this may update multiple rows in the DB, but the extra ones are stale sessions
+  // and it doesn't matter.
+  (userId) => sqliteApi.run (SB (
+    `update session set analyticalAllowed = ? where userId = ?`,
+    [Number (allow), userId],
   )),
 )
 

@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   sprintf1, sprintfN, tryCatch, lets, id, nil,
-  rangeTo, prop, xReplace, path, ok,
+  rangeTo, prop, xReplace, path, ok, defaultTo,
   gt, againstAny, eq, die, map, reduce, split, values,
   not, recurry, ifOk, ifNil, take, dot, join,
   ifPredicate, whenOk, invoke, each, appendM,
@@ -36,7 +36,6 @@ import { config as configFb, } from './config-fb.mjs'
 import { config as configUser, } from './config.mjs'
 import { dataTst, dataAcc, dataPrd, getFilters, } from './data.mjs'
 import {
-  staleSessionsClear as dbStaleSessionsClear,
   init as dbInit,
   initUsers as dbInitUsers,
   privilegesGet as dbPrivilegesGet,
@@ -44,10 +43,12 @@ import {
   sessionGet as dbSessionGet,
   sessionRefresh as dbSessionRefresh,
   sessionRemove as dbSessionRemove,
+  staleSessionsClear as dbStaleSessionsClear,
   userAdd as dbUserAdd,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
   userRemove as dbUserRemove,
+  userAllowAnalyticalUpdate as dbUserAllowAnalyticalUpdate,
   usersGet as dbUsersGet,
 } from './db.mjs'
 import { errorX, warn, } from './io.mjs'
@@ -234,6 +235,9 @@ const refreshSession = (email, sessionId) => doDbCall (dbSessionRefresh, [email,
 const removeLoggedIn = (email, sessionId) => doDbCall (dbSessionRemove, [email, sessionId])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
+)
+const updateAllowAnalytical = (email, allow) => doDbCall (
+  dbUserAllowAnalyticalUpdate, [email, allow],
 )
 
 const updateUserPassword = async (email, pw) => updateUserPasswordSync (email, pw)
@@ -775,6 +779,7 @@ const init = ({ port, }) => express ()
   | securePatch (privsUser) ('/user', gvBodyParams ([
       basicStringValidator ('oldPassword'),
       basicPasswordValidator (minimumPasswordScore) ('newPassword'),
+    basicStringValidator ('something'),
     ],
     ({ req, res }, oldPassword, newPassword) => {
       const email = res | getUserinfoKeyResponse ('email', req)
@@ -801,6 +806,20 @@ const init = ({ port, }) => express ()
           return res | sendStatus (201, null)
         },
       )
+    },
+  ))
+  | securePost (privsUser) ('/user-allow-analytical', gvBodyParams ([
+      basicBooleanValidator ('allow'),
+    ],
+    ({ req, res }, allow=10) => {
+      const email = res | getUserinfoKeyResponse ('email', req)
+      // --- response has already been sent
+      if (nil (email)) return
+      decorateAndRethrow (
+        '/user-allow-analytical: db call failed: ',
+        () => updateAllowAnalytical (email, allow),
+      )
+      return res | sendStatus (200, null)
     },
   ))
   | secureDelete (privsAdminUser) ('/user-admin/:email', gvRequestParams ([
