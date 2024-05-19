@@ -15,6 +15,7 @@ import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 import { cata, } from 'alleycat-js/es/bilby'
 
 import {
+  allowAnalyticalUpdate as a_allowAnalyticalUpdate,
   appMounted as a_appMounted,
   fondsenFetch as a_fondsenFetch,
   fondsenFetchCompleted as a_fondsenFetchCompleted,
@@ -191,6 +192,20 @@ function *sendEmail (email, type) {
       }),
     },
     continuation: EffSaga (done),
+    oops: toastError,
+  })
+}
+
+function *s_allowAnalyticalUpdate (allow) {
+  yield call (doApiCall, {
+    url: '/api/user-allow-analytical',
+    optsMerge: {
+      method: 'POST',
+      body: JSON.stringify ({
+        data: { allow, },
+      }),
+    },
+    imsgDecorate: 'Error allow analytical update',
     oops: toastError,
   })
 }
@@ -451,6 +466,7 @@ function *s_usersFetch () {
 
 export default function *sagaRoot () {
   yield all ([
+    saga (takeLatest, a_allowAnalyticalUpdate, s_allowAnalyticalUpdate),
     saga (takeLatest, a_appMounted, s_appMounted),
     saga (takeLatest, a_autocompleteFetch, s_autocompleteFetch),
     saga (takeLatest, a_autocompleteQueryUpdated, s_autocompleteQueryUpdated),

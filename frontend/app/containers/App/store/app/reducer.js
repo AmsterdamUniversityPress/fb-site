@@ -9,6 +9,7 @@ import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
+  allowAnalyticalUpdate,
   loggedInInstitution,
   logIn,
   loginUserCompleted,
@@ -22,6 +23,7 @@ import { reducer, } from '../../../../common'
 const unique = () => Symbol ()
 
 export const initialState = {
+  cookiesDecided: false,
   emailRequestPending: false,
   emailRequestSuccess: unique (),
   userUser: RequestInit,
@@ -31,6 +33,9 @@ export const initialState = {
 }
 
 const reducerTable = makeReducer (
+  allowAnalyticalUpdate, () => assoc (
+    'cookiesDecided', true,
+  ),
   loggedInInstitution, (user) => assoc (
     'userInstitution', RequestResults (user),
   ),

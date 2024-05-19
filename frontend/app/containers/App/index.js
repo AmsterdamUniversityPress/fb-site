@@ -8,29 +8,28 @@ import {
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
 import styled from 'styled-components'
 import { createBrowserRouter, RouterProvider, } from 'react-router-dom'
-import { connect, } from 'react-redux'
-import { createStructuredSelector, } from 'reselect'
+import { useDispatch, useSelector, } from 'react-redux'
 
 import FontFaceObserver from 'fontfaceobserver'
 
 import { then, recover, promiseToEither, allP, } from 'alleycat-js/es/async'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
-import { fontFace, cssFont, } from 'alleycat-js/es/font'
-import { logWith, info, warn, iwarn, setTimeoutOn, } from 'alleycat-js/es/general'
-import { whenPredicateResult, whenTrueV, ifEmptyString, } from 'alleycat-js/es/predicate'
-import { useMeasureWithCb, } from 'alleycat-js/es/react'
+import { logWith, iwarn, } from 'alleycat-js/es/general'
+import { whenTrueV, } from 'alleycat-js/es/predicate'
+import { useMeasureWithCb, useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
+import { selectCookiesDecided, } from './store/app/selectors'
 import domainReducer from './store/domain/reducer'
 import { selectError, } from './store/domain/selectors'
 import uiReducer from './store/ui/reducer'
 import appReducer from './store/app/reducer'
 
-import { appMounted, } from './actions/main'
+import { allowAnalyticalUpdate, appMounted, } from './actions/main'
 import saga from './sagas/main'
 
 import { ErrorBoundary, } from '../../components/ErrorBoundary'
@@ -40,7 +39,7 @@ import Toast from '../../components/Toast'
 
 import { AlleyCatFooter, } from '../../alleycat-components'
 import { BigButton, Button, } from '../../components/shared'
-import { container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
+import { container, container2, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
 import {
   againstNone, notContainedInV,
 } from '../../util-general'
@@ -162,9 +161,6 @@ const CookiesS = styled.div`
   padding: 10px;
   background: white;
   font-size: 17px;
-  // width: 60%;
-  // max-width: 300px;
-  // margin-left: 40%;
   .x__button {
     display: flex;
     justify-content: space-between;
@@ -179,19 +175,28 @@ const CookiesS = styled.div`
   }
 `
 
-const Cookies = () => <CookiesS>
-  <p>Wij gebruiken functionele cookies om bij te houden of een gebruiker ingelogd is.</p>
-  <p>We gebruiken analytische cookies — mits jij akkoord gaat — om het gebruik van onze diensten te
-    meten.</p>
-  <div className='x__button'>
-    <BigButton cls='Button__abcdef'>
-      Nee, dankje.
-    </BigButton>
-    <BigButton cls='Button__abcdef'>
-      Prima, ik sta het gebruik van analytische cookies toe.
-    </BigButton>
-  </div>
-</CookiesS>
+const Cookies = container2 (
+  ['Cookies'],
+  () => {
+    const dispatch = useDispatch ()
+    const onClicks = [false, true] | map ((allow) => useCallbackConst (
+      () => dispatch (allowAnalyticalUpdate (allow)),
+    ))
+    return <CookiesS>
+      <p>Wij gebruiken functionele cookies om bij te houden of een gebruiker ingelogd is.</p>
+      <p>We gebruiken analytische cookies — mits jij akkoord gaat — om het gebruik van onze diensten te
+        meten.</p>
+      <div className='x__button'>
+        <BigButton cls='Button__abcdef' onClick={onClicks [0]}>
+          Nee, dankje.
+        </BigButton>
+        <BigButton cls='Button__abcdef' onClick={onClicks [1]}>
+          Prima, ik sta het gebruik van analytische cookies toe.
+        </BigButton>
+      </div>
+    </CookiesS>
+  },
+)
 
 const FooterS = styled.div`
   > .x__main {
@@ -231,6 +236,7 @@ export default container (
   ['App', dispatchTable, selectorTable],
   (props) => {
     const { error, history, appMountedDispatch, } = props
+    const cookiesDecided = useSelector (selectCookiesDecided)
 
     useWhy ('App', props)
     useReduxReducer ({ createReducer, key: 'domain', reducer: domainReducer, })
@@ -296,11 +302,12 @@ export default container (
           <div className='x__footer'>
             <Footer/>
           </div>
-          <div className='x__cookies'>
+          {cookiesDecided || <div className='x__cookies'>
             <div>
               <Cookies/>
             </div>
           </div>
+          }
           <div className='x__ac-footer'>
             <AlleyCatFooter type='simple'
               textStyle={{

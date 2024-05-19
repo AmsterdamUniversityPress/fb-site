@@ -11,6 +11,11 @@ export const halt = action (
   'halt',
 )
 
+export const allowAnalyticalUpdate = action (
+  (allow) => allow,
+  'allowAnalyticalUpdate',
+)
+
 export const appMounted = action (
   () => {},
   'appMounted',
