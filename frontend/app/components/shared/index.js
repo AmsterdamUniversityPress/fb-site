@@ -1,12 +1,12 @@
 import {
   pipe, compose, composeRight,
   prop, sprintf1, ifNil, noop, lets,
-  sprintfN, tap, not,
+  sprintfN, tap, not, ifTrue,
 } from 'stick-js/es'
 
-import React, { useState, } from 'react'
+import React, { useCallback, } from 'react'
 import styled from 'styled-components'
-import { Link, } from 'react-router-dom'
+import { Link as LinkReal, } from 'react-router-dom'
 
 import configure from 'alleycat-js/es/configure'
 import { logWith, } from 'alleycat-js/es/general'
@@ -78,23 +78,6 @@ export const Button2 = styled (ButtonBaseS)`
   border-radius: 5px;
   padding: 7px;
 `
-
-const RouterLinkS = styled (Link)`
-  color: #bbb;
-  text-decoration: none;
-  cursor: pointer;
-`
-
-const RouterLinkDarkS = styled (RouterLinkS)`
-  color: black;
-`
-
-export const BlueLink = styled (Link)`
-  color: darkblue;
-`
-
-export const RouterLink = RouterLinkS
-export const RouterLinkDark = RouterLinkDarkS
 
 const TextDivS = styled.div`
   cursor: text;
@@ -386,3 +369,39 @@ export const PaginationAndExplanation = ({ numItems, showExplanation, Pagination
     </div>
   </PaginationAndExplanationS>
 }
+
+const LinkS = styled (LinkReal)`
+  cursor: text;
+  ${prop ('disabled') >> ifTrue (
+    () => 'cursor: inherit',
+    () => 'cursor: pointer',
+  )}
+`
+
+// --- a wrapper around React Router's Link which takes a boolean `disabled` prop
+export const Link = ({ disabled, children, onClick: onClickProp=noop, ... restProps }) => {
+  const onClick = useCallback ((event) => {
+    if (disabled) return event.preventDefault ()
+    return onClickProp (event)
+  }, [disabled, onClickProp])
+  return <LinkS disabled={disabled} onClick={onClick} {... restProps}>
+    {children}
+  </LinkS>
+}
+
+const RouterLinkS = styled (Link)`
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+`
+
+const RouterLinkDarkS = styled (RouterLinkS)`
+  color: black;
+`
+
+export const BlueLink = styled (Link)`
+  color: darkblue;
+`
+
+export const RouterLink = RouterLinkS
+export const RouterLinkDark = RouterLinkDarkS

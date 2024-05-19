@@ -10,7 +10,7 @@ import {
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, useNavigate, useParams, } from 'react-router-dom'
+import { useNavigate, useParams, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 import zxcvbn from 'zxcvbn'
@@ -60,7 +60,7 @@ import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
 import { Search, SearchBar, } from '../../containers/Search'
-import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, Link, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import mkPagination from '../../containers/shared/Pagination'
 
@@ -347,13 +347,13 @@ const Header = ({ isLoggedIn, page, }) => {
     </div>
     <div className='x__nav-links'>
       <div className='x__wrapper'>
-        <Link to='/search/*'>
+        <Link to='/search/*' disabled={page === 'search'}>
           Zoek een fonds
         </Link>
         <div className={clss ('x__cursor', cls ('search'))}/>
       </div>
       <div className='x__wrapper'>
-        <Link to='/about'>
+        <Link to='/about' disabled={page === 'about'}>
           About
         </Link>
         <div className={clss ('x__cursor', cls ('about'))}/>
