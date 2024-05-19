@@ -360,7 +360,11 @@ const init = ({
         const cookie = doCookie (req)
         res | cookie.set (mkJwt (username, session, jwtSecret))
         onHello (username, { username, userinfo, session, })
-        return res | send ({ data: userinfo, })
+          | then ((extrainfo) => res | send ({ data: { userinfo, ... extrainfo }}))
+          | recover ((e) => {
+            warn (e | decorateRejection ('/onHello: '))
+            return res | sendStatusEmpty (500)
+          })
       },
       customErrorHandler,
     ]),

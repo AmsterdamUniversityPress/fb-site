@@ -353,6 +353,9 @@ const alleycatAuth = authFactory.create ().init ({
       ),
       () => refreshSession (email, sessionId),
     )
+    return {
+      allowAnalytical: false,
+    }
   },
   // --- arg 2 = { username, userinfo, session=null, }
   onLogin: async (email, { session=null, }) => {
