@@ -11,7 +11,7 @@ export default ({ fill='black', stroke='black', strokeWidth='0', width='73.7', h
   <g
     fill={fill}
     stroke={stroke}
-    stroke-width={strokeWidth}
+    strokeWidth={strokeWidth}
     transform="translate(-51.335054,-66.568045)">
     <g
        aria-label="FondsenBoek

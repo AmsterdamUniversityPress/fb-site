@@ -205,12 +205,12 @@ const ResultS = styled.div`
 
 `
 
-const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objective, match, categories, }) => {
+const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objective, categories, }) => {
   const href = '/detail/' + uuid
   const navigate = useNavigate ()
   const onClick = useCallback (
     () => navigate (href),
-    [navigate]
+    [navigate, href],
   )
 
   return <ResultS onClick={onClick}>
@@ -223,14 +223,10 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
       </div>
       <div className='x__categories'>
         {categories}
-        {/* [categories
-            | map (dot ('toUpperCase')) | join (', ')
-            | truncate (55)] */}
       </div>
     </div>
     <div className='x__right'>
       <div className='x__objective'>
-      {/* [objective | split (' ') | truncate (30) | join (' ')] | sprintfN ("%s") */}
       {[objective]}
       </div>
       <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
@@ -368,7 +364,7 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
     (value, _event) => onChangeProp (name, value),
     [onChangeProp, name],
   )
-  const onClickShowMore = useCallback (() => setShowAll (not))
+  const onClickShowMore = useCallbackConst (() => setShowAll (not))
   const onChangeInput = useCallbackConst (setInputValue << targetValue)
   const doAutocomplete = useMemo (() => inputValue.length >= 3, [inputValue])
   const filterIconCls = useMemo (() => doAutocomplete ? '' : 'u-opacity-25', [doAutocomplete])

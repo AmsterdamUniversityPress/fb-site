@@ -134,13 +134,9 @@ export default component (
     const [tops, setTops] = useState (null)
     const [opacity, setOpacity] = useState (null)
     const [widths, setWidths] = useState (null)
-    const data = useMemo (() => {
-      const ret = []
-      ; (rows * cols) | repeatF (
-        (m) => ret [m] = randomColor (),
-      )
-      return ret
-    }, [n, rows, cols])
+    const data = useMemo (() => n | repeatF (
+      () => randomColor (),
+    ), [n])
     const updateStep = useRef (0)
 
     useEffect (() => {
@@ -162,24 +158,20 @@ export default component (
       if (not (go)) return
       if (not (lefts)) return
       if (updateStep.current >= 2) return
-      // if (updateStep.current !== 1) return
       setLefts ((rows * cols) | repeatF (
-        // () => 0,
         () => randInt (-10, 10),
       ))
       setTops ((rows * cols) | repeatF (
-        // () => 0,
         () => randInt (-10, 10),
       ))
       setOpacity (1)
       setWidths ((rows * cols) | repeatF (
-        // () => 40,
         () => randInt (35, 45),
       ))
       setAssembled (true)
       updateStep.current = 2
       500 | setTimeoutOn (() => onAssembled ())
-    }, [lefts, rows, cols, go])
+    }, [lefts, rows, cols, go, onAssembled])
 
     useWhy ('Hero', props)
     return <HeroS className={clss (assembled && 'x--assembled')}>

@@ -1103,7 +1103,7 @@ const About = () => {
       return iwarn ('contentsRef.current is null')
     el.addEventListener ('scroll', listener)
     return () => el.removeEventListener ('scroll', listener)
-  }, [triggerSecondEffect])
+  }, [triggerSecondEffect, listener])
   return <AboutS>
     <div className={clss ('x__hero', assembled && 'x--assembled')}>
       {/* <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' go={assembleHero}/> */}
