@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   map, dot, dot1, die, sprintf1,
   prop, whenOk, ifFalse, ifTrue,
-  eq,
+  eq, nil,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
@@ -40,7 +40,7 @@ import Toast from '../../components/Toast'
 import { AlleyCatFooter, } from '../../alleycat-components'
 import { BigButton, Button, } from '../../components/shared'
 import { container, container2, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
-import { notContainedInV, } from '../../util-general'
+import { notContainedInV, lookupOnOr, } from '../../util-general'
 import config from '../../config'
 
 const configTop = config | configure.init
@@ -155,6 +155,32 @@ const router = (passProps) => createBrowserRouter ([
   { path: '/user-admin', element: <Main page='user-admin' passProps={passProps}/>},
   { path: '*', element: <NotFoundPage/>},
 ])
+
+const GA = () => {
+  const ref = useRef (null)
+  const tag = process.env.APP_ENV | lookupOnOr (
+    (env) => die ('bad env: ' + env), {
+      dev: null,
+      tst: 'G-GFM5SQNH3M',
+      acc: 'G-36JMLHTR78',
+      prd: 'G-SE1M23CJ6S',
+    },
+  )
+  useEffect (() => {
+    if (nil (tag)) return
+    const script = document.createElement ('script')
+
+    script.setAttribute ('async', '')
+    script.setAttribute ('src', 'https://www.googletagmanager.com/gtag/js?id=' + tag)
+    ref.current.appendChild (script)
+
+	window.dataLayer ||= []
+	function gtag () { window.dataLayer.push (arguments) }
+	gtag ('js', new Date)
+	gtag ('config', tag)
+  }, [tag])
+  return <div ref={ref}/>
+}
 
 const CookiesS = styled.div`
   border: 3px solid #999999;
@@ -306,6 +332,7 @@ export default container (
           <div className='x__footer'>
             <Footer/>
           </div>
+          {allowAnalytical && <GA/>}
           {cookiesDecided || <div className='x__cookies'>
             <div>
               <Cookies/>
