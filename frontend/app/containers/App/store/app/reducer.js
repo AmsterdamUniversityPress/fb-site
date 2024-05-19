@@ -49,7 +49,7 @@ const reducerTable = makeReducer (
     const [user, allowAnalytical, privileges] = rcomplete | cata ({
       RequestCompleteError: (e) => [RequestError (e), null, Nothing],
       RequestCompleteSuccess: (user) => user | ifOk (
-        ({ userinfo, allowAnalytical, }) => [RequestResults (userinfo), allowAnalytical, Just (user.privileges)],
+        ({ userinfo, allowAnalytical, }) => [RequestResults (userinfo), allowAnalytical, Just (userinfo.privileges)],
         () => [RequestInit, null, Nothing],
       ),
     })
