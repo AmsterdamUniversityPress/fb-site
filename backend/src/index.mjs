@@ -57,6 +57,7 @@ import {
   lookupOnOr, lookupOnOrDie, mapTuplesAsMap, decorateAndRethrow,
   retryPDefaultMessage, thenWhenTrue, foldWhenLeft, effects, takeMapUnique,
   mapFromPairs, slice1, stripNonAlphaNum, toListCollapseNil,
+  ifFindIndex,
 } from './util.mjs'
 
 import {
@@ -632,6 +633,18 @@ const sendInfoEmail = (email, type) => retryPDefaultMessage (
   () => sendInfoEmailTryOnce (email, type),
 )
 
+// --- bump the query to the top of the autocomplete suggestions if it occurs
+const bumpQuery = recurry (2) (
+  (query) => (results) => results | ifFindIndex (eq (query)) (
+    (idx) => [
+      results [idx],
+      ... results.slice (0, idx),
+      ... idx === results.length - 1 ? [] : results.slice (idx + 1),
+    ],
+    () => results,
+  ),
+)
+
 const init = ({ port, }) => express ()
   | use (bodyParser.json ())
   | use (cookieParser (cookieSecret))
@@ -727,6 +740,7 @@ const init = ({ port, }) => express ()
             (x) => x | map (filterPunctuation >> transformCase),
           ),
         )
+        | bumpQuery (query)
         // --- split result into [result, react-key], and we can simply
         // use result as the React key since it's unique.
         | takeMapUnique ((result) => [result, result], 10)

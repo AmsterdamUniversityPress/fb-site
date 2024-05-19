@@ -27,29 +27,12 @@ const { select, selectTop, selectVal, } = initSelectors (
 const _selectBuckets = selectVal ('buckets')
 export const selectResults = selectVal ('results')
 
-const _selectResultsAutocomplete = selectVal ('resultsAutocomplete')
+export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
 
 export const selectNumResults = selectVal ('numResults')
 
 export const selectQuery = selectVal ('querySearch')
 export const selectQueryAutocomplete = selectVal ('queryAutocomplete')
-
-export const selectResultsAutocomplete = select (
-  'resultsAutocomplete',
-  [_selectResultsAutocomplete, selectQueryAutocomplete],
-  (resultsReq, query) => resultsReq | map (
-    // --- if the query appears in the suggestions, bump it to the top.
-    // --- tuples: [['kerkhof', 'kerkhof'], ['kerken', 'kerken'], ...]
-    (tuples) => tuples | ifFindIndex (fst >> eq (query)) (
-      (_, idx) => [
-        tuples [idx],
-        ... tuples.slice (0, idx),
-        ... idx === tuples.length - 1 ? [] : tuples.slice (idx + 1),
-      ],
-      () => tuples,
-    )
-  ),
-)
 
 export const selectFilterSearchParams = selectVal ('filterSearchParams')
 

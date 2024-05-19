@@ -6,6 +6,7 @@ import {
   ifPredicateResults, whenPredicateResults,
   againstAll, gt, gte, dot1, join, repeatF, concat,
   whenPredicate, list, ifNo, tap, ok, noop, dot2,
+  findIndex,
 } from 'stick-js/es'
 
 import path from 'node:path'
@@ -503,3 +504,5 @@ export const tapWhen = recurry (3) (
     () => p (x) ? f (x) : id,
   ),
 )
+
+export const ifFindIndex = findIndex >> ifPredicateResults

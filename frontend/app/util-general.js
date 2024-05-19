@@ -278,5 +278,3 @@ export const remove = recurry (2) (
     return oo
   },
 )
-
-export const ifFindIndex = findIndex >> ifPredicateResult
