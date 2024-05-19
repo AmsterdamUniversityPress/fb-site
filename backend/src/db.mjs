@@ -14,7 +14,7 @@ import { info, yellow, } from 'alleycat-js/es/io'
 
 import { config as configUser, } from './config.mjs'
 import { errorX, mkdirIfNeeded, } from './io.mjs'
-import { doEither, epochMs, ifEqualsZero, foldWhenLeft, } from './util.mjs'
+import { doEither, epochMs, ifEqualsZero, foldWhenLeft, nullMap, } from './util.mjs'
 import { doEitherWithTransaction, } from './util-db.mjs'
 import { runMigrations, } from './db-migrations.mjs'
 
@@ -52,19 +52,16 @@ export const initUsers = (encryptPassword, users, initPasswords) => doEither (
     decorateRejection ("Couldn't initialise users: ") >> die,
   )
 
-export const getAllowAnalytical = (email, sessionId) => doEither (
-  () => userIdGet (email),
-  (userId) => sqliteApi.getPluck (SB (
-    `select analyticalAllowed from session where userId = ? and sessionId = ?`,
-    [userId, sessionId],
-  )),
-)
+export const getAllowAnalytical = (email) => map (nullMap (Boolean), sqliteApi.getPluck (SB (
+  `select allowAnalytical from user where email = ?`,
+  [email],
+)))
 
 const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => allowExists ? ' on conflict do nothing' : '',
   (upsertClause) => doEitherWithTransaction (sqliteApi,
     () => sqliteApi.run (SB (
-      `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)` + upsertClause,
+      `insert into user (email, firstName, lastName, password, allowAnalytical) values (?, ?, ?, ?, NULL)` + upsertClause,
       [email, firstName, lastName, password],
     )),
     ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
@@ -102,12 +99,9 @@ export const userRemove = (email) => doEitherWithTransaction (sqliteApi,
 export const userAllowAnalyticalUpdate = (email, allow) => doEither (
   // --- just an extra check because unwantd conversions to bool can be so annoying
   () => isBoolean (allow) ? Right (null) : Left ('userAllowAnalyticalUpdate: not a bool'),
-  () => userIdGet (email),
-  // --- technically this may update multiple rows in the DB, but the extra ones are stale sessions
-  // and it doesn't matter.
-  (userId) => sqliteApi.run (SB (
-    `update session set analyticalAllowed = ? where userId = ?`,
-    [Number (allow), userId],
+  () => sqliteApi.run (SB (
+    `update user set allowAnalytical = ? where email = ?`,
+    [Number (allow), email],
   )),
 )
 
@@ -136,7 +130,7 @@ export const sessionAdd = (email, sessionId) => doEither (
   () => userIdGet (email),
   (userId) => Right ([userId, epochMs ()]),
   ([userId, lastRefreshed]) => sqliteApi.run (
-    SB (`insert into session (userId, sessionId, lastRefreshed, analyticalAllowed) values (?, ?, ?, NULL) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
+    SB (`insert into session (userId, sessionId, lastRefreshed) values (?, ?, ?) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
   )
 )
 
@@ -176,6 +170,11 @@ export const staleSessionsClear = (ms) => lets (
     cutoff,
   )),
 )
+
+export const updateAllowAnalyticalForNewSession = (email) => sqliteApi.run (SB (
+  `update user set allowAnalytical = NULL where email = ? and allowAnalytical = 1`,
+  [email],
+))
 
 export const usersGet = () => sqliteApi.all (S (`
   select u.email, u.firstName, u.lastName, group_concat(p.privilege) as privileges,

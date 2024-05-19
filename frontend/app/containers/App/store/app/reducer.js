@@ -47,19 +47,20 @@ const reducerTable = makeReducer (
   ),
   loginUserCompleted, (rcomplete) => {
     const [user, allowAnalytical, privileges] = rcomplete | cata ({
-      RequestCompleteError: (e) => [RequestError (e), Nothing],
+      RequestCompleteError: (e) => [RequestError (e), null, Nothing],
       RequestCompleteSuccess: (user) => user | ifOk (
         ({ userinfo, allowAnalytical, }) => [RequestResults (userinfo), allowAnalytical, Just (user.privileges)],
         () => [RequestInit, null, Nothing],
       ),
     })
-    return composeManyRight (
-      assoc ('allowAnalytical', allowAnalytical),
-      assoc ('userUser', user | tap (logWith ('usss'))),
-      assoc ('userPrivileges', privileges),
-    )
+    return merge ({
+      allowAnalytical,
+      userUser: user,
+      userPrivileges: privileges,
+    })
   },
   loggedOutUser, () => merge ({
+    allowAnalytical: false,
     userUser: RequestInit,
     userPrivileges: Nothing,
   }),

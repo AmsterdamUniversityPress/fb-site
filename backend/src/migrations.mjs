@@ -186,13 +186,17 @@ export default [
   [5, [
     {
       forwards: {
-        // --- null is allowed, and means the user hasn't decided yet (this still means no consent
-        // of course)
-        sql: `alter table session add column analyticalAllowed smallint`,
+        /* We store the consent in the user table. Null is allowed, and means the user hasn't
+         * decided yet (this still means no consent to the cookies of course).
+         * If it's no, the user doesn't need to answer the question any more, also when a new
+         * session is created.
+         * If it's yes, it gets reset to null when a new session is created.
+         */
+        sql: `alter table user add column allowAnalytical smallint`,
         destructive: false,
       },
       backwards: {
-        sql: `alter table session drop column analyticalAllowed`,
+        sql: `alter table user drop column allowAnalytical`,
         destructive: true,
       },
     },

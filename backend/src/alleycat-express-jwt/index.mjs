@@ -399,7 +399,7 @@ const init = ({
             sent = true
           })
           | then ((extrainfo) => sent | whenFalse (
-            () => res | send ({ data: { userinfo, extrainfo, }}),
+            () => res | send ({ data: { userinfo, ... extrainfo, }}),
           ))
       }) (req, res)
     }),

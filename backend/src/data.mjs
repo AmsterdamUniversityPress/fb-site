@@ -72,19 +72,3 @@ export const getFilters = (data) => [
     options: get_regios (data) | sort,
   },
 ]
-
-// const { log, } = console
-// ; dataTst
-  // | take (20)
-  // | get_doelgroepen
-  // | get_categories
-  // | get_naam_organisatie
-  // | get_trefwoorden
-  // | get_landen
-  // | get_regio_in_nederland
-  // | get_plaats_in_nederland
-  // | get_werkregio
-  // | map (tap (log))
-  // | sort
-  // | log
-

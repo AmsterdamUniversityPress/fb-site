@@ -45,6 +45,7 @@ import {
   sessionRefresh as dbSessionRefresh,
   sessionRemove as dbSessionRemove,
   staleSessionsClear as dbStaleSessionsClear,
+  updateAllowAnalyticalForNewSession as dbUpdateAllowAnalyticalForNewSession,
   userAdd as dbUserAdd,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
@@ -230,11 +231,12 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
 )
 
 // --- these all @throw
-const getAllowAnalytical = (email, sessionId) => doDbCall (dbGetAllowAnalytical, [email, sessionId])
+const getAllowAnalytical = (email) => doDbCall (dbGetAllowAnalytical, [email])
 const getLoggedIn = (email) => doDbCall (dbSessionGet, [email])
 const addLoggedIn = (email, sessionId) => doDbCall (dbSessionAdd, [email, sessionId])
 const refreshSession = (email, sessionId) => doDbCall (dbSessionRefresh, [email, sessionId])
 const removeLoggedIn = (email, sessionId) => doDbCall (dbSessionRemove, [email, sessionId])
+const updateAllowAnalyticalForNewSession = (email) => doDbCall (dbUpdateAllowAnalyticalForNewSession, [email])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
 )
@@ -356,7 +358,7 @@ const alleycatAuth = authFactory.create ().init ({
         ),
         () => refreshSession (email, sessionId),
       )
-      const allowAnalytical = getAllowAnalytical (email, sessionId)
+      const allowAnalytical = getAllowAnalytical (email)
       return { allowAnalytical, }
     }
     // --- meaning no consent possible (an institutional user can not consent on behalf of other
@@ -368,7 +370,8 @@ const alleycatAuth = authFactory.create ().init ({
     const sessionId = session?.sessionId
     if (ok (sessionId)) {
       addLoggedIn (email, session?.sessionId)
-      const allowAnalytical = getAllowAnalytical (email, sessionId)
+      updateAllowAnalyticalForNewSession (email)
+      const allowAnalytical = getAllowAnalytical (email)
       return { allowAnalytical, }
     }
     return { allowAnalytical: null, }

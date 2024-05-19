@@ -137,11 +137,8 @@ function *helloCompleted (rcomplete, first=false) {
     // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
     () => (onError ('(no message)'), null),
   )
-  // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
-    console.log ('saga, user', user)
     if (first) yield call (fondsenRefresh, false)
-    // yield put (a_setAllowAnalytical (allowAnalytical))
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
@@ -153,6 +150,8 @@ function *helloWrapper () {
   if (loggedIn) yield call (hello, false)
 }
 
+// --- @todo we should probably crash the whole app if logout fails (we're probably in a hard to
+// defined state if that happens)
 function *logoutUserCompleted (rcomplete) {
   const onError = (msg) => error ('Error: logoutCompleted:', msg)
   const ok = rcomplete | requestCompleteFold (
@@ -365,9 +364,7 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
   })
   const bucketSearchParams = new URLSearchParams (filterSearchParams)
   const lastUpdatedFilterName = yield select (selectLastUpdatedFilterName)
-  console.log ('deleting, lastUpdatedFilterName', lastUpdatedFilterName)
   bucketSearchParams.delete (lastUpdatedFilterName)
-  console.log ('after delete, bucketSearchParams', bucketSearchParams.toString ())
   yield call (doApiCall, {
     url: [encodeURIComponent (query), bucketSearchParams.toString ()] | sprintfN (
       '/api/search/search/%s?%s',

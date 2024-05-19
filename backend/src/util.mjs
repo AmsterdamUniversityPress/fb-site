@@ -16,7 +16,7 @@ import util from 'node:util'
 import { recover, rejectP, then, } from 'alleycat-js/es/async'
 import { flatMap, fold, foldMaybe, isLeft, Left, Right, } from 'alleycat-js/es/bilby'
 import { composeManyRight, decorateRejection, isEmptyList, setTimeoutOn, length, } from 'alleycat-js/es/general'
-import { ifArray, ifUndefined, ifFalseV, } from 'alleycat-js/es/predicate'
+import { ifArray, ifUndefined, ifFalseV, ifNull, } from 'alleycat-js/es/predicate'
 
 import { brightRed, error, } from './io.mjs'
 
@@ -506,3 +506,16 @@ export const tapWhen = recurry (3) (
 )
 
 export const ifFindIndex = findIndex >> ifPredicateResults
+
+// ------ @todo stick
+
+// --- keeps `null` as it is; maps everything else using `f`.
+// Do not use this if the input can be `undefined` (use `nilMap` then).
+export const nullMap = recurry (2) (
+  (f) => ifNull (id, f),
+)
+
+// --- keeps `null` and `undefined` as they are; maps everything else using `f`.
+export const nilMap = recurry (2) (
+  (f) => ifNil (id, f),
+)
