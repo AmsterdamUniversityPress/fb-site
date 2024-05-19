@@ -13,7 +13,7 @@ import { initialState, } from './reducer-initial-state'
 
 import { initSelectors, foldWhenRequestResults, } from '../../common'
 
-import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, ifFindIndex, fst, } from '../../util-general'
+import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, } from '../../util-general'
 
 const searchParamsGetAll = dot1 ('getAll')
 
