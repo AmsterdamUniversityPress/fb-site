@@ -230,7 +230,7 @@ const MenuItemS = styled.div`
     border-bottom: 2px solid #00000099;
   }
   &.x--disabled {
-    opacity: 0.6;
+    opacity: 0.4;
     cursor: inherit;
     > .x__text {
       border-bottom: none;

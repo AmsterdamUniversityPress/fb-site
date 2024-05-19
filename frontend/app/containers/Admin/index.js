@@ -35,7 +35,6 @@ import {
   userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
-import CloseIcon from '../../components/svg/CloseIcon'
 import { AreYouSureDialog, Button, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
@@ -46,7 +45,7 @@ import {
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
   requestResults, toastInfo,
 } from '../../common'
-import { isNotEmptyString, } from '../../util-general'
+import { isNotEmptyString, mapX, } from '../../util-general'
 import config from '../../config'
 import Dialog from '../../alleycat-components/Dialog'
 
@@ -58,6 +57,7 @@ const {
   remove: iconRemove,
   update: iconUpdate,
 } = configIcons.gets ('add', 'more', 'remove', 'update')
+const colorHighlight = configTop.get ('colors.highlight')
 
 const Spinner = spinner ('comet')
 
@@ -74,28 +74,27 @@ const AdminS = styled.div`
   font-size: 20px;
   > .x__main {
     display: grid;
-    // grid-template-columns: [col0] auto [col1] auto [col2] 150px [col3] 300px [col4] auto [col-end];
     grid-template-columns: [col0] auto [col1] auto [col2] 0px [col3] 300px [col4] auto [col-end];
     grid-auto-rows: 90px;
     > .x__add-user {
       grid-column: 1 / span col-end;
     }
     > .x__header {
-      opacity: 0.6;
-      border-bottom: 2px solid #00000022;
+      > span {
+        display: inline-block;
+        opacity: 0.8;
+        border-bottom: 2px solid ${colorHighlight};
+        height: 40px;
+      }
     }
     > .data-row {
       font-size: 18px;
       display: contents;
-      // cursor: pointer;
       &:hover {
         > * {
-          // margin: 0px;
-          // border: 2px solid #bdffb3ff;
         }
       }
       > * {
-        // margin: 2px;
       }
       > .col0 {
         border-left: 2px solid #00000022;
@@ -108,11 +107,9 @@ const AdminS = styled.div`
         border-right: 2px solid #00000022;
         min-width: 32px;
       }
-      // > .col0, > .col1, > .col2 {
       > .col0, > .col1 {
         border-right: 1px solid #00000022;
       }
-      // > .col0, > .col1, > .col2, .col3, .col4 {
       > .col0, > .col1, .col3, .col4 {
         padding: 10px;
         border-bottom: 2px solid #00000022;
@@ -121,6 +118,11 @@ const AdminS = styled.div`
         > * {
           vertical-align: middle;
           flex: 0 0 auto;
+        }
+      }
+      &.x--first {
+        > .col0, > .col1, .col3, .col4 {
+          border-top: 2px solid #00000022;
         }
       }
       > .x__name, .x__email {
@@ -155,18 +157,6 @@ const AdminS = styled.div`
         }
         min-width: 85px;
       }
-    }
-  }
-  .x__close {
-     position: absolute;
-     top: 8px;
-     right: 8px;
-     cursor: pointer;
-     width: 48px;
-     height: 43px;
-     display: flex;
-    * {
-      margin: auto;
     }
   }
 `
@@ -312,10 +302,6 @@ export default container (
 
     const navigate = useNavigate ()
 
-    const onClickClose = useCallbackConst (() => {
-      navigate ('/')
-    })
-
     // --- Dialogs
 
     const openRemoveDialog = useCallbackConst (T >> setRemoveDialogIsOpen)
@@ -390,13 +376,6 @@ export default container (
         Contents={ContentsMailDialog}
         contentsProps={{ emailToSend, }}
       />
-      <div className='x__close' onClick={onClickClose}>
-        <CloseIcon
-          height={25}
-          width={25}
-          strokeWidth='0.6px'
-        />
-      </div>
       <div className='x__main'>
         {usersRequest | requestResults ({
           onError: noop,
@@ -410,17 +389,21 @@ export default container (
               />
             </div>
             <div className='col0 x__header'>
-              Naam
+              <span>
+                Naam
+              </span>
             </div>
             <div className='col1 x__header'>
-              E-mailadres
+              <span>
+                E-mailadres
+              </span>
             </div>
             <div className='col2 x__header'/>
             <div className='col3 x__header'/>
             <div className='col4 x__header'/>
-            {users | map (({ email, firstName, lastName, isActive, isAdminUser, }) => {
+            {users | mapX (({ email, firstName, lastName, isActive, isAdminUser, }, idx) => {
               const buttonsDisabled = isAdminUser
-              return <div className='data-row' key={email}>
+              return <div className={clss ('data-row', idx === 0 && 'x--first')} key={email}>
                 <div className={clss ('col0', 'x__name', isActive || 'x--not-active')}>
                   <span className='x__admin-user-marker'>
                   {isAdminUser && '★'}

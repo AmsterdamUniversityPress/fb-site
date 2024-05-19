@@ -62,7 +62,6 @@ import Hero from '../../components/Hero'
 import { Search, SearchBar, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
-import CloseIcon from '../../components/svg/CloseIcon'
 import mkPagination from '../../containers/shared/Pagination'
 
 import {
@@ -984,20 +983,8 @@ const UserPage = container (
       [newPasswordIsNotEmpty, oldPassword, passwordIsStrongEnough],
     )
 
-    const onClickClose = useCallbackConst (() => {
-      navigate ('/')
-      passwordUpdateDoneDispatch ()
-    })
-
     return <FormWrapper>
       <FormS style={{ marginTop: '5%', }}>
-        <div className='x__close' onClick={onClickClose}>
-          <CloseIcon
-            height={25}
-            width={25}
-            strokeWidth='0.6px'
-          />
-        </div>
         <div className='x__grid'>
           <div className='x__label x__password'>
             huidig wachtwoord
