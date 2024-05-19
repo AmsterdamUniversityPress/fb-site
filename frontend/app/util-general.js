@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  addIndex2,
+  addIndex2, findIndex,
   concatTo, lt, bindProp, noop, die, always,
   bindTryProp, defaultTo, lets, invoke, ifOk, id, not,
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
@@ -17,7 +17,7 @@ import {
   RequestInit, RequestLoading, RequestError, RequestResults,
 } from 'alleycat-js/es/fetch'
 import { length, getQueryParams, } from 'alleycat-js/es/general'
-import { all, allV, ifUndefined, isEmptyString, isEmptyList, ifFalseV, whenEquals, } from 'alleycat-js/es/predicate'
+import { all, allV, ifUndefined, isEmptyString, isEmptyList, ifFalseV, whenEquals, ifPredicateResult, } from 'alleycat-js/es/predicate'
 import { componentTell, containerTell, useWhyTell, } from 'alleycat-js/es/react'
 import { reducerTell, } from 'alleycat-js/es/redux'
 import { saga as _saga, } from 'alleycat-js/es/saga'
@@ -102,6 +102,7 @@ export const effects = recurry (2) (
 )
 
 export const elementAt = prop
+export const fst = elementAt (0)
 
 export const mapLookupOn = recurry (2) (
   (o) => (k) => o.get (k),
@@ -277,3 +278,5 @@ export const remove = recurry (2) (
     return oo
   },
 )
+
+export const ifFindIndex = findIndex >> ifPredicateResult

@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, prop, tap, reduce, remapTuples, nil,
-  each, ifOk, recurry, invoke, dot1,
+  each, ifOk, recurry, invoke, dot1, id, eq,
 } from 'stick-js/es'
 
 import sortWith  from 'ramda/es/sortWith'
@@ -13,7 +13,7 @@ import { initialState, } from './reducer-initial-state'
 
 import { initSelectors, foldWhenRequestResults, } from '../../common'
 
-import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, } from '../../util-general'
+import { flatten, mapRemapTuples, mapSetM, mapUpdate, setRemap, setToggle, ifFindIndex, fst, } from '../../util-general'
 
 const searchParamsGetAll = dot1 ('getAll')
 
@@ -27,10 +27,30 @@ const { select, selectTop, selectVal, } = initSelectors (
 const _selectBuckets = selectVal ('buckets')
 export const selectResults = selectVal ('results')
 
-export const selectResultsAutocomplete = selectVal ('resultsAutocomplete')
+const _selectResultsAutocomplete = selectVal ('resultsAutocomplete')
 
 export const selectNumResults = selectVal ('numResults')
+
 export const selectQuery = selectVal ('querySearch')
+export const selectQueryAutocomplete = selectVal ('queryAutocomplete')
+
+export const selectResultsAutocomplete = select (
+  'resultsAutocomplete',
+  [_selectResultsAutocomplete, selectQueryAutocomplete],
+  (resultsReq, query) => resultsReq | map (
+    // --- if the query appears in the suggestions, bump it to the top.
+    // --- tuples: [['kerkhof', 'kerkhof'], ['kerken', 'kerken'], ...]
+    (tuples) => tuples | ifFindIndex (fst >> eq (query)) (
+      (_, idx) => [
+        tuples [idx],
+        ... tuples.slice (0, idx),
+        ... idx === tuples.length - 1 ? [] : tuples.slice (idx + 1),
+      ],
+      () => tuples,
+    )
+  ),
+)
+
 export const selectFilterSearchParams = selectVal ('filterSearchParams')
 
 const selectBuckets = select (

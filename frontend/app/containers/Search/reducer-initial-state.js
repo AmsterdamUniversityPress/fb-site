@@ -7,7 +7,11 @@ import { RequestInit, RequestLoading, RequestError, RequestResults, } from 'alle
 export const initialState = {
   // --- a URLSearchParams object
   filterSearchParams: null,
+
+  // --- the queries that have actually been executed
+  queryAutocomplete: null,
   querySearch: null,
+
   // --- request results
   results: RequestInit,
   resultsAutocomplete: RequestInit,

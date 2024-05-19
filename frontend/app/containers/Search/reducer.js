@@ -11,6 +11,7 @@ import { composeManyRight, logWith, } from 'alleycat-js/es/general'
 import { makeReducer, } from 'alleycat-js/es/redux'
 
 import {
+  autocompleteFetch,
   autocompleteFetchCompleted,
   searchFetch,
   searchFetchCompleted,
@@ -23,6 +24,9 @@ import { rcompleteToResults, foldWhenRequestResults, mapRequestInitResults, redu
 import { remove, } from '../../util-general'
 
 const reducerTable = makeReducer (
+  autocompleteFetch, (query) => assoc (
+    'queryAutocomplete', query,
+  ),
   autocompleteFetchCompleted, (rcomplete) => assoc (
     'resultsAutocomplete', rcompleteToResults (rcomplete),
   ),
