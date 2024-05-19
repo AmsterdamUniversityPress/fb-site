@@ -133,8 +133,7 @@ export const basicValidator = recurry (3) (
   (required=true) => ([validate=T, transform=id, preValidate=T]) => (param) => [
     param,
     validate,
-    // --- @todo how important is this trim? seems like overkill
-    whenOk (trim) >> transform,
+    transform,
     againstAll ([required ? ok : T, preValidate]),
   ],
 )
