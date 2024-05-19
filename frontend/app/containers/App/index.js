@@ -39,6 +39,7 @@ import NotFoundPage from '../../containers/NotFoundPage'
 import Toast from '../../components/Toast'
 
 import { AlleyCatFooter, } from '../../alleycat-components'
+import { BigButton, Button, } from '../../components/shared'
 import { container, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
 import {
   againstNone, notContainedInV,
@@ -94,7 +95,7 @@ const AppWrapper = styled.div`
 
   > .x__main {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     min-height: 100vh;
     background: white;
   }
@@ -103,7 +104,24 @@ const AppWrapper = styled.div`
     left: 0;
     bottom: 0px;
     width: 100%;
+    z-index: 2;
+  }
+  > .x__cookies {
+    position: sticky;
+    left: 0;
+    bottom: 0px;
+    width: 100%;
+    // --- not sure why this is necessary
+    margin-top: -12px;
     z-index: 1;
+    background: #ffeaea;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    display: flex;
+    justify-content: flex-end;
+    > * {
+      flex: 0 1 580px;
+    }
   }
   > .x__ac-footer {
     position: sticky;
@@ -111,6 +129,7 @@ const AppWrapper = styled.div`
     bottom: 0px;
     width: 100%;
     z-index: 0;
+    padding-top: 10px;
     padding-bottom: 10px;
   }
 
@@ -138,6 +157,42 @@ const router = (passProps) => createBrowserRouter ([
   { path: '*', element: <NotFoundPage/>},
 ])
 
+const CookiesS = styled.div`
+  border: 3px solid #999999;
+  padding: 10px;
+  background: white;
+  font-size: 17px;
+  // width: 60%;
+  // max-width: 300px;
+  // margin-left: 40%;
+  .x__button {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    > * {
+      flex: 0 0 auto;
+    }
+    .Button__abcdef {
+      &:hover {}
+    }
+  }
+`
+
+const Cookies = () => <CookiesS>
+  <p>Wij gebruiken functionele cookies om bij te houden of een gebruiker ingelogd is.</p>
+  <p>We gebruiken analytische cookies — mits jij akkoord gaat — om het gebruik van onze diensten te
+    meten.</p>
+  <div className='x__button'>
+    <BigButton cls='Button__abcdef'>
+      Nee, dankje.
+    </BigButton>
+    <BigButton cls='Button__abcdef'>
+      Prima, ik sta het gebruik van analytische cookies toe.
+    </BigButton>
+  </div>
+</CookiesS>
+
 const FooterS = styled.div`
   > .x__main {
     background: ${colors.highlight};
@@ -149,7 +204,7 @@ const FooterS = styled.div`
 const Footer = () => <FooterS>
   <div className='x__main'>
       <h1>Contact</h1>
-      <h1>Word abonnée</h1>
+      <h1>Word abonnee</h1>
       <h1>Colofon</h1>
       <h1>Links</h1>
       <h1>...</h1>
@@ -240,6 +295,11 @@ export default container (
           </div>
           <div className='x__footer'>
             <Footer/>
+          </div>
+          <div className='x__cookies'>
+            <div>
+              <Cookies/>
+            </div>
           </div>
           <div className='x__ac-footer'>
             <AlleyCatFooter type='simple'
