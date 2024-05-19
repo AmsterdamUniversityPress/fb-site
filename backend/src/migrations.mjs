@@ -186,7 +186,9 @@ export default [
   [5, [
     {
       forwards: {
-        sql: `alter table session add column analyticalAllowed smallint default 0`,
+        // --- null is allowed, and means the user hasn't decided yet (this still means no consent
+        // of course)
+        sql: `alter table session add column analyticalAllowed smallint`,
         destructive: false,
       },
       backwards: {

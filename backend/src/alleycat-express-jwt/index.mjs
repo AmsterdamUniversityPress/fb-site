@@ -387,6 +387,7 @@ const init = ({
         })
         const { username, userinfo, session=null, ... _ } = data
         res | cookie.set (mkJwt (username, session, jwtSecret))
+        let sent = false
         // --- not expected to return anything
         onLogin (username, { username, userinfo, session, })
           | recover (rejectP << decorateRejection ('onLogin: '))
@@ -395,10 +396,10 @@ const init = ({
             res | sendStatus (serverErrorJSONCode, {
               imsg: e.toString (),
             })
-            return true
+            sent = true
           })
-          | then ((sent=false) => sent | whenFalse (
-            () => res | send ({ data: userinfo, }),
+          | then ((extrainfo) => sent | whenFalse (
+            () => res | send ({ data: { userinfo, extrainfo, }}),
           ))
       }) (req, res)
     }),

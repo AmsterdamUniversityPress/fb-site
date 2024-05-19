@@ -39,6 +39,7 @@ import {
   init as dbInit,
   initUsers as dbInitUsers,
   privilegesGet as dbPrivilegesGet,
+  getAllowAnalytical as dbGetAllowAnalytical,
   sessionAdd as dbSessionAdd,
   sessionGet as dbSessionGet,
   sessionRefresh as dbSessionRefresh,
@@ -229,6 +230,7 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
 )
 
 // --- these all @throw
+const getAllowAnalytical = (email, sessionId) => doDbCall (dbGetAllowAnalytical, [email, sessionId])
 const getLoggedIn = (email) => doDbCall (dbSessionGet, [email])
 const addLoggedIn = (email, sessionId) => doDbCall (dbSessionAdd, [email, sessionId])
 const refreshSession = (email, sessionId) => doDbCall (dbSessionRefresh, [email, sessionId])
@@ -347,19 +349,29 @@ const alleycatAuth = authFactory.create ().init ({
   jwtSecret,
   onHello: async (email, { session=null, }) => {
     const sessionId = session?.sessionId
-    if (ok (sessionId)) decorateAndRethrow (
-      [email, sessionId] | sprintfN (
-        'Unable to look up session for email=%s session id=%s: ',
-      ),
-      () => refreshSession (email, sessionId),
-    )
-    return {
-      allowAnalytical: false,
+    if (ok (sessionId)) {
+      decorateAndRethrow (
+        [email, sessionId] | sprintfN (
+          'Unable to refresh session for email=%s session id=%s: ',
+        ),
+        () => refreshSession (email, sessionId),
+      )
+      const allowAnalytical = getAllowAnalytical (email, sessionId)
+      return { allowAnalytical, }
     }
+    // --- meaning no consent possible (an institutional user can not consent on behalf of other
+    // users)
+    return { allowAnalytical: null, }
   },
   // --- arg 2 = { username, userinfo, session=null, }
   onLogin: async (email, { session=null, }) => {
-    addLoggedIn (email, session?.sessionId)
+    const sessionId = session?.sessionId
+    if (ok (sessionId)) {
+      addLoggedIn (email, session?.sessionId)
+      const allowAnalytical = getAllowAnalytical (email, sessionId)
+      return { allowAnalytical, }
+    }
+    return { allowAnalytical: null, }
   },
   onLogout: async (email, { session=null, }) => {
     const sessionId = session?.sessionId

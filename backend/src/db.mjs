@@ -52,6 +52,14 @@ export const initUsers = (encryptPassword, users, initPasswords) => doEither (
     decorateRejection ("Couldn't initialise users: ") >> die,
   )
 
+export const getAllowAnalytical = (email, sessionId) => doEither (
+  () => userIdGet (email),
+  (userId) => sqliteApi.getPluck (SB (
+    `select analyticalAllowed from session where userId = ? and sessionId = ?`,
+    [userId, sessionId],
+  )),
+)
+
 const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => allowExists ? ' on conflict do nothing' : '',
   (upsertClause) => doEitherWithTransaction (sqliteApi,
@@ -128,7 +136,7 @@ export const sessionAdd = (email, sessionId) => doEither (
   () => userIdGet (email),
   (userId) => Right ([userId, epochMs ()]),
   ([userId, lastRefreshed]) => sqliteApi.run (
-    SB (`insert into session (userId, sessionId, lastRefreshed) values (?, ?, ?) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
+    SB (`insert into session (userId, sessionId, lastRefreshed, analyticalAllowed) values (?, ?, ?, NULL) on conflict do nothing`, [userId, sessionId, lastRefreshed]),
   )
 )
 

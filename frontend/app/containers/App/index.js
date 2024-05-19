@@ -301,6 +301,7 @@ export default container (
           <div className='x__footer'>
             <Footer/>
           </div>
+          ALLOWED: {allowAnalytical | JSON.stringify}
           {cookiesDecided || <div className='x__cookies'>
             <div>
               <Cookies/>

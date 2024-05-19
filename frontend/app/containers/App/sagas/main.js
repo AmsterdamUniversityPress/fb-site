@@ -130,17 +130,18 @@ function *hello (first=false) {
 
 function *helloCompleted (rcomplete, first=false) {
   const onError = (msg) => error ('Error: helloCompleted:', msg)
-  const [user, allowAnalytical] = rcomplete | requestCompleteFold (
-    ({ userinfo, allowAnalytical, }) => [userinfo, allowAnalytical],
+  const user = rcomplete | requestCompleteFold (
+    ({ userinfo, }) => userinfo,
     // --- 401, i.e. not authorized
-    (_umsg) => [null, null],
+    (_umsg) => null,
     // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
-    () => (onError ('(no message)'), [null, null]),
+    () => (onError ('(no message)'), null),
   )
   // --- @todo some of this is repeated from s_loginUserCompleted
   if (ok (user)) {
+    console.log ('saga, user', user)
     if (first) yield call (fondsenRefresh, false)
-    yield put (a_setAllowAnalytical (allowAnalytical))
+    // yield put (a_setAllowAnalytical (allowAnalytical))
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
     else error ('Unexpected user type ' + user.type)
@@ -268,7 +269,9 @@ function *s_logInUser ({ email, password, }) {
   })
 }
 
+// --- no longer necessary in the current design
 function *s_loginUserCompleted (rcomplete) {
+  return
   const onError = (msg) => error ('Error: loginCompleted:', msg)
   const success = rcomplete | requestCompleteFold (
     // --- ok
