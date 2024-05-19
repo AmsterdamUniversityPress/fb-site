@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  id, recurry, sprintf1, head,
+  id, recurry, sprintf1, head, isBoolean,
   againstAll, allAgainst, T, ok, not, join,
   lets, reduce, tap, map, whenOk, ifOk,
 } from 'stick-js/es'
@@ -174,6 +174,11 @@ export const basicStringValidator = (param) => basicRequiredValidator (
 
 export const basicAlphaNumericStringValidator = (param) => basicRequiredValidator (
   [isNonEmptyAlphaNumericString],
+  param,
+)
+
+export const basicBooleanValidator = (param) => basicRequiredValidator (
+  [isBoolean],
   param,
 )
 

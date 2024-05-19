@@ -72,6 +72,7 @@ import {
   gvRequestParams,
   gv2,
   basicBase64StringValidator,
+  basicBooleanValidator,
   basicEmailValidator,
   basicListValidator,
   basicPasswordValidator,
