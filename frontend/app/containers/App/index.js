@@ -102,6 +102,8 @@ const AppWrapper = styled.div`
     bottom: 0px;
     width: 100%;
     z-index: 2;
+    // --- not sure why this is necessary
+    margin-top: -16px;
   }
   > .x__cookies {
     position: sticky;
@@ -159,6 +161,9 @@ const CookiesS = styled.div`
   padding: 10px;
   background: white;
   font-size: 17px;
+  p:nth-child(1) {
+    margin-top: -3px;
+  }
   .x__button {
     display: flex;
     justify-content: space-between;
