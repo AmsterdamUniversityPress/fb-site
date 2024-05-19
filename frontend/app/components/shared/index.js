@@ -50,9 +50,14 @@ const ButtonBaseS = styled.button`
 
 export const ButtonS = styled (ButtonBaseS)`
   background: #f4f4f4;
-  padding: 4px;
   position: relative;
   opacity: 0.5;
+  padding: 0px;
+  > div {
+    padding: 4px;
+    width: 100%;
+    height: 100%;
+  }
   &:not(:disabled) {
     opacity: 1.0;
     &:active {
@@ -61,12 +66,13 @@ export const ButtonS = styled (ButtonBaseS)`
   }
 `
 
-export const Button = (props) => <ButtonS type='submit' {...props}>
-  <div>
-  {props.children}
-</div>
-  {/* <div className='x__overlay'/> */}
-</ButtonS>
+export const Button = ({ children, innerStyle={}, cls='', ... restProps }) => {
+  return <ButtonS type='submit' {... restProps}>
+    <div className={cls} style={innerStyle}>
+      {children}
+    </div>
+  </ButtonS>
+}
 
 export const Button2 = styled (ButtonBaseS)`
   border-radius: 5px;
@@ -211,8 +217,8 @@ export const ButtonM = ({ text, selected, disabled, greyed, onClick, width='100p
     {text}
   </ButtonMS>
 
-export const BigButton = ({ children, ... restProps }) => <Button
-  style={{ padding: '10px', }}
+export const BigButton = ({ children, innerStyle={}, ... restProps }) => <Button
+  innerStyle={{ padding: '10px', ... innerStyle }}
   {... restProps}
 >
   {children}
