@@ -300,7 +300,7 @@ const HeaderS = styled.div`
     flex: 0 0 30%;
   }
   .x__nav-links {
-    flex: 0 0 25%;
+    flex: 0 1 350px;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
