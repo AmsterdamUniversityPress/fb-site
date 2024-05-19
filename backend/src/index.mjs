@@ -189,6 +189,20 @@ const data = appEnv | lookupOnOrDie (
 const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
 const filterValues = getFilters (data)
 
+const getUserinfoResponse = recurry (3) (
+  (f) => (req) => (res) => req
+  | path (['alleycat', 'user', 'userinfo'])
+  | whenOk (f)
+  | defaultTo (() => {
+    ierror ('/user: unable to get userinfo from req')
+    res | sendStatus (500)
+  }),
+)
+
+const getUserinfoKeyResponse = recurry (3) (
+  (key) => getUserinfoResponse (prop (key)),
+)
+
 const emailTransporter = nodemailer.createTransport ({
   connectionTimeout: 3000,
   dnsTimeout: 3000,
@@ -756,16 +770,15 @@ const init = ({ port, }) => express ()
   ))
 
   // --- @todo should we also require a token here?
+  // --- @todo change from PATCH/user to something like POST/user-password
   | securePatch (privsUser) ('/user', gvBodyParams ([
       basicStringValidator ('oldPassword'),
       basicPasswordValidator (minimumPasswordScore) ('newPassword'),
     ],
     ({ req, res }, oldPassword, newPassword) => {
-      const email = req.alleycat?.user?.userinfo?.email
-      if (nil (email)) {
-        ierror ('/user: unable to get userinfo/email from req')
-        return res | sendStatus (500)
-      }
+      const email = res | getUserinfoKeyResponse ('email', req)
+      // --- response has already been sent
+      if (nil (email)) return
       const knownHashed = getUserPassword (email)
       if (nil (knownHashed)) return res | sendStatus (499, {
         umsg: 'Ongeldige gebruiker',
