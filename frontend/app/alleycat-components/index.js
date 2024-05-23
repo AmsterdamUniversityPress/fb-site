@@ -5,9 +5,13 @@ import {
 
 import React, {} from 'react'
 
+import { mediaQuery, } from 'alleycat-js/es/styled'
+
 import styled from 'styled-components'
 
 import { lookupOnOrDie, } from '../util-general'
+
+import { mediaPhone, mediaTablet, } from '../common'
 
 import imageCat from './images/cat-red.png'
 
@@ -72,7 +76,6 @@ const FooterS = styled.div`
   height: 21px;
   &.theme1 {
     font-size: 16px;
-    width: 440px;
     margin: auto;
     overflow: hidden;
     box-shadow: 1px 1px 2px 1px;
@@ -81,6 +84,10 @@ const FooterS = styled.div`
     .x__link {
       font-variant: small-caps;
     }
+    ${mediaQuery (
+      mediaPhone ('width: 340px'),
+      mediaTablet ('width: 440px'),
+    )}
   }
   > a {
     display: inline-flex;
@@ -127,7 +134,7 @@ const FooterS = styled.div`
   }
 `
 
-const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restProps }) => {
+const AlleyCatFooterSimple = ({ isMobile, style={}, textStyle={}, linkStyle={}, ... restProps }) => {
   const separatorOuter = ['٭', '٭']
   return <FooterS
     {... restProps}
@@ -145,16 +152,18 @@ const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restPr
           Site by AlleyCat Amsterdam
         </span>
       </span>
-      <span className='x__separator'>
-        <span className='vtext-bottom'>
-          |
+      {isMobile || <>
+        <span className='x__separator'>
+          <span className='vtext-bottom'>
+            |
+          </span>
         </span>
-      </span>
-      <span className='x__link' style={linkStyle}>
-        <span className='vtext-bottom'>
-          alleycat.cc
+        <span className='x__link' style={linkStyle}>
+          <span className='vtext-bottom'>
+            alleycat.cc
+          </span>
         </span>
-      </span>
+      </>}
       <span className='x__separator-outer'>
         <span className='vtext-bottom'>
           {separatorOuter [1]}
@@ -168,9 +177,9 @@ const AlleyCatFooterSimple = ({ style={}, textStyle={}, linkStyle={}, ... restPr
 }
 
 // --- only 'simple' for now
-export const AlleyCatFooter = ({ type='simple', ... restProps }) => type | lookupOnOrDie (
+export const AlleyCatFooter = ({ isMobile, type='simple', ... restProps }) => type | lookupOnOrDie (
   'bad type ' + type,
-  { simple: <AlleyCatFooterSimple {... restProps}/>, },
+  { simple: <AlleyCatFooterSimple isMobile={isMobile} {... restProps}/>, },
 )
 
 const FontAwesomeS = styled.span`

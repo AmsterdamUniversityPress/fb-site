@@ -351,7 +351,7 @@ export default container (
           </div>
           }
           <div className='x__ac-footer'>
-            <AlleyCatFooter type='simple'
+            <AlleyCatFooter isMobile={isMobile} type='simple'
               textStyle={{
               }}
             />
