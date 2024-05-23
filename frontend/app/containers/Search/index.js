@@ -292,6 +292,9 @@ const ResultS = styled.div`
         }
       }
       > .x__right {
+        > * {
+          text-align: left;
+        }
         flex: 1 1 0px;
         margin-top: 0px;
         > .text {
