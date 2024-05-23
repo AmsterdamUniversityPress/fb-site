@@ -7,7 +7,7 @@ import {
   whenFalse, whenTrue,
 } from 'stick-js/es'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import { useNavigate, } from 'react-router-dom'
 
@@ -70,10 +70,11 @@ const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, fi
 
 const Pagination = mkPagination (paginationKey)
 
-const Input = ({ isMobile, children, inputProps={}, ... restProps }) => {
+const Input = forwardRef (({ isMobile, children, inputProps={}, ... restProps }, ref) => {
   const { style: inputStyle={}, } = inputProps
   const padding = isMobile ? { padding: '10px', } : {}
   return <InputReal
+    ref={ref}
     inputProps={{
       ... inputProps,
       style: { ... inputStyle, ... padding, },
@@ -82,7 +83,7 @@ const Input = ({ isMobile, children, inputProps={}, ... restProps }) => {
   >
     {children}
   </InputReal>
-}
+})
 
 const SearchS = styled.div`
   > .x__show-hide-filters {
@@ -601,6 +602,7 @@ export const SearchBar = container2 (
     }, [queryProp])
 
     const [suggestions, setSuggestions] = useState (null)
+    const inputRef = useRef (null)
 
     // --- @todo change name
     const onChangeValue = useCallbackConst (effects ([
@@ -622,6 +624,7 @@ export const SearchBar = container2 (
       setQuery (value)
       onSelectProp (value !== query)
       startSearch (value)
+      inputRef.current.blur ()
     }, [onSelectProp, query, startSearch])
     // --- the autocomplete results
     // @todo better name
@@ -636,6 +639,7 @@ export const SearchBar = container2 (
 
     return <SearchBarS>
       <InputWithAutocomplete
+        ref={inputRef}
         Input={Input}
         inputWrapperProps={{
           isMobile,
