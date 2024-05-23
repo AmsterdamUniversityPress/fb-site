@@ -334,14 +334,23 @@ export const DropDown = ({ open=false, style={}, wrapperStyle={}, contentsStyle=
 </DropDownS>
 
 const PaginationAndExplanationS = styled.div`
-  width: 500px;
   margin: auto;
   margin-bottom: 5px;
-  padding: 20px;
-  font-size: 20px;
   background: white;
   min-height: 70px;
   text-align: center;
+  ${mediaQuery (
+    mediaPhone (`
+      font-size: 16px;
+      width: 90%;
+      padding: 20px 0px 20px 0px;
+    `),
+    mediaTablet (`
+      font-size: 20px;
+      width: 500px;
+      padding: 20px 20px 20px 20px;
+    `),
+  )}
 `
 
 export const PaginationAndExplanation = ({ numItems, showExplanation, Pagination, query=null, }) => {

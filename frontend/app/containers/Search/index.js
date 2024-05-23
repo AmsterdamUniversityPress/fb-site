@@ -172,7 +172,7 @@ const ResultS = styled.div`
   min-width: 550px;
   padding: 3%;
   padding-right: 70px;
-  font-size: 17px;
+  font-size: 15px;
   display: flex;
   cursor: pointer;
   .highlight {

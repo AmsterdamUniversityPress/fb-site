@@ -13,6 +13,7 @@ import { clss, } from 'alleycat-js/es/dom'
 import { logWith, warn, } from 'alleycat-js/es/general'
 import { isEmptyList, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
+import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 
@@ -22,32 +23,32 @@ import { createReducer, } from '../../../redux'
 import mkSaga from './saga'
 import { init as initSelectors, } from './selectors'
 
-import { component, container, useWhy, } from '../../../common'
+import { component, container, mediaPhone, mediaTablet, useWhy, } from '../../../common'
+
+import iconArrow from './icons/arrow.svg'
+import iconArrowEnd from './icons/arrow-end.svg'
+
+const ArrowRight = ({ style={}, }) => <img src={iconArrow} style={style}/>
+const ArrowEndRight = ({ style={}, }) => <img src={iconArrowEnd} style={style}/>
+const ArrowLeft = () => <ArrowRight style={{ transform: 'scaleX(-1)', }}/>
+const ArrowEndLeft = () => <ArrowEndRight style={{ transform: 'scaleX(-1)', }}/>
 
 const PaginationInnerS = styled.div`
   line-height: 2em;
   margin-top: 13px;
 
   >.x__num-per-page {
-    font-size: 80%;
   }
   >.x__cur-page {
     >.x__arrow {
       position: relative;
       cursor: pointer;
+      top: -8px;
       &.x--disabled {
         cursor: inherit;
-        opacity: 0.5;
+        opacity: 0.2;
       }
     }
-  }
-  .x__left1, .x__right1 {
-    font-size: 50px;
-    top: -14px;
-  }
-  .x__left2, .x__right2 {
-    font-size: 30px;
-    top: -6px;
   }
   >.x__num-per-page, >.x__cur-page >.x__page {
     >.x__num {
@@ -61,10 +62,17 @@ const PaginationInnerS = styled.div`
       >.x__cursor {
         display: none;
         position: relative;
-        top: 40px;
         height: 0px;
         width: 100%;
         border-top: 2px solid black;
+        ${mediaQuery (
+          mediaPhone (`
+            top: 30px;
+          `),
+          mediaTablet (`
+            top: 40px;
+          `),
+        )}
       }
       &.x--selected {
         cursor: inherit;
@@ -93,6 +101,36 @@ const PaginationInnerS = styled.div`
       white-space: nowrap !important;
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__num-per-page {
+        font-size: 16px;
+      }
+      > .x__cur-page {
+        margin-top: 10px;
+        > .x__left1 {
+          margin-left: 15px;
+        }
+        > .x__right1 {
+          margin-right: 15px;
+        }
+      }
+    `),
+    mediaTablet (`
+      > .x__num-per-page {
+        font-size: 16px;
+      }
+      > .x__cur-page {
+        margin-top: 0px;
+        > .x__left1 {
+          margin-left: 25px;
+        }
+        > .x__right1 {
+          margin-right: 25px;
+        }
+      }
+    `),
+  )}
 `
 
 const PaginationInner = component ([
@@ -182,10 +220,10 @@ const PaginationInner = component ([
     {page.length > 1 && <div className='x__cur-page'>
       <div>{textPage}</div>
       <div className={clss ('x__arrow', 'x__left2', canLeft || 'x--disabled')} onClick={onClickLeft2}>
-        ⇤
+        <ArrowEndLeft/>
       </div>
       <div className={clss ('x__arrow', 'x__left1', canLeft || 'x--disabled')} onClick={onClickLeft1}>
-        ←
+        <ArrowLeft/>
       </div>
       <div className='x__page'>
         {pageRange | map (({ n, idx, selected, }) => {
@@ -198,10 +236,10 @@ const PaginationInner = component ([
         })}
       </div>
       <div className={clss ('x__arrow', 'x__right1', canRight || 'x--disabled')} onClick={onClickRight1}>
-        →
+        <ArrowRight/>
       </div>
       <div className={clss ('x__arrow', 'x__right2', canRight || 'x--disabled')} onClick={onClickRight2}>
-        ⇥
+        <ArrowEndRight/>
       </div>
     </div>}
   </PaginationInnerS>
