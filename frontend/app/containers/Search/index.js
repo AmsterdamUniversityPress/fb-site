@@ -111,7 +111,6 @@ const SearchS = styled.div`
       }
       > .x__search-results-wrapper {
         background: white;
-        width: 95%;
         text-align: left;
         position: relative;
         margin-top: -15px;
@@ -141,6 +140,9 @@ const SearchS = styled.div`
         }
         > .x__main {
           width: calc(100% - 450px);
+          > .x__search-results-wrapper {
+            width: 95%;
+          }
         }
       `),
     )}
@@ -172,11 +174,9 @@ const ResultsS = styled.div`
 
 const ResultS = styled.div`
   width: 100%;
-  min-width: 550px;
   padding: 3%;
-  padding-right: 70px;
-  font-size: 15px;
   display: flex;
+  flex-wrap: wrap;
   cursor: pointer;
   .highlight {
     background: yellow;
@@ -186,14 +186,11 @@ const ResultS = styled.div`
     > .x__left {
       > .x__name {
         text-decoration: underline;
-        }
       }
     }
+  }
   > .x__left {
-    flex: 0 0 320px;
-    margin-right: 40px;
     > .x__image {
-      text-align: right;
       img {
         width: 320px;
       }
@@ -202,42 +199,92 @@ const ResultS = styled.div`
       font-size: 19px;
       padding-top: 15px;
       font-family: Lora, serif;
-      text-align: right;
       font-weight: bold;
       color: #4a001a;
     }
     > .x__categories {
       font-size: 14px;
       font-family: Lora, serif;
-      text-align: right;
       padding-top: 8px;
       text-transform: uppercase;
     }
   }
   > .x__right {
-    flex: 1 1 0px;
     > div {
       padding: 0.2%;
     }
     > .x__objective {
       padding-bottom: 2%;
     }
-    // --- @todo do something with type?
+    // --- not currently used
     > .x__type {
       display: none;
       margin-right: 4px;
     }
-    .x__targetGroup {
-      font-size: 15px;
+    > .x__targetGroup {
       padding-right: 2%;
     }
     > .x__workingRegion {
-      font-size: 15px;
     }
     > .x__match {
       display: none;
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__left {
+        flex: 0 0 100%;
+        > * {
+          text-align: center;
+        }
+        > .x__image {
+          img {
+            width: 200px;
+          }
+        }
+      }
+      > .x__right {
+        flex: 1 1 100vw;
+        margin-top: 8px;
+        > * {
+          text-align: center;
+        }
+        > .text, > .text2 {
+          font-size: 16px;
+        }
+      }
+      > .x__separator {
+        height: 2px;
+        background: #ccc;
+        width: 200px;
+        margin: auto;
+        margin-top: 10px;
+      }
+    `),
+    mediaTablet (`
+      min-width: 550px;
+      padding-right: 70px;
+      > .x__left {
+        > * {
+          text-align: right;
+        }
+        margin-right: 40px;
+        flex: 0 0 320px;
+        > .x__image {
+          img {
+            width: 320px;
+          }
+        }
+      }
+      > .x__right {
+        flex: 1 1 0px;
+        margin-top: 0px;
+        > .text {
+          font-size: 15px;
+        }
+      }
+    `),
+  )}
 
 `
 
@@ -262,21 +309,22 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
       </div>
     </div>
     <div className='x__right'>
-      <div className='x__objective'>
-      {[objective]}
+      <div className='x__objective text'>
+        {[objective]}
       </div>
-      <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
+      <div className='x__type text'>{[type] | sprintfN ("Type: %s")}</div>
       {targetGroup | whenIsNotEmptyList (
-        () => <div className='x__targetGroup'>Doelgroep:&nbsp;
+        () => <div className='x__targetGroup text2'>Doelgroep:&nbsp;
           {targetGroup}
         </div>,
       )}
       {workingRegion | whenIsNotEmptyList (
-        () => <div className='x__workingRegion'>Werkregio:&nbsp;
+        () => <div className='x__workingRegion text2'>Werkregio:&nbsp;
           {workingRegion}
         </div>,
       )}
     </div>
+    <div className='x__separator'/>
   </ResultS>
 }
 
