@@ -190,22 +190,18 @@ const CookiesS = styled.div`
   p:nth-child(1) {
     margin-top: -3px;
   }
-  .x__button {
+  > .x__buttons {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    margin-top: 10px;
-    > * {
-      flex: 0 0 auto;
-    }
-    .Button__abcdef {
-      &:hover {}
-    }
-    > .x__yes {
-      ${mediaQuery (
-        mediaPhone ('margin-top: 10px;'),
-        mediaTablet ('margin-top: 0px;'),
-      )}
+    > .x__button {
+      margin-top: 10px;
+      > * {
+        flex: 0 0 auto;
+      }
+      .Button__abcdef {
+        &:hover {}
+      }
     }
   }
 `
@@ -221,22 +217,31 @@ const Cookies = container2 (
       <p>Wij gebruiken functionele cookies om bij te houden of een gebruiker ingelogd is.</p>
       <p>We gebruiken analytische cookies — mits jij akkoord gaat — om het gebruik van onze diensten te
         meten.</p>
-      <div className='x__button'>
-        <Button cls='Button__abcdef' className='x__no' onClick={onClicks [0]}>
-          Nee, dankje.
-        </Button>
-        <Button cls='Button__abcdef' className='x__yes' onClick={onClicks [1]}>
-          Prima, ik sta {isMobile ? '' : 'het gebruik van '}analytische cookies toe.
-        </Button>
+      <div className='x__buttons'>
+        <div className='x__button'>
+          <Button cls='Button__abcdef' className='x__no' onClick={onClicks [0]}>
+            Nee, dankje.
+          </Button>
+        </div>
+        <div className='x__button'>
+          <Button cls='Button__abcdef' className='x__yes' onClick={onClicks [1]}>
+            Prima, ik sta {isMobile ? '' : 'het gebruik van '}analytische cookies toe.
+          </Button>
+        </div>
       </div>
     </CookiesS>
   },
 )
 
 const FooterS = styled.div`
+  ${mediaQuery (
+    mediaPhone ('height: 100vh'),
+    mediaTablet ('height: auto'),
+  )}
   > .x__main {
     background: ${colors.highlight};
     color: white;
+    height: 100%;
     padding-left: 50px;
   }
 `

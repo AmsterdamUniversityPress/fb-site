@@ -4,7 +4,7 @@ import {
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useRef, useState, } from 'react'
-import { useParams as useRouteParams, } from 'react-router-dom'
+import { Link, useParams as useRouteParams, } from 'react-router-dom'
 
 import styled from 'styled-components'
 
@@ -30,7 +30,10 @@ const imageEyeWall = configTop.get ('images.fonds')
 const colors = configTop.get ('colors')
 
 const DetailS = styled.div`
-  .x__image-and-tag {
+  a {
+    color: initial;
+  }
+  > .x__image-and-tag {
     width: 100%;
     position: relative;
     margin-top: 1%;
@@ -47,7 +50,7 @@ const DetailS = styled.div`
       font-size: 60px;
     }
   }
-  .x__title-and-doelstelling {
+  > .x__title-and-doelstelling {
     margin-left: 100px;
     padding-bottom: 20px;
     .x__title {
@@ -57,7 +60,7 @@ const DetailS = styled.div`
       color: ${colors.highlight3};
     }
   }
-  .x__block {
+  > .x__block {
     font-size: 16px;
     padding-top: 20px;
     padding-bottom: 20px;
@@ -66,31 +69,27 @@ const DetailS = styled.div`
       font-size: 30px;
     }
   }
-  .x__block1 {
+  > .x__block1 {
     background: ${colors.textBlock1};
   }
-  .x__block2 {
+  > .x__block2 {
     background: ${colors.textBlock2};
   }
-  .x__block3 {
+  > .x__block3 {
     background: ${colors.textBlock3};
   }
 `
 
-const oldDetail = ({ data, }) => <DetailS>
-  {data | remapTuples ((k, v) => <div key={k} className='x__row'>
-    {k}: {JSON.stringify (v)}
-  </div>)}
-</DetailS>
-
-const Detail = ({ image, title, tag, doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
+const Detail = ({ image, href, name, tag, doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
   <div className='x__image-and-tag'>
     <img src={image}/>
     <span>{tag}</span>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
-      {title}
+      <Link to={href} target='_blank'>
+        {name}
+      </Link>
     </div>
     <div className='x__doelstelling'>
       {doelstelling}
@@ -149,7 +148,7 @@ export default container (
         onError: noop,
         onResults: (data) => <Detail
           image={imageEyeWall}
-          title={data.naam_organisatie}
+          name={data.naam_organisatie}
           tag='Alles van waarde is weerloos'
           doelstelling={data.doelstelling}
           title1='Vijf muzikale beurzen'
@@ -158,6 +157,7 @@ export default container (
           text1={data.doelstelling}
           text2={data.doelstelling}
           text3={data.doelstelling}
+          href={data.website}
         />,
       })}
     </FondsDetailS>
