@@ -108,6 +108,9 @@ const PaginationInnerS = styled.div`
       }
       > .x__cur-page {
         margin-top: 10px;
+        > .x__arrow {
+          top: -12px;
+        }
         > .x__left1 {
           margin-left: 15px;
         }
@@ -122,6 +125,9 @@ const PaginationInnerS = styled.div`
       }
       > .x__cur-page {
         margin-top: 0px;
+        > .x__arrow {
+          top: -8px;
+        }
         > .x__left1 {
           margin-left: 25px;
         }

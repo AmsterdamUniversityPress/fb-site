@@ -165,6 +165,9 @@ const ResultsS = styled.div`
       }
     }
   }
+  > .x__results {
+    margin-top: 20px;
+  }
 `
 
 const ResultS = styled.div`
@@ -558,7 +561,6 @@ export const SearchBar = container2 (
       onSelectProp (value !== query)
       startSearch (value)
     }, [onSelectProp, query, startSearch])
-    // const canSearch = useMemo (() => query | isNotEmptyString, [query])
     // --- the autocomplete results
     // @todo better name
     const results = useMemo (
@@ -568,7 +570,6 @@ export const SearchBar = container2 (
       }),
       [resultsRequest],
     )
-    // const zoekenCls = clss ('x__zoeken', canSearch || 'x--disabled')
     useEffect (() => { setSuggestions (results) }, [results])
 
     return <SearchBarS>
@@ -597,11 +598,6 @@ export const SearchBar = container2 (
         onClear={onClear}
         onSelect={onSelect}
       />
-      {
-        /*
-        <span className={zoekenCls}><span className='x__text'>zoeken</span></span>
-          */
-      }
     </SearchBarS>
   },
 )
@@ -692,18 +688,20 @@ const SearchResults = container2 (
             <PaginationAndExplanation query={query} showExplanation={true} numItems={numResults ?? 0} Pagination={Pagination}/>
             <div className={clss ('x__separator', isLoading ? 'x--waiting' : 'x--not-waiting')}/>
           </div>
-          {results | map (
-            ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
-              key={uuid}
-              imgSrc={imgSrc}
-              categories={highlightList (categories)}
-              name={highlightString (name)}
-              objective={highlightString (objective)}
-              targetGroup={highlightString (targetGroup)}
-              type={type}
-              uuid={uuid}
-              workingRegion={workingRegion}
-          />)}
+          <div className='x__results'>
+            {results | map (
+              ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
+                key={uuid}
+                imgSrc={imgSrc}
+                categories={highlightList (categories)}
+                name={highlightString (name)}
+                objective={highlightString (objective)}
+                targetGroup={highlightString (targetGroup)}
+                type={type}
+                uuid={uuid}
+                workingRegion={workingRegion}
+            />)}
+          </div>
         </>
       })}
     </ResultsS>

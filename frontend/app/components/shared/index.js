@@ -343,7 +343,7 @@ const PaginationAndExplanationS = styled.div`
     mediaPhone (`
       font-size: 16px;
       width: 90%;
-      padding: 20px 0px 20px 0px;
+      padding: 20px 0px 0px 0px;
     `),
     mediaTablet (`
       font-size: 20px;
