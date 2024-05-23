@@ -38,7 +38,7 @@ import {
 import { AreYouSureDialog, Button, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
-import { spinner, } from '../../alleycat-components'
+import { spinner, } from '../../alleycat-components/spinner'
 
 import {
   component, container, useWhy,

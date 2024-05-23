@@ -37,10 +37,9 @@ import {
   selectNumResults as selectNumResultsSearch,
 } from './selectors'
 
-import { Button, } from '../../components/shared'
+import { Button, PaginationAndExplanation, } from '../../components/shared'
 import { Input as InputReal } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
-import { PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
 import { component, container, container2, mediaPhone, mediaTablet, useWhy, requestIsLoading, requestResults, } from '../../common'

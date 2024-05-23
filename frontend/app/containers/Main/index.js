@@ -56,7 +56,7 @@ import saga from './saga'
 
 import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
-import { spinner, } from '../../alleycat-components'
+import { spinner, } from '../../alleycat-components/spinner'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
 import { Search, } from '../../containers/Search'

@@ -34,7 +34,7 @@ import { saga as _saga, } from 'alleycat-js/es/saga'
 import { initSelectorsTell, } from 'alleycat-js/es/select'
 import { mediaRule, mgt, mlt, } from 'alleycat-js/es/styled'
 
-import { spinner, } from './alleycat-components'
+import { spinner, } from './alleycat-components/spinner'
 import config from './config'
 import { envIsDev, } from './env'
 
