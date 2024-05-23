@@ -35,8 +35,8 @@ const InputBaseMixin = `
     border: 2px solid #759fe6;
   }
   ${mediaQuery (
-    mediaPhone (`font-size: 25px; `),
-    mediaTablet (`font-size: 20px; `),
+    mediaPhone (`font-size: 19px; `),
+    mediaTablet (`font-size: 25px; `),
   )}
 `
 

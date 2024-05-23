@@ -38,7 +38,7 @@ import {
 } from './selectors'
 
 import { Button, } from '../../components/shared'
-import { Input, } from '../../components/shared/Input'
+import { Input as InputReal } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import { PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
@@ -69,6 +69,20 @@ const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, fi
 // const filterLabelCategories = filterLabels.get ('categories')
 
 const Pagination = mkPagination (paginationKey)
+
+const Input = ({ isMobile, children, inputProps={}, ... restProps }) => {
+  const { style: inputStyle={}, } = inputProps
+  const padding = isMobile ? { padding: '10px', } : {}
+  return <InputReal
+    inputProps={{
+      ... inputProps,
+      style: { ... inputStyle, ... padding, },
+    }}
+    {... restProps}
+  >
+    {children}
+  </InputReal>
+}
 
 const SearchS = styled.div`
   > .x__show-hide-filters {
@@ -624,6 +638,7 @@ export const SearchBar = container2 (
       <InputWithAutocomplete
         Input={Input}
         inputWrapperProps={{
+          isMobile,
           withIcon: ['search', 'left'],
           showClearIcon: true,
           doFocusFix: false,
@@ -632,7 +647,6 @@ export const SearchBar = container2 (
             autoFocus: not (isMobile),
             style: {
               height: '100%',
-              fontSize: '25px',
               border: '2px solid black',
               borderRadius: '1000px',
               background: 'white',
