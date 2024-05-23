@@ -352,12 +352,6 @@ const Header = ({ isLoggedIn, page, }) => {
         </Link>
         <div className={clss ('x__cursor', cls ('search'))}/>
       </div>
-      <div className='x__wrapper'>
-        <Link to='/about' disabled={page === 'about'}>
-          About
-        </Link>
-        <div className={clss ('x__cursor', cls ('about'))}/>
-      </div>
     </div>
     <div className='x__user-menu'>
       {isLoggedIn && <User/>}
@@ -1041,10 +1035,7 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
   <Search {... rest}/>
 </SearchWrapperS>
 
-const Landing = () => <>
-</>
-
-const AboutS = styled.div`
+const LandingS = styled.div`
   cursor: text;
   > .x__hero {
     position: sticky;
@@ -1083,7 +1074,7 @@ const AboutS = styled.div`
   }
 `
 
-const About = () => {
+const Landing = () => {
   const [assembleHero, setAssembleHero] = useState (false)
   const [assembled, setAssembled] = useState (false)
   const [triggerSecondEffect, setTriggerSecondEffect] = useState (false)
@@ -1104,7 +1095,7 @@ const About = () => {
     el.addEventListener ('scroll', listener)
     return () => el.removeEventListener ('scroll', listener)
   }, [triggerSecondEffect, listener])
-  return <AboutS>
+  return <LandingS>
     <div className={clss ('x__hero', assembled && 'x--assembled')}>
       {/* <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' go={assembleHero}/> */}
       <Hero rows={16} cols={30} blockWidth='20px' blockHeight='20px' go={assembleHero} onAssembled={onAssembled}/>
@@ -1151,7 +1142,7 @@ const About = () => {
         </p>
       </div>
     </div>
-  </AboutS>
+  </LandingS>
 }
 
 const ContentsS = styled.div`
@@ -1180,7 +1171,6 @@ const Contents = container (
     const dispatch = useDispatch ()
     const [element, shiftUp=false, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
       landing: [() => <Landing/>],
-      about: [() => <About/>],
       detail: [() => <FondsDetail/>, true],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
       search: [
