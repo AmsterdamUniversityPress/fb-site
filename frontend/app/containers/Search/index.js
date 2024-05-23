@@ -521,6 +521,7 @@ const SearchBarS = styled.div`
 export const SearchBar = container2 (
   ['SearchBar'],
   ({
+    isMobile,
     onSelect: onSelectProp=noop,
     query: queryProp=null,
   }) => {
@@ -579,7 +580,7 @@ export const SearchBar = container2 (
           doFocusFix: false,
           style: { display: 'inline-block', },
           inputProps: {
-            autoFocus: true,
+            autoFocus: not (isMobile),
             style: {
               height: '100%',
               fontSize: '25px',
@@ -776,7 +777,7 @@ export const Search = container (
         </div>
         <div className='x__main'>
           <div className='x__search'>
-            <SearchBar query={queryProp} onSelect={onSelect}/>
+            <SearchBar isMobile={isMobile} query={queryProp} onSelect={onSelect}/>
           </div>
           <div className='x__filters'>
             <ActiveFilters/>
