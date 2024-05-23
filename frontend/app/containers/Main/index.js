@@ -59,7 +59,7 @@ import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
-import { Search, SearchBar, } from '../../containers/Search'
+import { Search, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, Link, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import mkPagination from '../../containers/shared/Pagination'
@@ -1210,7 +1210,7 @@ const Contents = container (
       detail: [() => <FondsDetail/>, true],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
       search: [
-        () => <SearchWrapper query={params.query} showResults={true}/>,
+        () => <SearchWrapper isMobile={isMobile} query={params.query} showResults={true}/>,
         false,
         () => {
           const query = params.query

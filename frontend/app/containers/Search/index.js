@@ -37,12 +37,13 @@ import {
   selectNumResults as selectNumResultsSearch,
 } from './selectors'
 
+import { Button, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import { PaginationAndExplanation, } from '../../components/shared'
 import mkPagination from '../../containers/shared/Pagination'
 
-import { component, container, container2, useWhy, requestIsLoading, requestResults, } from '../../common'
+import { component, container, container2, mediaPhone, mediaTablet, useWhy, requestIsLoading, requestResults, } from '../../common'
 import {
   effects, isNotEmptyString, mapX, ifEven,
   whenIsNotEmptyList,
@@ -70,47 +71,79 @@ const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, fi
 const Pagination = mkPagination (paginationKey)
 
 const SearchS = styled.div`
-  > * {
-    vertical-align: top;
+  > .x__show-hide-filters {
+    margin-bottom: 40px;
   }
-  > .x__sidebar {
+  > .x__wrapper {
     position: relative;
-    display: inline-block;
-    width: 400px;
-  }
-  > .x__main {
-    display: inline-block;
-    width: calc(100% - 450px);
-    > .x__search {
-      width: 75%;
-      margin: auto;
+    > * {
+      vertical-align: top;
+    }
+    > .x__sidebar {
+      display: inline-block;
+      transition: left .2s;
+    }
+    > .x__main {
       position: relative;
-      z-index: 3;
-      > .x__zoeken {
-        position: absolute;
-        border-radius: 10px;
-        cursor: pointer;
-        left: 550px;
-        top: 5px;
-        padding: 10px;
-        background: white;
-        margin-left: 20px;
-        &.x--disabled {
-          cursor: inherit;
-          > .x__text {
-            opacity: 0.6;
+      z-index: 1;
+      display: inline-block;
+      > .x__search {
+        width: 75%;
+        margin: auto;
+        position: relative;
+        z-index: 3;
+        > .x__zoeken {
+          position: absolute;
+          border-radius: 10px;
+          cursor: pointer;
+          left: 550px;
+          top: 5px;
+          padding: 10px;
+          background: white;
+          margin-left: 20px;
+          &.x--disabled {
+            cursor: inherit;
+            > .x__text {
+              opacity: 0.6;
+            }
           }
         }
       }
+      > .x__search-results-wrapper {
+        background: white;
+        width: 95%;
+        text-align: left;
+        position: relative;
+        margin-top: -15px;
+      }
     }
-    > .x__search-results-wrapper {
-      background: white;
-      width: 95%;
-      text-align: left;
-      position: relative;
-      margin-top: -15px;
-      // padding-top: 20px;
-    }
+    ${mediaQuery (
+      mediaPhone (`
+        > .x__sidebar {
+          position: absolute;
+          top: 0;
+          left: 0;
+          background: white;
+          z-index: 2;
+          width: calc(100vw);
+          &.x--hide {
+            left: -100vw;
+          }
+        }
+        > .x__main {
+          width: 100%;
+        }
+      `),
+      mediaTablet (`
+        > .x__sidebar {
+          position: relative;
+          width: calc(450px);
+        }
+        > .x__main {
+          width: calc(100% - 450px);
+        }
+      `),
+    )}
   }
 `
 
@@ -467,11 +500,15 @@ const Filters = container2 (
 
 const SidebarS = styled.div`
   height: 100%;
-  min-width: 400px;
-  max-width: 400px;
   padding: 20px;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
+  ${mediaQuery (
+    mediaTablet (`
+      min-width: 400px;
+      max-width: 400px;
+    `),
+  )}
 `
 
 const Sidebar = () => <SidebarS>
@@ -682,6 +719,7 @@ export const Search = container (
   ],
   (props) => {
     const {
+      isMobile,
       query: queryProp=null,
       searchParamsString: searchParamsStringProp='',
       showResults: showResultsProp,
@@ -701,7 +739,9 @@ export const Search = container (
     // This will cause a slight flicker in the first case, but it's confusing if the old text
     // suddenly gets replaced by new text when the new results come in.
     const [isNewQuery, setIsNewQuery] = useState (false)
+    const [hideSidebar, setHideSidebar] = useState (isMobile)
     const onSelect = useCallbackConst ((isNew) => setIsNewQuery (isNew))
+    const onClickShowHideSidebar = useCallbackConst (() => setHideSidebar (not))
 
     const showResults = useMemo (
       () => allV (
@@ -710,7 +750,12 @@ export const Search = container (
       ),
       [showResultsProp, isNewQuery],
     )
+    const showHideSidebarButtonText = useMemo (() =>
+      hideSidebar ? '+ Filters tonen' : '- Filters verbergen',
+      [hideSidebar],
+    )
 
+    useEffect (() => { setHideSidebar (isMobile) }, [isMobile])
     useEffect (() => {
       setIsNewQuery (false)
     }, [resultsSearch])
@@ -720,19 +765,26 @@ export const Search = container (
     useSaga ({ saga, key: 'Search', })
 
     return <SearchS>
-      <div className='x__sidebar'>
-        <Sidebar/>
+      <div className='x__show-hide-filters'>
+        {isMobile && <Button onClick={onClickShowHideSidebar}>
+          {showHideSidebarButtonText}
+        </Button>}
       </div>
-      <div className='x__main'>
-        <div className='x__search'>
-          <SearchBar query={queryProp} onSelect={onSelect}/>
+      <div className='x__wrapper'>
+        <div className={clss ('x__sidebar', hideSidebar && 'x--hide')}>
+          <Sidebar/>
         </div>
-        <div className='x__filters'>
-          <ActiveFilters/>
+        <div className='x__main'>
+          <div className='x__search'>
+            <SearchBar query={queryProp} onSelect={onSelect}/>
+          </div>
+          <div className='x__filters'>
+            <ActiveFilters/>
+          </div>
+          {showResults && <div className='x__search-results-wrapper'>
+            <SearchResults query={querySubmitted}/>
+          </div>}
         </div>
-        {showResults && <div className='x__search-results-wrapper'>
-          <SearchResults query={querySubmitted}/>
-        </div>}
       </div>
     </SearchS>
   }
