@@ -286,19 +286,21 @@ const HeaderS = styled.div`
   justify-content: space-between;
   align-items: center;
   padding-left: 50px;
-  .x__logo-aup {
+  > .x__logo-aup {
     height: 5vw;
+    margin-right: 40px;
     min-height: 60px;
     img {
       height: 100%;
     }
     flex: 0 0 auto;
   }
-  .x__logo-fb {
+  > .x__logo-fb {
     margin-left: -1%;
     flex: 0 0 30%;
+    margin-right: 40px;
   }
-  .x__nav-links {
+  > .x__nav-links {
     flex: 0 1 350px;
     display: flex;
     justify-content: space-between;
@@ -337,11 +339,11 @@ const HeaderS = styled.div`
 const Header = ({ isLoggedIn, page, }) => {
   const cls = useCallback ((which) => page === which && 'x--selected', [page])
   return <HeaderS>
-    <a href={linkAUP}>
-      <div className='x__logo-aup'>
+    <div className='x__logo-aup'>
+      <a href={linkAUP}>
         <img src={imageLogoAUP}/>
-      </div>
-    </a>
+      </a>
+    </div>
     <div className='x__logo-fb'>
       <Logo/>
     </div>
@@ -360,14 +362,8 @@ const Header = ({ isLoggedIn, page, }) => {
 }
 
 const LogoS = styled.div`
-  .x__item {
-    width: 100%;
-    height: 100%;
-  }
-  .x__link {
-    z-index: 2;
-    position: relative;
-  }
+  z-index: 2;
+  position: relative;
   img {
     width: 100%;
   }
@@ -379,9 +375,7 @@ const LogoS = styled.div`
 
 const Logo = () => <Link to='/'>
   <LogoS>
-    <div className='x__item x__link'>
-      <img src={imageLogoFB}/>
-    </div>
+    <img src={imageLogoFB}/>
   </LogoS>
 </Link>
 
