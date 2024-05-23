@@ -100,6 +100,7 @@ export default component (
       onBlur: onBlurProp=noop,
       onChange: onChangeProp=noop,
       onClear: onClearProp=noop,
+      onFocus,
       onSelect: onSelectProp=noop,
     } = props
     const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
@@ -220,6 +221,7 @@ export default component (
         {... restInputWrapperProps}
         onChange={onChangeInput}
         onClear={onClear}
+        onFocus={onFocus}
         clear={clear}
         onKeyDown={onKeyDownInput}
         onBlur={onBlur}

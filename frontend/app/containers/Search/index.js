@@ -614,6 +614,10 @@ export const SearchBar = container2 (
       onChangeValue ('')
       setSuggestions ([])
     }, [onChangeValue])
+    const onFocus = useCallback (
+      (event) => isMobile && event.target.scrollIntoView ('top'),
+      [isMobile],
+    )
     const startSearch = useCallback ((value) => {
       navigate ([encodeURIComponent (value), document.location.search] | sprintfN (
         '/search/%s%s',
@@ -662,6 +666,7 @@ export const SearchBar = container2 (
         suggestions={suggestions}
         onChange={onChange}
         onClear={onClear}
+        onFocus={onFocus}
         onSelect={onSelect}
       />
     </SearchBarS>
