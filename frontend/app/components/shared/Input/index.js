@@ -3,7 +3,7 @@ import {
   invoke, whenOk, prop, noop, not,
 } from 'stick-js/es'
 
-import React, { useCallback, useRef, useState, } from 'react'
+import React, { forwardRef, useCallback, useRef, useState, } from 'react'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -113,11 +113,10 @@ const InputWrapper = invoke (() => {
     filter: <Filter height='14px' className={clss ('icon', 'icon-filter', ... classes)}/>,
     search: <img src={searchIcon} className='icon icon-search'/>,
   })
-  return (props) => {
+  return forwardRef ((props, ref) => {
     const {
       withIcon=[],
       showClearIcon=false,
-      inputRef: inputRefProp=null,
       style={},
       doFocusFix=true,
       width,
@@ -128,20 +127,18 @@ const InputWrapper = invoke (() => {
     const { style: inputStyle={}, ... restInputProps } = inputProps
     const [icon, whereIcon, iconClasses=[]] = withIcon
     const hasIcon = withIcon | isNotEmptyList
-    const inputRef = useRef (null)
-    const theInputRef = inputRefProp ?? inputRef
     const onClickIcon = useCallback (() => {
-      theInputRef.current | whenOk ((input) => input.focus ())
-    }, [theInputRef])
+      ref?.current?.focus ()
+    }, [ref])
     const clear = useCallback (() => {
-      theInputRef.current.value = ''
+      ref?.current | whenOk ((input) => input.value = '')
       onClear ()
-    }, [theInputRef, onClear])
+    }, [ref, onClear])
     const onClickClear = clear
     clearProp.current = clear
     const showTheClearIcon = allV (
       showClearIcon,
-      theInputRef.current | whenOk (prop ('value') >> isNotEmptyString)
+      ref?.current?.value | whenOk (isNotEmptyString),
     )
     const clsIcon = clss (
       'x__icon',
@@ -161,12 +158,12 @@ const InputWrapper = invoke (() => {
       </div>}
       <div className={clsInput}>
         <InputS
+          ref={ref}
           className={clss (doFocusFix && 'focus-fix')}
           onChange={onChange}
           onKeyDown={onKeyDown}
           onBlur={onBlur}
           {... restInputProps}
-          ref={theInputRef}
           // --- this is for avoiding a weird jump / blue outline on mobile. It probably won't work
           // right if the caller gives varying values for paddingLeft, paddingRight, etc.
           // --- @todo the padding stuff is pretty terrible -- works for now but needs a rewrite.
@@ -179,20 +176,20 @@ const InputWrapper = invoke (() => {
         />
       </div>
     </InputWrapperS>
-  }
+  })
 })
 
 export const Input = withDisplayName ('InputAuto') (
-  (props) => {
-    const { theRef, withIcon=[], height='35px', width='100%', padding='10px', } = props
+  forwardRef ((props, ref) => {
+    const { withIcon=[], height='35px', width='100%', padding='10px', } = props
     // --- @future this is quite messy with the props
     return <InputWrapper
       {...props}
+      ref={ref}
       withIcon={withIcon}
-      theRef={theRef}
       height={height} width={width} padding={padding}
     />
-  },
+  }),
 )
 
 export const InputText = (props) => <Input

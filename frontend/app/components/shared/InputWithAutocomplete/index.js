@@ -4,7 +4,7 @@ import {
   tap, mergeM,
 } from 'stick-js/es'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import styled from 'styled-components'
 
@@ -88,7 +88,7 @@ const Suggestion = ({
 
 export default component (
   ['InputWithAutocomplete', null],
-  (props) => {
+  forwardRef ((props, ref) => {
     const {
       Input=InputDefault, inputWrapperProps={},
       initValue: initValueProp=null,
@@ -215,6 +215,7 @@ export default component (
     useWhy ('InputWithAutocomplete', props)
     return <InputWithAutocompleteS>
       <Input
+        ref={ref}
         inputProps={inputProps | mergeM ({ value, })}
         {... restInputWrapperProps}
         onChange={onChangeInput}
@@ -242,5 +243,5 @@ export default component (
         </DropDown>
       </div>
     </InputWithAutocompleteS>
-  },
+  }),
 )
