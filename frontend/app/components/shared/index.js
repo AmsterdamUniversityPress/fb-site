@@ -23,6 +23,7 @@ import Dialog from '../../alleycat-components/Dialog'
 import config from '../../config'
 
 const configTop = config | configure.init
+const colorHighlight2 = configTop.get ('colors.highlight2')
 
 // --- fakeDisabled means the onClick handler is called, but the button doesn't move when clicked.
 // --- it's useful for e.g. letting the click event bubble to an outer comopnent.
@@ -49,10 +50,10 @@ const ButtonBaseS = styled.button`
 `
 
 export const ButtonS = styled (ButtonBaseS)`
-  background: #f4f4f4;
+  background: ${colorHighlight2};
   position: relative;
   opacity: 0.5;
-  padding: 0px;
+  padding: 2px;
   > div {
     padding: 4px;
     width: 100%;

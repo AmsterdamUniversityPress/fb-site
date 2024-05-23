@@ -38,7 +38,7 @@ import NotFoundPage from '../../containers/NotFoundPage'
 import Toast from '../../components/Toast'
 
 import { AlleyCatFooter, } from '../../alleycat-components'
-import { BigButton, Button, } from '../../components/shared'
+import { Button, } from '../../components/shared'
 import { container, container2, mediaPhone, mediaTablet, mediaDesktop, isMobileWidth, useWhy, } from '../../common'
 import { notContainedInV, lookupOnOr, } from '../../util-general'
 import config from '../../config'
@@ -201,12 +201,18 @@ const CookiesS = styled.div`
     .Button__abcdef {
       &:hover {}
     }
+    > .x__yes {
+      ${mediaQuery (
+        mediaPhone ('margin-top: 10px;'),
+        mediaTablet ('margin-top: 0px;'),
+      )}
+    }
   }
 `
 
 const Cookies = container2 (
   ['Cookies'],
-  () => {
+  ({ isMobile, }) => {
     const dispatch = useDispatch ()
     const onClicks = [false, true] | map ((allow) => useCallbackConst (
       () => dispatch (allowAnalyticalUpdate (allow)),
@@ -216,12 +222,12 @@ const Cookies = container2 (
       <p>We gebruiken analytische cookies — mits jij akkoord gaat — om het gebruik van onze diensten te
         meten.</p>
       <div className='x__button'>
-        <BigButton cls='Button__abcdef' onClick={onClicks [0]}>
+        <Button cls='Button__abcdef' className='x__no' onClick={onClicks [0]}>
           Nee, dankje.
-        </BigButton>
-        <BigButton cls='Button__abcdef' onClick={onClicks [1]}>
-          Prima, ik sta het gebruik van analytische cookies toe.
-        </BigButton>
+        </Button>
+        <Button cls='Button__abcdef' className='x__yes' onClick={onClicks [1]}>
+          Prima, ik sta {isMobile ? '' : 'het gebruik van '}analytische cookies toe.
+        </Button>
       </div>
     </CookiesS>
   },
@@ -335,7 +341,7 @@ export default container (
           {allowAnalytical && <GA/>}
           {cookiesDecided || <div className='x__cookies'>
             <div>
-              <Cookies/>
+              <Cookies isMobile={isMobile}/>
             </div>
           </div>
           }

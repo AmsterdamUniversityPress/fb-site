@@ -33,6 +33,8 @@ const DetailS = styled.div`
   .x__image-and-tag {
     width: 100%;
     position: relative;
+    margin-top: 1%;
+    padding: 2%;
     img {
       height: 100%;
       width: 100%;
@@ -52,7 +54,7 @@ const DetailS = styled.div`
       font-size: 60px;
     }
     .x__doelstelling {
-      color: ${colors.highlight2};
+      color: ${colors.highlight3};
     }
   }
   .x__block {

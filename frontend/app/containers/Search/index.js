@@ -521,9 +521,9 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
       </div>
       {Contents}
       {showShowMoreLessButton && <div className='x__show-all'>
-        <span onClick={onClickShowMore}>
+        <Button onClick={onClickShowMore}>
           {showMoreLessButtonText}
-        </span>
+        </Button>
       </div>}
     </>}
   </FilterS>
