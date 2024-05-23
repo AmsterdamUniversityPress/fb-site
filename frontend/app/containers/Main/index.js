@@ -106,7 +106,7 @@ const linkAUP = configTop.get ('links.aup')
 const Spinner = spinner ('comet')
 
 const UserS = styled.div`
-  width: 50px;
+  width: 100%;
   cursor: pointer;
   position: relative;
   .x__dropdown-wrapper {
@@ -238,7 +238,7 @@ const User = container (
       [navigate])
 
     return <UserS tabIndex={-1} onBlur={onBlur}>
-      <img src={iconUser} height='40px' onClick={onClick}/>
+      <img src={iconUser} width='100%' onClick={onClick}/>
       <div className='x__dropdown-wrapper'>
         <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', }}>
           {invoke (getUserType () | lookupOnOrDie ('Bad user type') ({
@@ -272,7 +272,6 @@ const User = container (
 )
 
 const HeaderS = styled.div`
-  height: 100px;
   ${mediaQuery (
     mediaPhone (`font-size: 20px`),
     mediaTablet (``),
@@ -283,9 +282,9 @@ const HeaderS = styled.div`
   backdrop-filter: blur(5px);
   border-bottom: 2px solid black;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  padding-left: 50px;
   > .x__logo-aup {
     height: 5vw;
     margin-right: 40px;
@@ -293,11 +292,9 @@ const HeaderS = styled.div`
     img {
       height: 100%;
     }
-    flex: 0 0 auto;
   }
   > .x__logo-fb {
     margin-left: -1%;
-    flex: 0 0 30%;
     margin-right: 40px;
   }
   > .x__nav-links {
@@ -328,12 +325,55 @@ const HeaderS = styled.div`
       text-decoration: none;
     }
   }
-  .x__user-menu {
-    flex: 0 0 auto;
+  > .x__user-menu {
     font-weight: normal;
-    margin-right: 30px;
     z-index: 40;
   }
+  ${mediaQuery (
+    mediaPhone (`
+      padding: 10px 10px 10px 10px;
+      height: auto;
+      > .x__logo-aup {
+        flex: 0 0 50%;
+        order: 10;
+      }
+      > .x__logo-fb {
+        flex: 0 0 90%;
+        justify-self: middle;
+        order: 20;
+        margin: 30px auto 0px auto;
+        margin-left: auto
+      }
+      > .x__nav-links {
+        flex: 0 1 350px;
+        order: 30;
+        margin-top: 30px;
+      }
+      > .x__user-menu {
+        flex: 0 0 35px;
+        order: 15;
+      }
+    `),
+    mediaTablet (`
+      height: 100px;
+      padding: 0px 15px 0px 50px;
+      > .x__logo-aup {
+        flex: 0 0 auto;
+      }
+      > .x__logo-fb {
+        flex: 0 0 30%;
+        margin-top: initial;
+      }
+      > .x__nav-links {
+        margin-top: initial;
+      }
+      > .x__user-menu {
+        flex: 0 0 50px;
+        order: 40;
+      }
+    `),
+  )}
+
 `
 
 const Header = ({ isLoggedIn, page, }) => {
@@ -349,10 +389,12 @@ const Header = ({ isLoggedIn, page, }) => {
     </div>
     <div className='x__nav-links'>
       <div className='x__wrapper'>
-        <Link to='/search/*' disabled={page === 'search'}>
-          Zoek een fonds
-        </Link>
-        <div className={clss ('x__cursor', cls ('search'))}/>
+        {isLoggedIn && <>
+          <Link to='/search/*' disabled={page === 'search'}>
+            Zoek een fonds
+          </Link>
+          <div className={clss ('x__cursor', cls ('search'))}/>
+        </>}
       </div>
     </div>
     <div className='x__user-menu'>
