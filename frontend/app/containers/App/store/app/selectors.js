@@ -7,7 +7,7 @@ import { fold, toJust, } from 'alleycat-js/es/bilby'
 import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
 import { logWith, } from 'alleycat-js/es/general'
 
-import { initialState, } from './reducer'
+import { initialState, loginStateFold, } from './reducer'
 
 import { initSelectors, } from '../../../../common'
 
@@ -129,3 +129,99 @@ export const selectHasPrivilegeAdminUser = select (
   [selectPrivilegesSet],
   (privs) => privs.has ('admin-user'),
 )
+
+export const selectLoginState = selectVal ('loginState')
+
+export const selectUserUserNew = select (
+  'userUserNew',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    () => null,
+    () => null,
+    (user) => user,
+    (_) => null,
+  )
+)
+
+export const selectUserInstitutionNew = select (
+  'userInstitutionNew',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    () => null,
+    () => null,
+    (_) => null,
+    (user) => user,
+  )
+)
+
+export const selectUserLoggedInNew = select (
+  'selectUserLoggedInNew',
+  [selectUserUserNew],
+  (user) => user | ok,
+)
+
+export const selectInstitutionLoggedInNew = select (
+  'selectInstitutionLoggedInNew',
+  [selectUserInstitutionNew],
+  (institution) => institution | ok,
+)
+
+export const selectUserLoggedInDefaultFalseNew = selectUserLoggedInNew
+export const selectInstitutionLoggedInDefaultFalseNew = selectInstitutionLoggedInNew
+
+export const selectGetUserTypeNew = select (
+  'selectGetUserTypeNew',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    () => null,
+    () => null,
+    () => 'user',
+    () => 'institution',
+  ),
+)
+
+export const selectGetContactEmailNew = select (
+  'selectGetContactEmailNew',
+  [selectUserInstitutionNew],
+  (institution) => () => institution | ifNil (
+    () => die ('selectGetContactEmailNew'),
+    path (['contact', 'email']),
+  ),
+)
+
+export const selectGetInstitutionNameNew = select (
+  'selectGetInstitutionNameNew',
+  [selectUserInstitutionNew],
+  (institution) => () => institution | ifNil (
+    () => die ('selectGetInstitutionNameNew'),
+    prop ('name'),
+  ),
+)
+
+export const selectGetFirstNameNew = select (
+  'selectGetFirstNameNew',
+  [selectUserUserNew],
+  (user) => () => user | ifNil (
+    () => die ('selectGetFirstNameNew'),
+    prop ('firstName'),
+  ),
+)
+
+export const selectGetLastNameNew = select (
+  'selectGetLastNameNew',
+  [selectUserUserNew],
+  (user) => () => user | ifNil (
+    () => die ('selectGetLastNameNew'),
+    prop ('lastName'),
+  ),
+)
+
+export const selectGetEmailNew = select (
+  'selectGetEmailNew',
+  [selectUserUserNew],
+  (user) => () => user | ifNil (
+    () => die ('selectGetEmailNew'),
+    prop ('email'),
+  ),
+)
+

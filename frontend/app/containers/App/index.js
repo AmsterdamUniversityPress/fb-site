@@ -290,7 +290,7 @@ export default container (
     const [fontLoaded, setFontLoaded] = useState (false)
 
     const [width, ref] = useMeasureWithCb (
-      (node, check) => window.addEventListener ('resize', check),
+      (_node, check) => window.addEventListener ('resize', check),
       prop ('width'),
     )
 

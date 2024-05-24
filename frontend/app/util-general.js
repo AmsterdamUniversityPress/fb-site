@@ -278,3 +278,9 @@ export const remove = recurry (2) (
     return oo
   },
 )
+
+export const fold4 = recurry (5) (
+  (f) => (g) => (h) => (i) => (o) => o.fold (
+    f, g, h, i,
+  ),
+)
