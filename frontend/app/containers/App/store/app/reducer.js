@@ -18,6 +18,7 @@ import {
   sendResetEmail,
   sendResetEmailCompleted,
   setAllowAnalytical,
+  setPage,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
@@ -49,9 +50,10 @@ export const initialState = {
   allowAnalytical: null,
   emailRequestPending: false,
   emailRequestSuccess: unique (),
+  loginState: LoginUnknown,
+  page: null,
   userUser: RequestInit,
   userInstitution: RequestInit,
-  loginState: LoginUnknown,
   // --- @todo make consistent (Maybe vs. RequestResults)
   userPrivileges: Nothing,
 }
@@ -107,6 +109,7 @@ const reducerTable = makeReducer (
       RequestCompleteSuccess: (_) => assoc ('emailRequestSuccess', unique ()),
     })
   ),
+  setPage, (page) => assoc ('page', page),
 )
 
 export default reducer ('app', initialState, reducerTable)

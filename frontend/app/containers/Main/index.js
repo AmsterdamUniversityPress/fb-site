@@ -8,7 +8,7 @@ import {
   take, recurry,
 } from 'stick-js/es'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
+import React, { useCallback, useLayoutEffect, useEffect, useMemo, useRef, useState, } from 'react'
 
 import { useNavigate, useParams, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
@@ -30,6 +30,7 @@ import {
   passwordUpdateDone,
   resetPassword,
   sendResetEmail,
+  setPage,
 } from '../App/actions/main'
 
 import { searchFetch, searchReset, } from '../Search/actions'
@@ -37,8 +38,11 @@ import { searchFetch, searchReset, } from '../Search/actions'
 import {
   selectEmailRequestPending,
   selectEmailRequestSuccess,
-  selectInstitutionLoggedIn,
-  selectUserLoggedIn,
+  selectUserLoggedInNew,
+  selectLoggedIn,
+  selectLandingDecision,
+  selectLoggedInUnknown,
+  selectLoggedInTristate,
   selectGetFirstName, selectGetLastName, selectGetEmail,
   selectGetContactEmail, selectGetInstitutionName,
   selectGetUserType,
@@ -1205,7 +1209,7 @@ const Contents = container (
   ({ isMobile, page, }) => {
     const params = useParams ()
     const dispatch = useDispatch ()
-    const [element, shiftUp=false, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
+    const [element, shiftUp=false, effect=noop, effectDeps=[]] = page | lookupOnOrDie ('Invalid page ' + page) ({
       landing: [() => <Landing/>],
       detail: [() => <FondsDetail/>, true],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
@@ -1221,6 +1225,7 @@ const Contents = container (
           dispatch (searchReset ())
           dispatch (searchFetch (query, searchParams))
         },
+        [params, [document.location.search]],
       ],
       user: [() => <UserPage/>],
       'init-password': [() => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
@@ -1228,7 +1233,8 @@ const Contents = container (
       'user-admin': [() => <Admin/>],
     })
 
-    useEffect (effect)
+    // useLayoutEffect (() => { dispatch (setPage (page)) }, [page])
+    useEffect (effect, effectDeps)
 
     return <ContentsS shiftUp={shiftUp}>
       <div className='x__main'>
@@ -1242,44 +1248,38 @@ const Contents = container (
 
 export default container (
   ['Main', {}, {
-    institutionLoggedIn: selectInstitutionLoggedIn,
     hasPrivilegeAdminUser: selectHasPrivilegeAdminUser,
-    userLoggedIn: selectUserLoggedIn,
   }],
   (props) => {
-    const {passProps, page, hasPrivilegeAdminUser, institutionLoggedIn, userLoggedIn, } = props
+    const { passProps, page, hasPrivilegeAdminUser, } = props
     const { isMobile, history, } = passProps
     const navigate = useNavigate ()
+
+    const isLoggedIn = useSelector (selectLoggedIn)
+    const landingDecision = useSelector (selectLandingDecision)
+
+    const [returnBlank, setReturnBlank] = useState (false)
 
     useWhy ('Main', props)
     useSaga ({ saga, key: 'Main', })
 
-    const collapse = requestResults ({
-      onError: noop,
-      onResults: id,
-      onLoading: noop,
-    })
-
-    const isLoading = requestResults ({
-      onError: F,
-      onResults: F,
-      onLoading: T,
-    })
-
-    const isInstitutionLoggedIn = institutionLoggedIn | collapse
-    const isUserLoggedIn = userLoggedIn | collapse
-    const isLoggedIn = isInstitutionLoggedIn || isUserLoggedIn
-    const isUserLoggedInPending = userLoggedIn | isLoading
-
-    const pageIsChoosePassword = page === 'reset-password' || page === 'init-password'
-
     useEffect (() => {
-      if (not (isLoggedIn) && not (isUserLoggedInPending) && not (pageIsChoosePassword) && page !== 'login') navigate ('/login')
-      else if (isUserLoggedIn && page === 'login') navigate ('/')
-      else if (not (hasPrivilegeAdminUser) && page === 'user-admin') navigate ('/')
-    }, [isLoggedIn, isUserLoggedInPending, pageIsChoosePassword, page, navigate, isUserLoggedIn, hasPrivilegeAdminUser])
+      setReturnBlank (false)
+      landingDecision (page) (
+        // --- unauthorized and visiting a private page: send to login
+        () => navigate ('/login'),
+        () => setReturnBlank (true),
+        // --- send away from login if logged in as user and visiting /login
+        () => {
+          setReturnBlank (true)
+          navigate ('/')
+        },
+        // --- forbid /user-admin without the right privileges
+        () => not (hasPrivilegeAdminUser) && navigate ('/'),
+      )
+    }, [page, landingDecision, navigate, hasPrivilegeAdminUser])
 
-    if (not (isLoggedIn) && page !== 'login' && not (pageIsChoosePassword)) return
+    if (returnBlank) return
 
     return <MainS tabIndex={-1}>
       <div className='x__contents'>

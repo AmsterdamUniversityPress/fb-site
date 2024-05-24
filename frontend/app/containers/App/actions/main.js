@@ -119,6 +119,11 @@ export const setAllowAnalytical = action (
   'setAllowAnalytical',
 )
 
+export const setPage = action (
+  (page) => page,
+  'setPage',
+)
+
 export const userAdd = action (
   ( email, firstName, lastName, privileges ) => ({ email, firstName, lastName, privileges, }),
   'userAdd',

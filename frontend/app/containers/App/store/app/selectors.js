@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  ok, prop, map, path, id,
+  ok, prop, map, path, id, T, F, lets,
 } from 'stick-js/es'
 
 import { fold, toJust, } from 'alleycat-js/es/bilby'
@@ -15,6 +15,14 @@ const { select, selectTop, selectVal, } = initSelectors (
   'app',
   initialState,
 )
+
+const selectPage = selectVal ('page')
+
+const pageInfo = (page) => [
+  page === 'reset-password' || page === 'init-password' || page === 'login',
+  page === 'login',
+  page === 'user-admin',
+]
 
 export const selectAllowAnalytical = selectVal ('allowAnalytical')
 export const selectCookiesDecided = select (
@@ -132,6 +140,51 @@ export const selectHasPrivilegeAdminUser = select (
 
 export const selectLoginState = selectVal ('loginState')
 
+export const selectLoggedInUnknown = select (
+  'loggedInUnknown',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    F, T, F, F,
+  ),
+)
+
+export const selectLoggedInTristate = select (
+  'loggedInTristate',
+  [selectLoginState],
+  // --- f: not logged in, g: unknown, h: logged in
+  (loginState) => (f, g, h) => loginState | loginStateFold (
+    () => f (),
+    () => g (),
+    () => h (true, false),
+    () => h (false, true),
+  ),
+)
+
+export const selectLandingDecision = select (
+  'landingDecision',
+  [selectLoggedInTristate],
+  /*
+   * f: when not logged in and visiting a page which needs authorization (send to login)
+   * g: login status unknown (/hello is probably pending)
+   * h: when logged in and visiting /login (send away from /login)
+   * i: when logged in and visiting /user-admin
+   */
+  (tristate) => (page) => (f, g, h, i) => lets (
+    () => pageInfo (page),
+    ([pageUnauthorizedOk, pageIsLogin, pageIsUserAdmin]) => tristate (
+      // --- not logged in
+      () => pageUnauthorizedOk || f (),
+      // --- unknown
+      () => g (),
+      // --- logged in
+      (isUser, _isInstitution) => {
+        if (pageIsLogin && isUser) return h ()
+        if (pageIsUserAdmin) return i ()
+      },
+    )
+  ),
+)
+
 export const selectUserUserNew = select (
   'userUserNew',
   [selectLoginState],
@@ -164,6 +217,12 @@ export const selectInstitutionLoggedInNew = select (
   'selectInstitutionLoggedInNew',
   [selectUserInstitutionNew],
   (institution) => institution | ok,
+)
+
+export const selectLoggedIn = select (
+  'selectLoggedIn',
+  [selectUserLoggedInNew, selectInstitutionLoggedInNew],
+  (u, i) => u || i,
 )
 
 export const selectUserLoggedInDefaultFalseNew = selectUserLoggedInNew
