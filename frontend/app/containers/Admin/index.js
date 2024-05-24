@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   map, noop, F, T, not, tap,
-  allAgainst,
+  allAgainst, ok,
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -61,106 +61,30 @@ const colorHighlight = configTop.get ('colors.highlight')
 
 const Spinner = spinner ('comet')
 
+const TableButton = ({ isMobile, text='', imgSrc=null, ... restProps }) => {
+  if (isMobile) return <Button {... restProps}>
+    {ok (imgSrc) && <img src={imgSrc}/>}
+    {text}
+  </Button>
+  return <MenuItem text={text} imgSrc={imgSrc} {... restProps}/>
+}
+
 const AdminS = styled.div`
   min-height: 300px;
   width: 100%;
-  min-width: 850px;
   margin: auto;
-  margin-top: 100px;
-  padding: 58px;
   background: white;
   font-size: 20px;
   > .x__main {
-    display: grid;
-    grid-template-columns: [col0] auto [col1] auto [col2] 0px [col3] 300px [col4] auto [col-end];
-    grid-auto-rows: 90px;
-    > .x__add-user {
-      grid-column: 1 / span col-end;
-    }
-    > .x__header {
-      > span {
-        display: inline-block;
-        opacity: 0.8;
-        border-bottom: 2px solid ${colorHighlight};
-        height: 40px;
-      }
-    }
-    > .data-row {
-      font-size: 18px;
-      display: contents;
-      &:hover {
-        > * {
-        }
-      }
-      > * {
-      }
-      > .col0 {
-        border-left: 2px solid #00000022;
-        > .x__admin-user-marker {
-          width: 20px;
-          font-size: 10px;
-        }
-      }
-      > .col4 {
-        border-right: 2px solid #00000022;
-        min-width: 32px;
-      }
-      > .col0, > .col1 {
-        border-right: 1px solid #00000022;
-      }
-      > .col0, > .col1, .col3, .col4 {
-        padding: 10px;
-        border-bottom: 2px solid #00000022;
-        display: flex;
-        align-items: center;
-        > * {
-          vertical-align: middle;
-          flex: 0 0 auto;
-        }
-      }
-      &.x--first {
-        > .col0, > .col1, .col3, .col4 {
-          border-top: 2px solid #00000022;
-        }
-      }
-      > .x__name, .x__email {
-        &.x--not-active {
-          opacity: 0.6;
-        }
-      }
-      > .x__is-active {
-        justify-content: center;
-        > .x__yes {
-          color: green;
-        }
-        > .x__no {
-          color: #9c3939;
-        }
-      }
-      > .x__buttons {
-        font-size: 16px;
-        .x__buttons-flex {
-          display: flex;
-          height: 100%;
-          justify-content: space-around;
-          flex-direction: column;
-          > * {
-            flex: 0 0 auto;
-          }
-        }
-      }
-      > .x__spinner {
-        > span {
-          margin-left: 50px;
-        }
-        min-width: 85px;
-      }
-    }
   }
   ${mediaQuery (
     mediaPhone (`
+      padding: 15px;
     `),
     mediaTablet (`
+      min-width: 850px;
+      margin-top: 100px;
+      padding: 58px;
       border: 1px solid black;
       border-radius: 10px;
     `),
@@ -268,6 +192,141 @@ const ContentsUserAdd = container (
   },
 )
 
+const UserTable = styled.div`
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__header {
+        display: none;
+      }
+      > .data-row {
+        font-size: 18px;
+        &.x--first > .x__separator {
+        }
+        > .x__separator {
+          height: 1px;
+          width: 100%;
+          background: #333;
+          margin: 20px 0px 20px 0px;
+        }
+        > .x__data {
+          > .x__mobile-label {
+            opacity: 0.7;
+          }
+          > .x__value {
+            padding-left: 10px;
+            margin-left: 20px;
+            border-left: 1px solid #555;
+          }
+        }
+        > .col0 {
+        }
+        > .x__buttons {
+          > .x__buttons-flex {
+            > * {
+              margin-top: 5px;
+            }
+          }
+        }
+      }
+    `),
+    mediaTablet (`
+      display: grid;
+      grid-template-columns: [col0] auto [col1] auto [col2] 0px [col3] 300px [col4] auto [col-end];
+      grid-auto-rows: 90px;
+      > .x__add-user {
+        grid-column: 1 / span col-end;
+      }
+      > .x__header {
+        > span {
+          display: inline-block;
+          opacity: 0.8;
+          border-bottom: 2px solid ${colorHighlight};
+          height: 40px;
+        }
+      }
+      > .data-row {
+        font-size: 18px;
+        display: contents;
+        > .x__separator {
+          display: none;
+        }
+        > .x__data {
+          > .x__mobile-label {
+            display: none;
+          }
+          > .x__value {
+            padding-left: 0px;
+            margin-left: 0px;
+            border-left: 0;
+          }
+        }
+        > .col0 {
+          border-left: 2px solid #00000022;
+          > .x__admin-user-marker {
+            width: 20px;
+            font-size: 10px;
+          }
+        }
+        > .col4 {
+          border-right: 2px solid #00000022;
+          min-width: 32px;
+        }
+        > .col0, > .col1 {
+          border-right: 1px solid #00000022;
+        }
+        > .col0, > .col1, .col3, .col4 {
+          padding: 10px;
+          border-bottom: 2px solid #00000022;
+          display: flex;
+          align-items: center;
+          > * {
+            vertical-align: middle;
+            flex: 0 0 auto;
+          }
+        }
+        &.x--first {
+          > .col0, > .col1, .col3, .col4 {
+            border-top: 2px solid #00000022;
+          }
+        }
+        > .x__name, .x__email {
+          &.x--not-active {
+            opacity: 0.6;
+          }
+        }
+        > .x__is-active {
+          justify-content: center;
+          > .x__yes {
+            color: green;
+          }
+          > .x__no {
+            color: #9c3939;
+          }
+        }
+        > .x__buttons {
+          font-size: 16px;
+          > .x__buttons-flex {
+            display: flex;
+            height: 100%;
+            justify-content: space-around;
+            flex-direction: column;
+            > * {
+              margin-top: 0px;
+              flex: 0 0 auto;
+            }
+          }
+        }
+        > .x__spinner {
+          > span {
+            margin-left: 50px;
+          }
+          min-width: 85px;
+        }
+      }
+    `),
+  )}
+`
+
 const dispatchTable = {
   sendWelcomeEmailDispatch: sendWelcomeEmail,
   usersFetchDispatch: usersFetch,
@@ -286,6 +345,7 @@ export default container (
   ['Admin', dispatchTable, selectorTable],
   (props) => {
     const {
+      isMobile,
       usersRequest,
       userRemoveDispatch,
       sendWelcomeEmailDispatch,
@@ -294,9 +354,6 @@ export default container (
       userRemovePendingUsers,
       emailRequestPending,
     } = props
-
-    // @todo get from Contents or something.
-    const isMobile = false
 
     const [emailToRemove, setEmailToRemove] = useState (null)
     const [removeDialogIsOpen, setRemoveDialogIsOpen] = useState (false)
@@ -385,7 +442,7 @@ export default container (
       <div className='x__main'>
         {usersRequest | requestResults ({
           onError: noop,
-          onResults: (users) => <>
+          onResults: (users) => <UserTable isMobile={isMobile}>
             <div className='x__add-user'>
               <Button onClick={onClickAddUser}>
                 <img src={iconAdd}/>
@@ -408,27 +465,40 @@ export default container (
             {users | mapX (({ email, firstName, lastName, isActive, isAdminUser, }, idx) => {
               const buttonsDisabled = isAdminUser
               return <div className={clss ('data-row', idx === 0 && 'x--first')} key={email}>
-                <div className={clss ('col0', 'x__name', isActive || 'x--not-active')}>
-                  <span className='x__admin-user-marker'>
-                  {isAdminUser && '★'}
-                  </span>
-                  {firstName} {lastName}
+                <div className='x__separator'/>
+                <div className={clss ('col0', 'x__data', 'x__name', isActive || 'x--not-active')}>
+                  <div className='x__mobile-label'>
+                    Naam
+                  </div>
+                  <div className='x__value'>
+                    <span className='x__admin-user-marker'>
+                      {isAdminUser && '★'}
+                    </span>
+                    {firstName} {lastName}
+                  </div>
                 </div>
-                <div className={clss ('col1', 'x__email', isActive || 'x--not-active')}>
-                  {email}
+                <div className={clss ('col1', 'x__data', 'x__email', isActive || 'x--not-active')}>
+                  <div className='x__mobile-label'>
+                    E-mailadres
+                  </div>
+                  <div className='x__value'>
+                    {email}
+                  </div>
                 </div>
                 <div className='col2 x__is-active'>
                   {/* isActive ? <span className='x__yes'>✔</span> : <span className='x__no'>✘</span> */}
                 </div>
                 <div className='col3 x__buttons'>
                   <div className='x__buttons-flex'>
-                    <MenuItem
+                    <TableButton
+                      isMobile={isMobile}
                       disabled={buttonsDisabled}
                       onClick={() => buttonsDisabled || onClickSendMail (email)}
                       text='welkomst e-mail opnieuw versturen'
                       imgSrc={iconUpdate}
                     />
-                    <MenuItem
+                    <TableButton
+                      isMobile={isMobile}
                       disabled={buttonsDisabled}
                       onClick={() => buttonsDisabled || onClickRemove (email)}
                       text='gebruiker verwijderen'
@@ -444,7 +514,7 @@ export default container (
               </div>
             }
             )}
-          </>
+          </UserTable>
         })}
       </div>
     </AdminS>

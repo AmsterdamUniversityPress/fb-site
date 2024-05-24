@@ -1239,7 +1239,7 @@ const Contents = container (
       user: [() => <UserPage/>],
       'init-password': [() => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
       'reset-password': [() => <UserActivate email={params.email} token={params.token} mode='reset-password'/>],
-      'user-admin': [() => <Admin/>],
+      'user-admin': [() => <Admin isMobile={isMobile}/>],
     })
 
     useEffect (effect, [params, document.location.search])
