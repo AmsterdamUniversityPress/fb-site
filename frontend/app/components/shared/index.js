@@ -44,6 +44,12 @@ const ButtonBaseS = styled.button`
     }
     `,
   )}
+  img {
+    width: 20px;
+    margin-right: 10px;
+    position: relative;
+    top: -1px;
+  }
   &:focus {
     outline: none;
   }

@@ -14,7 +14,7 @@ import { clss, keyDownListen, } from 'alleycat-js/es/dom'
 import { logWith, trim, } from 'alleycat-js/es/general'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useSaga, useReduxReducer, } from 'alleycat-js/es/redux-hooks'
-import { media, mediaQuery, } from 'alleycat-js/es/styled'
+import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
@@ -67,8 +67,6 @@ const AdminS = styled.div`
   min-width: 850px;
   margin: auto;
   margin-top: 100px;
-  border: 1px solid black;
-  border-radius: 10px;
   padding: 58px;
   background: white;
   font-size: 20px;
@@ -159,6 +157,14 @@ const AdminS = styled.div`
       }
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+    `),
+    mediaTablet (`
+      border: 1px solid black;
+      border-radius: 10px;
+    `),
+  )}
 `
 
 const ContentsRemoveDialog = component (
@@ -381,12 +387,10 @@ export default container (
           onError: noop,
           onResults: (users) => <>
             <div className='x__add-user'>
-              <MenuItem
-                onClick={onClickAddUser}
-                imgSrc={iconAdd}
-                text='Gebruiker toevoegen'
-                size='page'
-              />
+              <Button onClick={onClickAddUser}>
+                <img src={iconAdd}/>
+                Gebruiker toevoegen
+              </Button>
             </div>
             <div className='col0 x__header'>
               <span>
