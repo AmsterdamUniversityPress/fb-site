@@ -302,6 +302,7 @@ const HeaderS = styled.div`
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    margin-right: 5%;
     > .x__wrapper {
       position: relative;
       top: 2px;
@@ -366,6 +367,10 @@ const HeaderS = styled.div`
       }
       > .x__nav-links {
         margin-top: initial;
+        > .x__wrapper {
+          left: 50%;
+          transform: translateX(-50%);
+        }
       }
       > .x__user-menu {
         flex: 0 0 50px;
@@ -479,7 +484,7 @@ const FormWrapper = styled.div`
   align-items: center;
 `
 
-const FormS = styled (TextBoxS) `
+const FormInnerS = styled (TextBoxS)`
   .x__close {
    position: absolute;
    top: 8px;
@@ -525,6 +530,14 @@ const FormS = styled (TextBoxS) `
     }
   }
 `
+
+const FormInner = ({ children, formProps={}, ... restProps }) => <form {... formProps}>
+  {/* --- @todo trivial field to silence chromium warning, but it's still giving the warning */}
+  <input type='hidden' name='username' value='xxx'/>
+  <FormInnerS {... restProps}>
+    {children}
+  </FormInnerS>
+</form>
 
 const PasswordStrengthS = styled.div`
   font-size: 15px;
@@ -759,7 +772,7 @@ const UserPasswordForm = container (
         </p>
       </TextBoxS>
       }
-      <FormS className='x__form'>
+      <FormInner className='x__form'>
       {choosePassword && <div className='x__choose-password'>
         Kies een {choosePasswordNew}wachtwoord
       </div>}
@@ -820,7 +833,7 @@ const UserPasswordForm = container (
           </>}
 
         </div>
-      </FormS>
+      </FormInner>
     </LoginS>
   },
 )
@@ -1015,7 +1028,7 @@ const UserPage = container (
     )
 
     return <FormWrapper>
-      <FormS style={{ marginTop: '5%', }}>
+      <FormInner style={{ marginTop: '5%', }}>
         <div className='x__grid'>
           <div className='x__label x__password'>
             huidig wachtwoord
@@ -1055,7 +1068,7 @@ const UserPage = container (
             <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
           </div>
         </div>
-      </FormS>
+      </FormInner>
     </FormWrapper>
   }
 )
