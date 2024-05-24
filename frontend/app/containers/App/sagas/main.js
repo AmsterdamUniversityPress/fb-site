@@ -52,7 +52,7 @@ import {
   setPage as a_setPage,
   setNumPerPageIdx as a_setNumPerPageIdx,
 } from '../../shared/Pagination/actions'
-import { selectLoggedInDefaultFalse, } from '../store/app/selectors'
+import { selectLoggedIn, } from '../store/app/selectors'
 import {} from '../store/domain/selectors'
 import {
   selectFilterSearchParams as selectSearchFilterSearchParams,
@@ -146,7 +146,7 @@ function *helloCompleted (rcomplete, first=false) {
 }
 
 function *helloWrapper () {
-  const loggedIn = yield select (selectLoggedInDefaultFalse)
+  const loggedIn = yield select (selectLoggedIn)
   if (loggedIn) yield call (hello, false)
 }
 

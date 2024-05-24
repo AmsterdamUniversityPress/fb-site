@@ -18,7 +18,6 @@ import {
   sendResetEmail,
   sendResetEmailCompleted,
   setAllowAnalytical,
-  setPage,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
@@ -51,9 +50,6 @@ export const initialState = {
   emailRequestPending: false,
   emailRequestSuccess: unique (),
   loginState: LoginUnknown,
-  page: null,
-  userUser: RequestInit,
-  userInstitution: RequestInit,
   // --- @todo make consistent (Maybe vs. RequestResults)
   userPrivileges: Nothing,
 }
@@ -62,41 +58,34 @@ const reducerTable = makeReducer (
   setAllowAnalytical, (allow) => assoc (
     'allowAnalytical', allow,
   ),
-  loggedInInstitution, (user) => composeManyRight (
-    assoc ('userInstitution', RequestResults (user)),
-    assoc ('loginState', LoginLoggedInInstitution (user)),
+  loggedInInstitution, (user) => assoc (
+    'loginState', LoginLoggedInInstitution (user),
   ),
   // --- user null means error or not logged in -- we collapse both to mean 'not logged in' since
   // in the case of error we've already shown the oops bubble
-  logIn, (_) => composeManyRight (
-    assoc ('userUser', RequestLoading (Nothing)),
-    assoc ('userPrivileges', Nothing),
-  ),
+  logIn, (_) => assoc ('userPrivileges', Nothing),
   loginUserCompleted, (rcomplete) => (state) => {
     const { loginState: loginStateCur, } = state
-    const [user, allowAnalytical, privileges, loginState] = rcomplete | cata ({
-      RequestCompleteError: (e) => [RequestError (e), null, Nothing, loginStateCur],
+    const [allowAnalytical, privileges, loginState] = rcomplete | cata ({
+      RequestCompleteError: (_) => [null, Nothing, loginStateCur],
       RequestCompleteSuccess: (user) => user | ifOk (
         ({ userinfo, allowAnalytical, }) => [
-          RequestResults (userinfo),
           allowAnalytical,
           Just (userinfo.privileges),
           LoginLoggedInUser (userinfo),
         ],
-        () => [RequestInit, null, Nothing, LoginNotLoggedIn],
+        () => [null, Nothing, LoginNotLoggedIn],
       ),
     })
     return state | merge ({
       allowAnalytical,
       loginState,
-      userUser: user,
       userPrivileges: privileges,
     })
   },
   loggedOutUser, () => merge ({
     allowAnalytical: false,
     loginState: LoginNotLoggedIn,
-    userUser: RequestInit,
     userPrivileges: Nothing,
   }),
   sendResetEmail, (_email) => assoc (
@@ -109,7 +98,6 @@ const reducerTable = makeReducer (
       RequestCompleteSuccess: (_) => assoc ('emailRequestSuccess', unique ()),
     })
   ),
-  setPage, (page) => assoc ('page', page),
 )
 
 export default reducer ('app', initialState, reducerTable)

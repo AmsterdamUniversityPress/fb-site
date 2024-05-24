@@ -30,7 +30,6 @@ import {
   passwordUpdateDone,
   resetPassword,
   sendResetEmail,
-  setPage,
 } from '../App/actions/main'
 
 import { searchFetch, searchReset, } from '../Search/actions'
@@ -38,11 +37,8 @@ import { searchFetch, searchReset, } from '../Search/actions'
 import {
   selectEmailRequestPending,
   selectEmailRequestSuccess,
-  selectUserLoggedInNew,
   selectLoggedIn,
   selectLandingDecision,
-  selectLoggedInUnknown,
-  selectLoggedInTristate,
   selectGetFirstName, selectGetLastName, selectGetEmail,
   selectGetContactEmail, selectGetInstitutionName,
   selectGetUserType,
@@ -639,13 +635,14 @@ const UserPasswordForm = container (
   ['UserPasswordForm', {
     resetPasswordDispatch: resetPassword,
   }, {
-    getUserType: selectGetUserType,
+    // getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
     emailRequestSuccess: selectEmailRequestSuccess,
   }],
-  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, getUserType, emailRequestSuccess, }) => {
+  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName/* , getUserType */, emailRequestSuccess, }) => {
     const navigate = useNavigate ()
 
+    const getUserType = useSelector (selectGetUserType)
     const [email, setEmail] = useState (emailProp)
     useEffect (() => {
       setEmail (emailProp)
@@ -1209,7 +1206,7 @@ const Contents = container (
   ({ isMobile, page, }) => {
     const params = useParams ()
     const dispatch = useDispatch ()
-    const [element, shiftUp=false, effect=noop, effectDeps=[]] = page | lookupOnOrDie ('Invalid page ' + page) ({
+    const [element, shiftUp=false, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
       landing: [() => <Landing/>],
       detail: [() => <FondsDetail/>, true],
       login: [() => <Login isMobile={isMobile} email={params.email}/>],
@@ -1225,7 +1222,6 @@ const Contents = container (
           dispatch (searchReset ())
           dispatch (searchFetch (query, searchParams))
         },
-        [params, [document.location.search]],
       ],
       user: [() => <UserPage/>],
       'init-password': [() => <UserActivate email={params.email} token={params.token} mode='init-password'/>],
@@ -1233,8 +1229,7 @@ const Contents = container (
       'user-admin': [() => <Admin/>],
     })
 
-    // useLayoutEffect (() => { dispatch (setPage (page)) }, [page])
-    useEffect (effect, effectDeps)
+    useEffect (effect, [params, document.location.search])
 
     return <ContentsS shiftUp={shiftUp}>
       <div className='x__main'>

@@ -1,10 +1,9 @@
 import {
   pipe, compose, composeRight,
-  ok, prop, map, path, id, T, F, lets,
+  ok, prop, path, id, T, F, lets, ifNil,
 } from 'stick-js/es'
 
 import { fold, toJust, } from 'alleycat-js/es/bilby'
-import { foldIfRequestResults, } from 'alleycat-js/es/fetch'
 import { logWith, } from 'alleycat-js/es/general'
 
 import { initialState, loginStateFold, } from './reducer'
@@ -15,8 +14,6 @@ const { select, selectTop, selectVal, } = initSelectors (
   'app',
   initialState,
 )
-
-const selectPage = selectVal ('page')
 
 const pageInfo = (page) => [
   page === 'reset-password' || page === 'init-password' || page === 'login',
@@ -30,58 +27,31 @@ export const selectCookiesDecided = select (
   [selectAllowAnalytical],
   ok,
 )
-// --- returns Request which wraps (user | null)
-const selectUserUser = selectVal ('userUser')
-const selectUserInstitution = selectVal ('userInstitution')
 export const selectEmailRequestPending = selectVal ('emailRequestPending')
 export const selectEmailRequestSuccess = selectVal ('emailRequestSuccess')
 
-// --- returns Request which wraps (true | false)
-export const selectUserLoggedIn = select (
-  'selectUserLoggedIn',
-  [selectUserUser],
-  // --- map means take the RequestResults case
-  (user) => user | map (ok),
+export const selectLoginState = selectVal ('loginState')
+
+export const selectUserUser = select (
+  'userUser',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    () => null,
+    () => null,
+    (user) => user,
+    (_) => null,
+  )
 )
 
-// --- returns Request which wraps (true | false)
-export const selectInstitutionLoggedIn = select (
-  'selectInstitutionLoggedIn',
-  [selectUserInstitution],
-  // --- map means take the RequestResults case
-  (institution) => institution | map (ok),
-)
-
-// --- folds to true or false
-export const selectUserLoggedInDefaultFalse = select (
-  'selectUserLoggedInDefaultFalse',
-  [selectUserLoggedIn],
-  (user) => user | foldIfRequestResults (
-    (yesNo) => yesNo,
-    () => false,
-  ),
-)
-
-// --- folds to true or false
-export const selectInstitutionLoggedInDefaultFalse = select (
-  'selectInstitutionLoggedInDefaultFalse',
-  [selectInstitutionLoggedIn],
-  (institution) => institution | foldIfRequestResults (
-    (yesNo) => yesNo,
-    () => false,
-  ),
-)
-
-export const selectLoggedInDefaultFalse = select (
-  'selectLoggedInDefaultFalse',
-  [selectUserLoggedIn, selectInstitutionLoggedIn],
-  (user, institution) => user || institution,
-)
-
-export const selectGetUserType = select (
-  'selectGetUserType',
-  [selectUserLoggedInDefaultFalse, selectInstitutionLoggedInDefaultFalse],
-  (user, institution) => () => user ? 'user' : institution ? 'institution' : null,
+export const selectUserInstitution = select (
+  'userInstitution',
+  [selectLoginState],
+  (loginState) => loginState | loginStateFold (
+    () => null,
+    () => null,
+    (_) => null,
+    (user) => user,
+  )
 )
 
 // ------ type: institution. Only use these once you're sure that userInstitution is a Just.
@@ -89,56 +59,49 @@ export const selectGetUserType = select (
 export const selectGetContactEmail = select (
   'selectGetContactEmail',
   [selectUserInstitution],
-  (institution) => () => institution | toJust | path (['contact', 'email']),
+  (institution) => () => institution | ifNil (
+    () => die ('selectGetContactEmail'),
+    path (['contact', 'email']),
+  ),
 )
 
 export const selectGetInstitutionName = select (
   'selectGetInstitutionName',
   [selectUserInstitution],
-  (institution) => () => institution | toJust | prop ('name'),
+  (institution) => () => institution | ifNil (
+    () => die ('selectGetInstitutionName'),
+    prop ('name'),
+  ),
 )
 
 // ------ type: user. Only use these once you're sure that userUser is a Just.
 
-// export const selectGetPrivilege = select (
-  // 'selectGetPrivilege',
-  // [selectUserUser],
-  // (user) => () => user | toJust | prop ('privilege'),
-// )
-
 export const selectGetFirstName = select (
   'selectGetFirstName',
   [selectUserUser],
-  (user) => () => user | toJust | prop ('firstName'),
+  (user) => () => user | ifNil (
+    () => die ('selectGetFirstName'),
+    prop ('firstName'),
+  ),
 )
 
 export const selectGetLastName = select (
   'selectGetLastName',
   [selectUserUser],
-  (user) => () => user | toJust | prop ('lastName'),
+  (user) => () => user | ifNil (
+    () => die ('selectGetLastName'),
+    prop ('lastName'),
+  ),
 )
 
 export const selectGetEmail = select (
   'selectGetEmail',
   [selectUserUser],
-  (user) => () => user | toJust | prop ('email'),
+  (user) => () => user | ifNil (
+    () => die ('selectGetEmail'),
+    prop ('email'),
+  ),
 )
-
-const selectPrivileges = selectVal ('userPrivileges')
-
-const selectPrivilegesSet = select (
-  'privilegesSet',
-  [selectPrivileges],
-  (privileges) => new Set (privileges | fold (id, [])),
-)
-
-export const selectHasPrivilegeAdminUser = select (
-  'hasPrivilegeAdminUser',
-  [selectPrivilegesSet],
-  (privs) => privs.has ('admin-user'),
-)
-
-export const selectLoginState = selectVal ('loginState')
 
 export const selectLoggedInUnknown = select (
   'loggedInUnknown',
@@ -185,53 +148,29 @@ export const selectLandingDecision = select (
   ),
 )
 
-export const selectUserUserNew = select (
-  'userUserNew',
-  [selectLoginState],
-  (loginState) => loginState | loginStateFold (
-    () => null,
-    () => null,
-    (user) => user,
-    (_) => null,
-  )
-)
-
-export const selectUserInstitutionNew = select (
-  'userInstitutionNew',
-  [selectLoginState],
-  (loginState) => loginState | loginStateFold (
-    () => null,
-    () => null,
-    (_) => null,
-    (user) => user,
-  )
-)
-
-export const selectUserLoggedInNew = select (
-  'selectUserLoggedInNew',
-  [selectUserUserNew],
+export const selectUserLoggedIn = select (
+  'selectUserLoggedIn',
+  [selectUserUser],
   (user) => user | ok,
 )
 
-export const selectInstitutionLoggedInNew = select (
-  'selectInstitutionLoggedInNew',
-  [selectUserInstitutionNew],
+export const selectInstitutionLoggedIn = select (
+  'selectInstitutionLoggedIn',
+  [selectUserInstitution],
   (institution) => institution | ok,
 )
 
 export const selectLoggedIn = select (
   'selectLoggedIn',
-  [selectUserLoggedInNew, selectInstitutionLoggedInNew],
+  [selectUserLoggedIn, selectInstitutionLoggedIn],
   (u, i) => u || i,
 )
 
-export const selectUserLoggedInDefaultFalseNew = selectUserLoggedInNew
-export const selectInstitutionLoggedInDefaultFalseNew = selectInstitutionLoggedInNew
-
-export const selectGetUserTypeNew = select (
-  'selectGetUserTypeNew',
+export const selectGetUserType = select (
+  'selectGetUserType',
   [selectLoginState],
-  (loginState) => loginState | loginStateFold (
+  // --- @todo is this laziness necessary?
+  (loginState) => () => loginState | loginStateFold (
     () => null,
     () => null,
     () => 'user',
@@ -239,48 +178,16 @@ export const selectGetUserTypeNew = select (
   ),
 )
 
-export const selectGetContactEmailNew = select (
-  'selectGetContactEmailNew',
-  [selectUserInstitutionNew],
-  (institution) => () => institution | ifNil (
-    () => die ('selectGetContactEmailNew'),
-    path (['contact', 'email']),
-  ),
+const selectPrivileges = selectVal ('userPrivileges')
+
+const selectPrivilegesSet = select (
+  'privilegesSet',
+  [selectPrivileges],
+  (privileges) => new Set (privileges | fold (id, [])),
 )
 
-export const selectGetInstitutionNameNew = select (
-  'selectGetInstitutionNameNew',
-  [selectUserInstitutionNew],
-  (institution) => () => institution | ifNil (
-    () => die ('selectGetInstitutionNameNew'),
-    prop ('name'),
-  ),
+export const selectHasPrivilegeAdminUser = select (
+  'hasPrivilegeAdminUser',
+  [selectPrivilegesSet],
+  (privs) => privs.has ('admin-user'),
 )
-
-export const selectGetFirstNameNew = select (
-  'selectGetFirstNameNew',
-  [selectUserUserNew],
-  (user) => () => user | ifNil (
-    () => die ('selectGetFirstNameNew'),
-    prop ('firstName'),
-  ),
-)
-
-export const selectGetLastNameNew = select (
-  'selectGetLastNameNew',
-  [selectUserUserNew],
-  (user) => () => user | ifNil (
-    () => die ('selectGetLastNameNew'),
-    prop ('lastName'),
-  ),
-)
-
-export const selectGetEmailNew = select (
-  'selectGetEmailNew',
-  [selectUserUserNew],
-  (user) => () => user | ifNil (
-    () => die ('selectGetEmailNew'),
-    prop ('email'),
-  ),
-)
-
