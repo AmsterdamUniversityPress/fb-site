@@ -119,12 +119,12 @@ const UserinfoInstitutionS = styled.div`
   font-weight: 200;
   > .x__institution-message {
   }
-  > .x__contact-email {
+  > .x__contact-message {
   }
-  > .x__institution-name, > .x__institution-message {
+  > .x__item {
     vertical-align: middle;
   }
-  > .x__institution-message, > .x__contact-email {
+  > .x__institution-message, > .x__contact-message {
     text-wrap: nowrap;
     overflow-x: hidden;
     text-overflow: ellipsis;
@@ -138,20 +138,26 @@ const UserinfoInstitutionS = styled.div`
       }
     }
   }
+  > .x__separator {
+    height: 2px;
+    background: #00000055;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
   ${mediaQuery (
     mediaPhone (`
-      > .x__institution-name, > .x__institution-message {
+      > .x__item {
         display: block;
       }
-      > .x__institution-name {
-        text-align: right;
+      > .x__institution-name, .x__contact-email {
+        margin-left: 10px;
       }
     `),
     mediaTablet (`
-      > .x__institution-name, > .x__institution-message {
+      > .x__item {
         display: inline-block;
       }
-      > .x__institution-name {
+      > .x__institution-name, .x__contact-email {
         margin-left: 10px;
         text-align: initial;
       }
@@ -174,15 +180,19 @@ const UserinfoInstitution = container (
       [navigate, onNavigate],
     )
     return <UserinfoInstitutionS>
-      <div className='x__institution-message'>
+      <div className='x__item x__institution-message'>
         Je bent ingelogd courtesy of:
       </div>
-      <div className='x__institution-name'>
+      <div className='x__item x__institution-name'>
         {getInstitutionName ()}
       </div>
-      <div className='x__contact-email'>
-        Contact: {getContactEmail ()}
+      <div className='x__item x__contact-message'>
+        Contact:
       </div>
+      <div className='x__item x__contact-email'>
+        {getContactEmail ()}
+      </div>
+      <div className='x__separator'/>
       <MenuItem
         className='x__log-in'
         onClick={onClickLogIn}

@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  merge,
+  merge, invoke,
 } from 'stick-js/es'
 
 import React, { useMemo, useCallback, useEffect, useRef, useState, } from 'react'
@@ -28,23 +28,36 @@ const {
 )
 Modal.setAppElement (appElement)
 
-const styleOverlayBase = {
-  backgroundColor: '',
-  zIndex: 1000,
-}
+const styleOverlayBase = invoke (() => {
+  const base = {
+    backgroundcolor: '',
+    zIndex: 1000,
+  }
+  return (_isMobile) => base
+})
 
-const styleContentBase = {
-  opacity: 1,
-  top: '50%',
-  left: '50%',
-  right: 'auto',
-  bottom: 'auto',
-  marginRight: '-50%',
-  transform: 'translate(-50%, -50%)',
-  padding: '0',
-  borderRadius: '10px',
-  width: '50%',
-}
+const styleContentBase = invoke (() => {
+  const base = {
+    opacity: 1,
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    padding: '0',
+    width: '50%',
+    borderRadius: '10px',
+  }
+  const mobile = {
+  }
+  const notMobile = {
+  }
+  return (isMobile) => ({
+    ... base,
+    ... isMobile ? mobile : notMobile,
+  })
+})
 
 const ModalContentsS = styled.div`
   height: 100%;
@@ -59,8 +72,6 @@ const ModalContentsS = styled.div`
   ${mediaQuery (
     mediaPhoneOnly (`
       box-shadow: 1px 1px 5px 1px;
-      border: 3px solid black;
-      border-radius: 50px;
     `),
     mediaTablet (`
       border: 2px solid black;
@@ -149,8 +160,8 @@ export default component (
       onRequestClose={onRequestClose}
       shouldCloseOnOverlayClick={closeOnOverlayClick}
       style={{
-        content: styleContentBase | merge (styleContent),
-        overlay: styleOverlayBase | merge (styleOverlay),
+        content: styleContentBase (isMobile) | merge (styleContent),
+        overlay: styleOverlayBase (isMobile) | merge (styleOverlay),
       }}
     >
       <ModalContentsS>

@@ -127,7 +127,7 @@ const ContentsUserAdd = container (
     { userAddDispatch: userAdd, },
     { userAddPending: selectUserAddPending, userAddSuccess: selectUserAddSuccess, },
   ],
-  ({ close, onSuccess, userAddDispatch, userAddSuccess, userAddPending, }) => {
+  ({ isMobile, close, onSuccess, userAddDispatch, userAddSuccess, userAddPending, }) => {
     const [firstName, setFirstName] = useState ('')
     const [lastName, setLastName] = useState ('')
     const [email, setEmail] = useState ('')
@@ -418,7 +418,7 @@ export default container (
         closeOnOverlayClick={true}
         isMobile={isMobile}
       >
-        <ContentsUserAdd close={closeAddUserDialog} onSuccess={onUserAddSuccess}/>
+        <ContentsUserAdd isMobile={isMobile} close={closeAddUserDialog} onSuccess={onUserAddSuccess}/>
       </Dialog>
       <AreYouSureDialog
         isMobile={isMobile}
