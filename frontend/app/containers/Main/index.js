@@ -186,6 +186,7 @@ const UserinfoInstitution = container (
       <div className='x__item x__institution-name'>
         {getInstitutionName ()}
       </div>
+      <div className='x__break'/>
       <div className='x__item x__contact-message'>
         Contact:
       </div>
@@ -193,12 +194,14 @@ const UserinfoInstitution = container (
         {getContactEmail ()}
       </div>
       <div className='x__separator'/>
-      <MenuItem
-        className='x__log-in'
-        onClick={onClickLogIn}
-        imgSrc={iconLogin}
-        text='log in met gebruikersnaam en wachtwoord'
-      />
+      <div className='x__menu-item'>
+        <MenuItem
+          className='x__log-in'
+          onClick={onClickLogIn}
+          imgSrc={iconLogin}
+          text='log in met gebruikersnaam en wachtwoord'
+        />
+      </div>
     </UserinfoInstitutionS>
   },
 )
@@ -241,7 +244,7 @@ const User = container (
       getUserType: selectGetUserType,
       hasPrivilegeAdminUser: selectHasPrivilegeAdminUser,
     }],
-  ({ getUserType, hasPrivilegeAdminUser, logOutDispatch, }) => {
+  ({ isMobile, getUserType, hasPrivilegeAdminUser, logOutDispatch, }) => {
     const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
@@ -275,7 +278,7 @@ const User = container (
     return <UserS tabIndex={-1} onBlur={onBlur}>
       <img src={iconUser} width='100%' onClick={onClick}/>
       <div className='x__dropdown-wrapper'>
-        <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', }}>
+        <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', width: isMobile ? '90vw' : null, }}>
           {invoke (getUserType | lookupOnOrDie ('Bad user type') ({
             institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
             user: () => <>
@@ -416,7 +419,7 @@ const HeaderS = styled.div`
 
 `
 
-const Header = ({ isLoggedIn, page, }) => {
+const Header = ({ isMobile, isLoggedIn, page, }) => {
   const cls = useCallback ((which) => page === which && 'x--selected', [page])
   return <HeaderS>
     <div className='x__logo-aup'>
@@ -438,7 +441,7 @@ const Header = ({ isLoggedIn, page, }) => {
       </div>
     </div>
     <div className='x__user-menu'>
-      {isLoggedIn && <User/>}
+      {isLoggedIn && <User isMobile={isMobile}/>}
     </div>
   </HeaderS>
 }
@@ -1326,7 +1329,7 @@ export default container (
     return <MainS tabIndex={-1}>
       <div className='x__contents'>
         <div className='x__header'>
-          <Header isLoggedIn={isLoggedIn} page={page}/>
+          <Header isMobile={isMobile} isLoggedIn={isLoggedIn} page={page}/>
         </div>
         <Contents isMobile={isMobile} page={page}/>
       </div>

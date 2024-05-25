@@ -319,7 +319,6 @@ const DropDownS = styled.div`
     position: absolute;
     font-size: 18px;
     padding: 15px;
-    text-wrap: nowrap;
     cursor: default;
     box-shadow: 1px 1px 4px;
     hr {
@@ -329,6 +328,14 @@ const DropDownS = styled.div`
     > .x__menu-items {
       margin-top: 12px;
     }
+    ${mediaQuery (
+      mediaPhone (`
+        text-wrap: initial;
+      `),
+      mediaTablet (`
+        text-wrap: nowrap;
+      `),
+    )}
   }
 `
 
