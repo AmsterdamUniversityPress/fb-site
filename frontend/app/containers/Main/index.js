@@ -117,11 +117,14 @@ const UserS = styled.div`
 
 const UserinfoInstitutionS = styled.div`
   font-weight: 200;
-  > .x__institution-name {
+  > .x__institution-message {
   }
   > .x__contact-email {
   }
-  > .x__institution-name, > .x__contact-email {
+  > .x__institution-name, > .x__institution-message {
+    vertical-align: middle;
+  }
+  > .x__institution-message, > .x__contact-email {
     text-wrap: nowrap;
     overflow-x: hidden;
     text-overflow: ellipsis;
@@ -135,6 +138,25 @@ const UserinfoInstitutionS = styled.div`
       }
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__institution-name, > .x__institution-message {
+        display: block;
+      }
+      > .x__institution-name {
+        text-align: right;
+      }
+    `),
+    mediaTablet (`
+      > .x__institution-name, > .x__institution-message {
+        display: inline-block;
+      }
+      > .x__institution-name {
+        margin-left: 10px;
+        text-align: initial;
+      }
+    `),
+  )}
 `
 
 const UserinfoInstitution = container (
@@ -152,8 +174,11 @@ const UserinfoInstitution = container (
       [navigate, onNavigate],
     )
     return <UserinfoInstitutionS>
+      <div className='x__institution-message'>
+        Je bent ingelogd courtesy of:
+      </div>
       <div className='x__institution-name'>
-        Je bent ingelogd courtesy of: {getInstitutionName ()}
+        {getInstitutionName ()}
       </div>
       <div className='x__contact-email'>
         Contact: {getContactEmail ()}

@@ -206,7 +206,7 @@ const UserTable = styled.div`
           height: 1px;
           width: 100%;
           background: #333;
-          margin: 20px 0px 20px 0px;
+          margin: 25px 0px 20px 0px;
         }
         > .x__data {
           > .x__mobile-label {
@@ -222,6 +222,7 @@ const UserTable = styled.div`
         }
         > .x__buttons {
           > .x__buttons-flex {
+            margin-top: 10px;
             > * {
               margin-top: 5px;
             }
