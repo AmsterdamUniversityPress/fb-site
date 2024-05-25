@@ -23,7 +23,7 @@ import { mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { selectAllowAnalytical, selectCookiesDecided, } from './store/app/selectors'
+import { selectAllowAnalytical, selectCookiesDecided, selectUserLoggedIn, } from './store/app/selectors'
 import domainReducer from './store/domain/reducer'
 import { selectError, } from './store/domain/selectors'
 import uiReducer from './store/ui/reducer'
@@ -278,6 +278,7 @@ export default container (
     const { error, history, appMountedDispatch, } = props
     const allowAnalytical = useSelector (selectAllowAnalytical)
     const cookiesDecided = useSelector (selectCookiesDecided)
+    const userLoggedIn = useSelector (selectUserLoggedIn)
 
     useWhy ('App', props)
     useReduxReducer ({ createReducer, key: 'domain', reducer: domainReducer, })
@@ -293,6 +294,8 @@ export default container (
       (_node, check) => window.addEventListener ('resize', check),
       prop ('width'),
     )
+
+    const showCookiesMessage = userLoggedIn && not (cookiesDecided)
 
     useEffect (() => {
       fontMainFamily
@@ -344,7 +347,7 @@ export default container (
             <Footer/>
           </div>
           {allowAnalytical && <GA/>}
-          {cookiesDecided || <div className='x__cookies'>
+          {showCookiesMessage && <div className='x__cookies'>
             <div>
               <Cookies isMobile={isMobile}/>
             </div>
