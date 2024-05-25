@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  ok, prop, path, id, T, F, lets, ifNil,
+  ok, prop, path, id, T, F, lets, ifNil, die,
 } from 'stick-js/es'
 
 import { fold, toJust, } from 'alleycat-js/es/bilby'
