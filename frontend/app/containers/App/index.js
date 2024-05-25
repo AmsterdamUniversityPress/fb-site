@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   map, dot, dot1, die, sprintf1,
   prop, whenOk, ifFalse, ifTrue,
-  eq, nil,
+  eq, nil, not,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
