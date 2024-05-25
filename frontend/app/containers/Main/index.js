@@ -276,7 +276,7 @@ const User = container (
       <img src={iconUser} width='100%' onClick={onClick}/>
       <div className='x__dropdown-wrapper'>
         <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', }}>
-          {invoke (getUserType () | lookupOnOrDie ('Bad user type') ({
+          {invoke (getUserType | lookupOnOrDie ('Bad user type') ({
             institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
             user: () => <>
               <UserinfoUser/>
@@ -683,11 +683,10 @@ const UserPasswordForm = container (
   ['UserPasswordForm', {
     resetPasswordDispatch: resetPassword,
   }, {
-    // getUserType: selectGetUserType,
     getInstitutionName: selectGetInstitutionName,
     emailRequestSuccess: selectEmailRequestSuccess,
   }],
-  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName/* , getUserType */, emailRequestSuccess, }) => {
+  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, emailRequestSuccess, }) => {
     const navigate = useNavigate ()
 
     const getUserType = useSelector (selectGetUserType)
@@ -703,7 +702,7 @@ const UserPasswordForm = container (
     const inputEmailRef = useRef (null)
     const inputPasswordRef = useRef (null)
 
-    const isLoggedInInstitution = getUserType () === 'institution'
+    const isLoggedInInstitution = getUserType === 'institution'
 
     const onChangeEmail = useCallbackConst (
       (event) => setEmail (event.target.value),

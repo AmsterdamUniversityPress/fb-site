@@ -169,8 +169,7 @@ export const selectLoggedIn = select (
 export const selectGetUserType = select (
   'selectGetUserType',
   [selectLoginState],
-  // --- @todo is this laziness necessary?
-  (loginState) => () => loginState | loginStateFold (
+  (loginState) => loginState | loginStateFold (
     () => null,
     () => null,
     () => 'user',
