@@ -24,6 +24,7 @@ import config from '../../config'
 
 const configTop = config | configure.init
 const colorHighlight2 = configTop.get ('colors.highlight2')
+const iconArrow = configTop.get ('icons.arrow')
 
 // --- fakeDisabled means the onClick handler is called, but the button doesn't move when clicked.
 // --- it's useful for e.g. letting the click event bubble to an outer comopnent.
@@ -229,6 +230,10 @@ const MenuItemS = styled.div`
   > img {
     vertical-align: middle;
   }
+  > .x__arrow {
+    display: inline-block;
+    padding-right: 10px;
+  }
   > .x__text {
     vertical-align: middle;
   }
@@ -255,16 +260,21 @@ const MenuItemS = styled.div`
 `
 
 export const MenuItem = ({
-  imgSrc,
+  imgSrc=null,
   text='',
   disabled=false,
   // --- 'menu' | 'page'
   size='menu',
-  Contents=null, contentsProps={}, ... restProps
+  Contents=null, contentsProps={},
+  withArrow=false,
+  ... restProps
 }) => {
   const cls = clss ('x--size-' + size, disabled && 'x--disabled')
   return <MenuItemS {... restProps} className={cls}>
-    <img src={imgSrc}/>
+    {withArrow && <div className='x__arrow'>
+      <img src={iconArrow} width='10px'/>
+    </div>}
+    {imgSrc && <img src={imgSrc}/>}
     <span className='x__text'>
       {Contents | ifNil (
         () => text,

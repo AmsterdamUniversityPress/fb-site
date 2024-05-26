@@ -11,6 +11,7 @@ import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 
 import iconAdd from './images/icons/plus.svg'
 import iconAdmin from './images/icons/admin.svg'
+import iconArrow from './images/icons/arrow.svg'
 import iconFilter from './images/icons/filter.svg'
 import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
@@ -94,6 +95,7 @@ export default {
   icons: {
     add: iconAdd,
     admin: iconAdmin,
+    arrow: iconArrow,
     filter: iconFilter,
     login: iconLogin,
     logout: iconLogout,

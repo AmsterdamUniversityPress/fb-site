@@ -868,6 +868,7 @@ const UserPasswordForm = container (
                 onClick={onClickForgotPassword}
                 imgSrc={null}
                 text='Ik ben mijn wachtwoord vergeten'
+                withArrow={isMobile}
               />
             </div>
             <div/>
