@@ -492,10 +492,10 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
   <img src={shown ? iconShowPasswordShown : iconShowPasswordHidden} height={height} className={className}/>
 </IconShowPasswordS>
 
-const LoginS = styled.form`
-  > .x__form {
-    margin-top: 70px;
-  }
+const LoginS = styled.div`
+  // > .x__form {
+    // margin-top: 70px;
+  // }
   > .x__message {
     margin-bottom: 40px;
   }
@@ -570,8 +570,8 @@ const FormInnerS = styled (TextBoxS)`
 `
 
 const FormInner = ({ children, formProps={}, ... restProps }) => <form {... formProps}>
-  {/* --- @todo trivial field to silence chromium warning, but it's still giving the warning */}
-  <input type='hidden' name='username' value='xxx'/>
+  {/* --- trivial field to silence chromium warning, with dummy onChange to silence a react warning */}
+  <input hidden type='text' name='username' value='' onChange={noop} autoComplete=''/>
   <FormInnerS {... restProps}>
     {children}
   </FormInnerS>
@@ -792,6 +792,7 @@ const UserPasswordForm = container (
     // Make sure to use event.preventDefault so it doesn't submit
 
     return <LoginS>
+      <FormWrapper>
       <Dialog
         isMobile={isMobile}
         isOpen={forgotPasswordDialogIsOpen}
@@ -832,7 +833,7 @@ const UserPasswordForm = container (
             wachtwoord
           </div>}
           <div className='x__input x__password-input'>
-            <input type={showPassword ? 'text' : 'password'} autoComplete='current-password' onChange={onChangePassword} onKeyDown={onKeyDownInput} ref={inputPasswordRef}/>
+            <input type={showPassword ? 'text' : 'password'} autoComplete='new-password' onChange={onChangePassword} onKeyDown={onKeyDownInput} ref={inputPasswordRef}/>
           </div>
           <div className='x__icon'>
             <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
@@ -871,6 +872,7 @@ const UserPasswordForm = container (
 
         </div>
       </FormInner>
+        </FormWrapper>
     </LoginS>
   },
 )
