@@ -505,9 +505,8 @@ const TextBoxS = styled.div`
   position: relative;
   padding: 38px;
   padding-top: 58px;
-  border: 1px solid black;
+  border: 4px solid ${colors.highlightAlpha};
   border-radius: 10px;
-  background: ${colors.highlightAlpha};
   font-size: 20px;
   width: 80%;
   max-width: 600px;
@@ -515,73 +514,84 @@ const TextBoxS = styled.div`
   margin-right: auto;
 `
 
-const FormWrapper = styled.div`
+const FullHeightCenter = styled.div`
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
 `
 
-const FormInnerS = styled (TextBoxS)`
-  .x__close {
-   position: absolute;
-   top: 8px;
-   right: 8px;
-   cursor: pointer;
-   width: 48px;
-   height: 43px;
-   display: flex;
-  * {
-    margin: auto;
-  }
-  }
-  .x__grid {
+const ResponsiveFormS = styled (TextBoxS)`
+  > .x__grid {
+    align-items: center;
     display: grid;
-    grid-template-columns: 117px auto 24px;
+    grid-template-columns: 117px auto;
     grid-auto-rows: 50px;
     row-gap: 40px;
     column-gap: 20px;
-    input {
-      height: 100%;
-      width: 100%;
-      border: 1px solid #999999;
-      padding: 10px;
+    > .span-cols {
+      grid-column-start: 1;
+      grid-column-end: span 2;
     }
     > .x__label, .x__icon {
       display: inline-block;
-      position: relative;
-      top: 50%;
+      vertical-align: middle;
       height: 35px;
-      transform: translateY(-50%);
-    }
-    .x__input {
-      background: white;
-    }
-    > .span-cols {
-      grid-column-start: 1;
-      grid-column-end: 3;
-    }
-    // --- @todo this should probably be .x__text
-    x__text {
-      width: 400px;
-      padding: 20px;
     }
   }
 `
 
-const FormInner = ({ children, formProps={}, ... restProps }) => <form {... formProps}>
+// --- we use a <form> to silence chromium warnings -- make sure to use event.preventDefault so it doesn't actually submit
+const ResponsiveForm = ({ children, formProps={}, ... restProps }) => <form {... formProps}>
   {/* --- trivial field to silence chromium warning, with dummy onChange to silence a react warning */}
   <input hidden type='text' name='username' value='' onChange={noop} autoComplete=''/>
-  <FormInnerS {... restProps}>
-    {children}
-  </FormInnerS>
+  <ResponsiveFormS {... restProps}>
+    <div className='x__grid'>
+      {children}
+    </div>
+  </ResponsiveFormS>
 </form>
+
+const InputWithEyeballS = styled.div`
+  > .x__input {
+    width: calc(100% - 24px - 20px);
+    display: inline-block;
+  }
+  > .x__icon {
+    padding-left: 20px;
+  }
+`
+
+const InputWithEyeball = ({ showEyeball=true, onChange, onKeyDown, autoComplete=null, inputRef=null, type: typeProp=null, value=null, }) => {
+  const [showPassword, setShowPassword] = useState (false)
+  const onClickShowPassword = useCallbackConst (() => setShowPassword (not))
+  const type = typeProp ?? (showPassword ? 'text' : 'password')
+  const optional = {
+    ... autoComplete && { autoComplete, },
+    ... value && { value, },
+    ... inputRef && { ref: inputRef, },
+  }
+
+  return <InputWithEyeballS>
+    <div className='x__input'>
+      <Input
+        type={type}
+        autoComplete={autoComplete}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        { ... optional }
+      />
+    </div>
+    {showEyeball && <div className='x__icon'>
+      <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+    </div>}
+  </InputWithEyeballS>
+}
 
 const PasswordStrengthS = styled.div`
   font-size: 15px;
   color: #9c3939;
   text-align: center;
-  margin-bottom: 10px;
   > * {
     display: inline-block;
     vertical-align: middle;
@@ -699,7 +709,6 @@ const UserPasswordForm = container (
     }, [emailProp])
 
     const [password, setPassword] = useState ('')
-    const [showPassword, setShowPassword] = useState (false)
     const [forgotPasswordDialogIsOpen, setForgotPasswordDialogIsOpen] = useState (false)
 
     const inputEmailRef = useRef (null)
@@ -713,10 +722,6 @@ const UserPasswordForm = container (
 
     const onChangePassword = useCallbackConst (
       (event) => setPassword (event.target.value),
-    )
-
-    const onClickShowPassword = useCallbackConst (
-      () => setShowPassword (not),
     )
 
     const doLogIn = useCallback (
@@ -753,6 +758,7 @@ const UserPasswordForm = container (
     // complain but seems to be a case of the linter being too picky.
     useEffect (() => {
       if (mode === 'login') {
+        console.log ('inputEmailRef.current', inputEmailRef.current)
         setEmail (inputEmailRef.current.value)
         if (email === '') inputEmailRef.current.focus ()
         else inputPasswordRef.current.focus ()
@@ -788,11 +794,7 @@ const UserPasswordForm = container (
     const choosePassword = mode === 'reset-password' || mode === 'init-password'
     const choosePasswordNew = mode === 'reset-password' ? 'nieuw ' : ''
 
-    // --- the outer element is a form, which is there to silence a chromium warning, but doesn't really do anything.
-    // Make sure to use event.preventDefault so it doesn't submit
-
     return <LoginS>
-      <FormWrapper>
       <Dialog
         isMobile={isMobile}
         isOpen={forgotPasswordDialogIsOpen}
@@ -810,46 +812,48 @@ const UserPasswordForm = container (
         </p>
       </TextBoxS>
       }
-      <FormInner className='x__form'>
-      {choosePassword && <div className='x__choose-password'>
-        Kies een {choosePasswordNew}wachtwoord
-      </div>}
-        {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
-        <div className='x__grid'>
+      <FullHeightCenter>
+        <ResponsiveForm>
+          {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
+          {choosePassword && <div className='x__choose-password span-cols'>
+            Kies een {choosePasswordNew}wachtwoord
+          </div>}
           {mode === 'login' && <>
             <div className='x__label x__email'>
               emailadres
             </div>
-            <div className='x__input x__email-input'>
-              <input type='email' autoComplete='username' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} ref={inputEmailRef}/>
+            {/* so we can align nicely with the password field */}
+            <InputWithEyeball
+              showEyeball={false}
+              onChange={onChangeEmail}
+              onKeyDown={onKeyDownInput}
+              inputRef={inputEmailRef}
+              value={email}
+              type='email'
+            />
+            <div className='x__label x__password'>
+              wachtwoord
             </div>
-          </> || <>
-            <div/>
-            <div/>
-          <div/>
           </>}
-          <div/>
-          {mode === 'login' && <div className='x__label x__password'>
-            wachtwoord
-          </div>}
-          <div className='x__input x__password-input'>
-            <input type={showPassword ? 'text' : 'password'} autoComplete='new-password' onChange={onChangePassword} onKeyDown={onKeyDownInput} ref={inputPasswordRef}/>
+          <div className={clss (mode !== 'login' && 'span-cols')}>
+            <InputWithEyeball
+              onChange={onChangePassword}
+              onKeyDown={onKeyDownInput}
+              inputRef={inputPasswordRef}
+              autoComplete='new-password'
+            />
           </div>
-          <div className='x__icon'>
-            <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
-          </div>
-          <div/>
 
           {enforcePasswordStrength && mode !== 'login' && <>
-            <div className='span-cols'>
+            <div className='span-cols' style={{ margin: '30px 0', }}>
               <PasswordStrength
                 show={passwordIsNotEmpty}
                 score={passwordScore}
                 minimumScore={minimumPasswordScore}
               />
             </div>
-            <div/>
-            <div/>
+            {/* --- so that we can apply a bottom margin to the previous row */}
+            <div className='span-cols'/>
           </>}
 
           <div>
@@ -869,19 +873,17 @@ const UserPasswordForm = container (
             <div/>
             <div/>
           </>}
-
-        </div>
-      </FormInner>
-        </FormWrapper>
+        </ResponsiveForm>
+        </FullHeightCenter>
     </LoginS>
   },
 )
 
 const Login = container ([
   'Login', { logInDispatch: logIn, }, {},
-], ({ isMobile, email='', logInDispatch, }) => <FormWrapper>
+], ({ isMobile, email='', logInDispatch, }) => <>
   <UserPasswordForm isMobile={isMobile} mode='login' email={email} logIn={logInDispatch}/>
-</FormWrapper>
+</>
 )
 
 const UserActivateS = styled.div`
@@ -1066,49 +1068,46 @@ const UserPage = container (
       [newPasswordIsNotEmpty, oldPassword, passwordIsStrongEnough],
     )
 
-    return <FormWrapper>
-      <FormInner style={{ marginTop: '5%', }}>
-        <div className='x__grid'>
+    return <FullHeightCenter>
+      <ResponsiveForm>
           <div className='x__label x__password'>
             huidig wachtwoord
           </div>
           <div className='x__input x__password-input'>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              autoComplete='current-password'
+            <InputWithEyeball
               onChange={onChangeOldPassword}
               onKeyDown={onKeyDownInput}
-              ref={inputOldPasswordRef}/>
-          </div>
-          <div className='x__icon'>
-            <IconShowPassword shown={showPassword} onClick={onClickShowPassword}/>
+              inputRef={inputOldPasswordRef}
+              autoComplete='current-password'
+            />
           </div>
           <div className='x__label x__new-password'>
             nieuw wachtwoord
           </div>
           <div className='x__input x__new-password-input'>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              autoComplete='new-password'
+            <InputWithEyeball
               onChange={onChangeNewPassword}
               onKeyDown={onKeyDownInput}
-              ref={inputNewPasswordRef}/>
-          </div>
-          {enforcePasswordStrength && <div className='span-cols'>
-            <PasswordStrength
-              show={newPasswordIsNotEmpty}
-              score={passwordScore}
-              minimumScore={minimumPasswordScore}
+              inputRef={inputNewPasswordRef}
+              autoComplete='new-password'
             />
-          </div>}
-          <div/>
-          <div/>
+          </div>
+          {enforcePasswordStrength && <>
+            <div className='span-cols' style={{ margin: '30px 0', }}>
+              <PasswordStrength
+                show={newPasswordIsNotEmpty}
+                score={passwordScore}
+                minimumScore={minimumPasswordScore}
+              />
+            </div>
+            {/* --- so that we can apply a bottom margin to the previous row */}
+            <div className='span-cols'/>
+          </>}
           <div>
             <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
           </div>
-        </div>
-      </FormInner>
-    </FormWrapper>
+      </ResponsiveForm>
+    </FullHeightCenter>
   }
 )
 

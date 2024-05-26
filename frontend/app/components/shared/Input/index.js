@@ -123,6 +123,7 @@ const InputWrapper = invoke (() => {
       clear: clearProp={},
       onBlur=noop, onChange=noop, onClear=noop, onFocus=noop, onKeyDown=noop,
       inputProps={},
+      type='text',
     } = props
     const { style: inputStyle={}, ... restInputProps } = inputProps
     const [icon, whereIcon, iconClasses=[]] = withIcon
@@ -164,6 +165,7 @@ const InputWrapper = invoke (() => {
           onKeyDown={onKeyDown}
           onBlur={onBlur}
           onFocus={onFocus}
+          type={type}
           {... restInputProps}
           // --- this is for avoiding a weird jump / blue outline on mobile. It probably won't work
           // right if the caller gives varying values for paddingLeft, paddingRight, etc.
