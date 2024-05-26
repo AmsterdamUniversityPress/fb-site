@@ -521,23 +521,34 @@ const FullHeightCenter = styled.div`
   align-items: center;
 `
 
+// --- user must apply classes col1 and col2, or whole-row, to make the mobile version work correctly.
 const ResponsiveFormS = styled (TextBoxS)`
   > .x__grid {
     align-items: center;
-    display: grid;
-    grid-template-columns: 117px auto;
-    grid-auto-rows: 50px;
-    row-gap: 40px;
-    column-gap: 20px;
-    > .span-cols {
-      grid-column-start: 1;
-      grid-column-end: span 2;
-    }
     > .x__label, .x__icon {
       display: inline-block;
       vertical-align: middle;
       height: 35px;
     }
+    ${mediaQuery (
+      mediaPhone (`
+        > .col1 {}
+        > .col2, > .whole-row {
+          margin-bottom: 20px;
+        }
+      `),
+      mediaTablet (`
+        display: grid;
+        grid-template-columns: 117px auto;
+        grid-auto-rows: 50px;
+        row-gap: 40px;
+        column-gap: 20px;
+        > .whole-row {
+          grid-column-start: 1;
+          grid-column-end: span 2;
+        }
+      `),
+    )}
   }
 `
 
@@ -815,27 +826,29 @@ const UserPasswordForm = container (
       <FullHeightCenter>
         <ResponsiveForm>
           {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}
-          {choosePassword && <div className='x__choose-password span-cols'>
+          {choosePassword && <div className='x__choose-password whole-row'>
             Kies een {choosePasswordNew}wachtwoord
           </div>}
           {mode === 'login' && <>
-            <div className='x__label x__email'>
+            <div className='x__label x__email col1'>
               emailadres
             </div>
-            {/* so we can align nicely with the password field */}
-            <InputWithEyeball
-              showEyeball={false}
-              onChange={onChangeEmail}
-              onKeyDown={onKeyDownInput}
-              inputRef={inputEmailRef}
-              value={email}
-              type='email'
-            />
-            <div className='x__label x__password'>
+            {/* we use InputWithEyeball with a hidden eyeball so we can align nicely with the password field */}
+            <div className='col2'>
+              <InputWithEyeball
+                showEyeball={false}
+                onChange={onChangeEmail}
+                onKeyDown={onKeyDownInput}
+                inputRef={inputEmailRef}
+                value={email}
+                type='email'
+              />
+            </div>
+            <div className='x__label x__password col1'>
               wachtwoord
             </div>
           </>}
-          <div className={clss (mode !== 'login' && 'span-cols')}>
+          <div className={clss ('col2', mode !== 'login' && 'whole-row')}>
             <InputWithEyeball
               onChange={onChangePassword}
               onKeyDown={onKeyDownInput}
@@ -845,7 +858,7 @@ const UserPasswordForm = container (
           </div>
 
           {enforcePasswordStrength && mode !== 'login' && <>
-            <div className='span-cols' style={{ margin: '30px 0', }}>
+            <div className='whole-row' style={{ margin: '30px 0', }}>
               <PasswordStrength
                 show={passwordIsNotEmpty}
                 score={passwordScore}
@@ -853,17 +866,17 @@ const UserPasswordForm = container (
               />
             </div>
             {/* --- so that we can apply a bottom margin to the previous row */}
-            <div className='span-cols'/>
+            <div className='whole-row'/>
           </>}
 
-          <div>
+          <div className='whole-row'>
             <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
               {mode === 'login' ? 'aanmelden' : 'OK'}
             </BigButton>
           </div>
 
           {mode === 'login' && <>
-            <div className='x__forgot-password span-cols'>
+            <div className='x__forgot-password whole-row'>
               <MenuItem
                 onClick={onClickForgotPassword}
                 imgSrc={null}
@@ -871,8 +884,6 @@ const UserPasswordForm = container (
                 withArrow={isMobile}
               />
             </div>
-            <div/>
-            <div/>
           </>}
         </ResponsiveForm>
         </FullHeightCenter>
@@ -1071,42 +1082,42 @@ const UserPage = container (
 
     return <FullHeightCenter>
       <ResponsiveForm>
-          <div className='x__label x__password'>
-            huidig wachtwoord
-          </div>
-          <div className='x__input x__password-input'>
-            <InputWithEyeball
-              onChange={onChangeOldPassword}
-              onKeyDown={onKeyDownInput}
-              inputRef={inputOldPasswordRef}
-              autoComplete='current-password'
+        <div className='x__label x__password col1'>
+          huidig wachtwoord
+        </div>
+        <div className='x__input x__password-input col2'>
+          <InputWithEyeball
+            onChange={onChangeOldPassword}
+            onKeyDown={onKeyDownInput}
+            inputRef={inputOldPasswordRef}
+            autoComplete='current-password'
+          />
+        </div>
+        <div className='x__label x__new-password col1'>
+          nieuw wachtwoord
+        </div>
+        <div className='x__input x__new-password-input col2'>
+          <InputWithEyeball
+            onChange={onChangeNewPassword}
+            onKeyDown={onKeyDownInput}
+            inputRef={inputNewPasswordRef}
+            autoComplete='new-password'
+          />
+        </div>
+        {enforcePasswordStrength && <>
+          <div className='whole-row' style={{ margin: '30px 0', }}>
+            <PasswordStrength
+              show={newPasswordIsNotEmpty}
+              score={passwordScore}
+              minimumScore={minimumPasswordScore}
             />
           </div>
-          <div className='x__label x__new-password'>
-            nieuw wachtwoord
-          </div>
-          <div className='x__input x__new-password-input'>
-            <InputWithEyeball
-              onChange={onChangeNewPassword}
-              onKeyDown={onKeyDownInput}
-              inputRef={inputNewPasswordRef}
-              autoComplete='new-password'
-            />
-          </div>
-          {enforcePasswordStrength && <>
-            <div className='span-cols' style={{ margin: '30px 0', }}>
-              <PasswordStrength
-                show={newPasswordIsNotEmpty}
-                score={passwordScore}
-                minimumScore={minimumPasswordScore}
-              />
-            </div>
-            {/* --- so that we can apply a bottom margin to the previous row */}
-            <div className='span-cols'/>
-          </>}
-          <div>
-            <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
-          </div>
+          {/* --- so that we can apply a bottom margin to the previous row */}
+          <div className='whole-row'/>
+        </>}
+        <div>
+          <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
+        </div>
       </ResponsiveForm>
     </FullHeightCenter>
   }
