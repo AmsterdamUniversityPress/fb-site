@@ -61,12 +61,16 @@ const reducerTable = makeReducer (
   loggedInInstitution, (user) => assoc (
     'loginState', LoginLoggedInInstitution (user),
   ),
-  // --- user null means error or not logged in -- we collapse both to mean 'not logged in' since
-  // in the case of error we've already shown the oops bubble
   logIn, (_) => assoc ('userPrivileges', Nothing),
+  /* We get here in two ways: login action completed, or /hello call returned.
+   * Error means login action failed with an error.
+   * If /hello returns an error (usually 499, meaning not logged in), it gets caught in the saga and
+   * converted to a success with user = `null`.
+   */
   loginUserCompleted, (rcomplete) => (state) => {
     const { loginState: loginStateCur, } = state
     const [allowAnalytical, privileges, loginState] = rcomplete | cata ({
+      // --- login with the form -- not /hello -- failed with an error.
       RequestCompleteError: (_) => [null, Nothing, loginStateCur],
       RequestCompleteSuccess: (user) => user | ifOk (
         ({ userinfo, allowAnalytical, }) => [

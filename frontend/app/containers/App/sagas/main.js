@@ -9,7 +9,7 @@ import {
 import { all, call, put, select, takeEvery, takeLatest, delay, } from 'redux-saga/effects'
 
 import configure from 'alleycat-js/es/configure'
-import { requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
+import { RequestCompleteSuccess, requestCompleteFold, requestJSONStdOpts, } from 'alleycat-js/es/fetch'
 import { between, error, logWith, } from 'alleycat-js/es/general'
 import { EffAction, EffSaga, } from 'alleycat-js/es/saga'
 import { cata, } from 'alleycat-js/es/bilby'
@@ -130,14 +130,24 @@ function *hello (first=false) {
 
 function *helloCompleted (rcomplete, first=false) {
   const onError = (msg) => error ('Error: helloCompleted:', msg)
-  const user = rcomplete | requestCompleteFold (
-    ({ userinfo, }) => userinfo,
+  const [loggedIn, user=null] = rcomplete | requestCompleteFold (
+    ({ userinfo, }) => [true, userinfo],
     // --- 401, i.e. not authorized
-    (_umsg) => null,
-    // --- @todo this logs the user out if hello fails (e.g. network error), which is a bit overkill.
-    () => (onError ('(no message)'), null),
+    (_umsg) => [false],
+    // --- @todo check what happens here (it would be good if the user doesn't get logged out on
+    // network error for example)
+    () => {
+      console.log ('error hello')
+      onError ('(no message)')
+      return [null]
+    },
   )
-  if (ok (user)) {
+  if (loggedIn === false)
+    // --- we convert the 499 error (meaning unauthorized) into a success with the definitive
+    // answer 'not logged in', as if it were a login with the form with the wrong password or
+    // invalid user.
+    yield put (a_loginUserCompleted (RequestCompleteSuccess (null)))
+  else {
     if (first) yield call (fondsenRefresh, false)
     if (user.type === 'institution') yield put (a_loggedInInstitution (user))
     else if (user.type === 'user') yield put (a_loginUserCompleted (rcomplete))
