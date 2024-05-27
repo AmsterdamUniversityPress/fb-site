@@ -769,7 +769,6 @@ const UserPasswordForm = container (
     // complain but seems to be a case of the linter being too picky.
     useEffect (() => {
       if (mode === 'login') {
-        console.log ('inputEmailRef.current', inputEmailRef.current)
         setEmail (inputEmailRef.current.value)
         if (email === '') inputEmailRef.current.focus ()
         else inputPasswordRef.current.focus ()
