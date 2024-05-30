@@ -12,6 +12,7 @@ import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
 import {} from 'alleycat-js/es/general'
+import { ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
 import { media, mediaQuery, } from 'alleycat-js/es/styled'
@@ -33,6 +34,7 @@ const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
 
 const jaNee = (x) => ['nee', 'ja'] [Number (x)]
+const link = (value) => <Link to={value} target='_blank'>{value}</Link>
 
 const DetailS = styled.div`
   a {
@@ -157,13 +159,13 @@ const FieldsS = styled.div`
   }
 `
 
-const Fields = ({ data, }) => {
+const Fields = ({ title, data, }) => {
   const show = useMemo (() => data | find (
     ([_name, value]) => value | ok,
   ), [data])
   return show && <FieldsS>
     <div className='x__block-title'>
-      Rubriek
+      {title}
     </div>
     {data | map (([name, value, wrap]) => <Field
       key={name} name={name} value={value} wrap={wrap}
@@ -171,10 +173,8 @@ const Fields = ({ data, }) => {
   </FieldsS>
 }
 
-const Detail = ({ image: _image, data, trefwoorden, type_organisatie,
-
-categories=[],
-doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
+const Detail = ({ image: _image, data,
+doelstelling, title3, text3, }) => <DetailS>
   <div className='x__image-and-tag'>
     <img src={imageTest}/>
   </div>
@@ -200,95 +200,96 @@ doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
   </div>
   <div className='x__block x__algemeen'>
     <Fields title='Algemeen' data={[
-      ['website', data.website, (value) => <Link
-        to={value} target='_blank'
-      >{value}</Link>],
-        ['typering', data.type_organisatie],
-        ['beheerd door', data.naam_moeder_organisatie],
-        ['opgericht', data.oprichtings_datum],
-        ['rechtsvorm', data.rechtsvorm],
-        ['KVK', data.kvk_number],
-        ['ANBI status', jaNee (data.anbi_status)],
-        ['directie', data.directeur_algemeen],
-        ['bestuur', [
-          data.bestuursvoorzitter | whenOk (concat (', voorzitter')),
-          data.bestuurssecretaris | whenOk (concat (', secretaris')),
-          data.bestuurspenningmeester | whenOk (concat (', penningmeester')),
-          ... data.bestuursleden_overig,
-        ] | compact | join ('; ')],
+      ['website', data.website, link],
+      ['typering', data.type_organisatie],
+      ['beheerd door', data.naam_moeder_organisatie],
+      ['opgericht', data.oprichtings_datum],
+      ['rechtsvorm', data.rechtsvorm],
+      ['KVK', data.kvk_number],
+      ['ANBI status', jaNee (data.anbi_status)],
+      ['directie', data.directeur_algemeen],
+      ['bestuur', [
+        data.bestuursvoorzitter | whenOk (concat (', voorzitter')),
+        data.bestuurssecretaris | whenOk (concat (', secretaris')),
+        data.bestuurspenningmeester | whenOk (concat (', penningmeester')),
+        ... data.bestuursleden_overig,
+      ] | compact | join ('; ')],
     ]}/>
   </div>
   <div className='x__block x__missie'>
-    <div className='x__block-title'>
-      Missie
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Missie' data={[
+      ['doelstelling', data.doelstelling],
+      ['stichter(s)', data.stichter],
+      ['historie', data.historie],
+      ['beleidsplan op website', jaNee (data.beleidsplan_op_website)],
+    ]}/>
   </div>
   <div className='x__block x__doelgroep'>
-    <div className='x__block-title'>
-      Doelgroep
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Doelgroep' data={[
+      ['algemeen', data.doelgroep],
+      ['specifiek', data.doelgroep_overig],
+      ['activiteiten', data.activiteiten_beschrijving],
+      ['interventieniveau', data.interventie_niveau],
+    ]}/>
   </div>
   <div className='x__block x__werkgebied'>
-    <div className='x__block-title'>
-      Werkgebied
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Werkgebied' data={[
+      ['werkgebied', data.werk_regio],
+      ['regio’s', data.regios],
+    ]}/>
+    { /* -- @todo moet dit worden, fix ingest
+    <Fields title='Werkgebied' data={[
+      ['werkgebied', data.werk_regio],
+      ['landen', data.landen],
+      ['regio', data.regio],
+      ['plaats', data.plaats],
+    ]}/> */ }
   </div>
   <div className='x__block x__bestedingen'>
-    <div className='x__block-title'>
-      Bestedingen
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Bestedingen' data={[
+      ['budget', data.besteding_budget],
+      ['ondersteunde projecten', data.ondersteunde_projecten],
+      ['soort bijdrage', data.fin_fonds],
+      ['bovengrens', data.max_ondersteuning],
+      ['ondergrens', data.min_ondersteuning],
+    ]}/>
   </div>
   <div className='x__block x__projecten'>
-    <div className='x__block-title'>
-      Projecten
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Projecten' data={[
+      ['criteria', data.beschrijving_project_aanmerking],
+        ['doorlooptijd', data.doorloop_tijd_act],
+        ['status aanvrager', data.fonds_type_aanvraag],
+        ['voorkeur/uitsluiting', data.uitsluiting],
+    ]}/>
   </div>
   <div className='x__block x__proceduren'>
-    <div className='x__block-title'>
-      Proceduren
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Procedure' data={[
+      ['op aanvraag', jaNee (data.op_aanvraag)],
+      ['doorlooptijd', data.doorloop_tijd],
+      ['aanvraagprocedure', data.aanvraag_procedure],
+      ['url', data.url_aanvraag_procedure, link],
+    ]}/>
   </div>
   <div className='x__block x__financieel'>
-    <div className='x__block-title'>
-      Financieel
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Financieel' data={[
+      ['eigen vermogen', data.eigen_vermogen],
+      ['inkomsten EV', data.inkomsten_eigen_vermogen],
+      ['herkomst middelen', data.herkomst_middelen],
+      ['boekjaar', data.boekjaar],
+      ['jaarverslag op website', data.url_jaarverslag, link],
+    ]}/>
   </div>
   <div className='x__block x__contact'>
-    <div className='x__block-title'>
-      Contact
-    </div>
-    <div className='x__title'>
-      {title3}
-    </div>
-    {text3}
+    <Fields title='Contact' data={[
+      ['bereikbaar per', data.contact],
+      ['contactpersoon', data.cpfinaanvragen],
+      ['postadres', data.postadres],
+      ['email (algemeen)', data.email],
+      ['telefoon (algemeen)', data.telefoon],
+      ['telefoon (financiele aanvragen)', data.telefoon_fin_aanvragen | ifEquals (data.telefoon) (
+        () => null, id,
+      )],
+    ]}/>
   </div>
 </DetailS>
 
