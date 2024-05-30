@@ -472,7 +472,9 @@ const MainS = styled.div`
   > .x__contents {
     > .x__header {
       z-index: 4;
-      position: relative;
+      position: sticky;
+      top: 0;
+      left: 0;
     }
     > .x__logo {
       padding: 5px;
@@ -1244,13 +1246,14 @@ const Landing = () => {
   </LandingS>
 }
 
+  // ${prop ('shiftUp') >> ifTrue (
+    // () => `margin-top: -100px;`,
+    // () => `margin-top: 0px;`,
+  // )}
+
 const ContentsS = styled.div`
   width: 100vw;
   position: relative;
-  ${prop ('shiftUp') >> ifTrue (
-    () => `margin-top: -300px;`,
-    () => `margin-top: 0px;`,
-  )}
   > .x__main {
     position: relative;
     z-index: 1;

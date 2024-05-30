@@ -27,6 +27,7 @@ import imageLogoAUP from './images/logo-aup.svg'
 import imageLogoFB from './images/logo-fb.svg'
 import imageHeroE from './images/hero-e.png'
 import imageHeroText from './images/hero-text.svg'
+import imageTest from './images/fonds/output_row_259.png'
 
 const debugRenders = false
 const debugReducers = false
@@ -121,6 +122,9 @@ export default {
     'logo-aup': imageLogoAUP,
     'hero-e': imageHeroE,
     'hero-text': imageHeroText,
+  },
+  imagesFonds: {
+    test: imageTest,
   },
   colors: {
     header: {

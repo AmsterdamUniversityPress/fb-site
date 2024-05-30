@@ -27,6 +27,7 @@ import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWi
 import config from '../../config'
 const configTop = config | configure.init
 const imageEyeWall = configTop.get ('images.fonds')
+const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
 
 const DetailS = styled.div`
@@ -36,8 +37,8 @@ const DetailS = styled.div`
   > .x__image-and-tag {
     width: 100%;
     position: relative;
-    margin-top: 1%;
-    padding: 2%;
+    // margin-top: 1%;
+    // padding: 2%;
     img {
       height: 100%;
       width: 100%;
@@ -51,7 +52,12 @@ const DetailS = styled.div`
     }
   }
   > .x__title-and-doelstelling {
-    margin-left: 100px;
+    position: sticky;
+    background: white;
+    width: 100%;
+    left: 0px;
+    top: 100px;
+    padding-left: 100px;
     padding-bottom: 20px;
     .x__title {
       font-size: 60px;
