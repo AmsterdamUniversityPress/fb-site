@@ -12,6 +12,7 @@ import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 import iconAdd from './images/icons/plus.svg'
 import iconAdmin from './images/icons/admin.svg'
 import iconArrow from './images/icons/arrow.svg'
+import iconFacebook from './images/icons/facebook-wit.svg'
 import iconFilter from './images/icons/filter.svg'
 import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
@@ -97,6 +98,7 @@ export default {
     add: iconAdd,
     admin: iconAdmin,
     arrow: iconArrow,
+    facebook: iconFacebook,
     filter: iconFilter,
     login: iconLogin,
     logout: iconLogout,
@@ -131,8 +133,10 @@ export default {
       color1: '#EEEEEE',
       color2: '#FFBBBB',
     },
-    highlight: '#cb0233',
-    highlightAlpha: '#cb0233ff',
+    // highlight: '#cb0233',
+    highlight: '#164856',
+    // highlightAlpha: '#cb0233ff',
+    highlightAlpha: '#164856',
     highlight2: '#fff5e6',
     highlight3: '#761b07',
     // textBlock1: '#f9e9d7',

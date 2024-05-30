@@ -45,9 +45,13 @@ import config from '../../config'
 
 const configTop = config | configure.init
 const configColors = configTop.focus ('colors')
+const configIcons = configTop.focus ('icons')
+const imageIconFacebook = configIcons.get ('facebook')
+
 const colors = configColors.gets (
   'highlight', 'highlightAlpha',
 )
+
 const fontMainFamily = 'font.main.family' | configTop.get
 
 const fontStyles = [
@@ -117,6 +121,9 @@ const AppWrapper = styled.div`
     }
   }
   > .x__ac-footer {
+    position: sticky;
+    left: 0;
+    bottom: 0px;
     width: 100%;
     z-index: 0;
     padding-top: 10px;
@@ -134,9 +141,6 @@ const AppWrapper = styled.div`
         bottom: 0px;
       }
       > .x__ac-footer {
-        position: sticky;
-        left: 0;
-        bottom: 0px;
       }
     `),
   )}
@@ -253,8 +257,12 @@ const FooterS = styled.div`
     background: ${colors.highlight};
     color: white;
     height: 100%;
+    > .x__socials {
+      padding-top: 40px;
+    }
     > .x__contact {
       height: 200px;
+      font-size: 25px;
     }
     > .x__grid {
       display: flex;
@@ -290,67 +298,124 @@ const FooterS = styled.div`
   }
 `
 
-const Footer = () => <FooterS>
-  <div className='x__main'>
-    <div className='x__contact'>
-      <p>Contactformulier</p>
+const SocialS = styled.div`
+  height: 100px;
+  width: 100px;
+  display: inline-block;
+  margin-left: 10%;
+`
+
+const Social = ({ img, link }) => <SocialS>
+  <a href={link}>
+    <img src={img}/>
+  </a>
+</SocialS>
+
+// @todo use encodeURIComponent
+// @todo use Link (place Footer in Main container)
+// @todo use right images
+const Footer = () => {
+    return <FooterS>
+    <div className='x__main'>
+      <div className='x__socials'>
+        <Social
+          img={imageIconFacebook}
+          link={'https://facebook.com'}
+        />
+        <Social
+          img={imageIconFacebook}
+          link={'https://twitter.com'}
+        />
+        <Social
+          img={imageIconFacebook}
+          link={'https://twitter.com'}
+        />
+        <Social
+          img={imageIconFacebook}
+          link={'https://twitter.com'}
+        />
+        <Social
+          img={imageIconFacebook}
+          link={'https://twitter.com'}
+        />
+      </div>
+      <div className='x__contact'>
+        <p>Contact</p>
+        <p>
+          <a href="https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/">Abonnee worden?</a>
+        </p>
+        <p>
+          <a href="mailto:fondsen@aup.nl?subject=Fonds%20aanmelden">Meld een fonds aan: </a>
+        </p>
+        <p>
+          <a href="mailto:fondsen@aup.nl?subject=Suggestie">Op of aanmerkingen?</a>
+        </p>
+        {/*
+        // @todo url might change in the future?
+        */}
+        <p>
+          <a href="https://aup.us5.list-manage.com/subscribe?u=ae618e98510c18013898e0ee3&id=50ef6b34aa">
+            AUP nieuwsbrief ontvangen?
+          </a>
+        </p>
+      </div>
+      <div className='x__grid'>
+        <div className='x__block'>
+          <div className='x__title'>
+            Onze uitgaves
+          </div>
+          <div className='x__content'>
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            <p>4</p>
+            <p>5</p>
+            <p>6</p>
+          </div>
+        </div>
+        <div className='x__block'>
+          <div className='x__title'>
+            Blijf in contact
+          </div>
+          <div className='x__content'>
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            <p>4</p>
+            <p>5</p>
+            <p>6</p>
+          </div>
+        </div>
+        <div className='x__block'>
+          <div className='x__title'>
+            Over AUP
+          </div>
+          <div className='x__content'>
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            <p>4</p>
+            <p>5</p>
+            <p>6</p>
+          </div>
+        </div>
+        <div className='x__block'>
+          <div className='x__title'>
+            Filantropie
+          </div>
+          <div className='x__content'>
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            <p>4</p>
+            <p>5</p>
+            <p>6</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div className='x__grid'>
-      <div className='x__block'>
-        <div className='x__title'>
-          Onze uitgaves
-        </div>
-        <div className='x__content'>
-          <p>1</p>
-          <p>2</p>
-          <p>3</p>
-          <p>4</p>
-          <p>5</p>
-          <p>6</p>
-        </div>
-      </div>
-      <div className='x__block'>
-        <div className='x__title'>
-          Blijf in contact
-        </div>
-        <div className='x__content'>
-          <p>1</p>
-          <p>2</p>
-          <p>3</p>
-          <p>4</p>
-          <p>5</p>
-          <p>6</p>
-        </div>
-      </div>
-      <div className='x__block'>
-        <div className='x__title'>
-          Over AUP
-        </div>
-        <div className='x__content'>
-          <p>1</p>
-          <p>2</p>
-          <p>3</p>
-          <p>4</p>
-          <p>5</p>
-          <p>6</p>
-        </div>
-      </div>
-      <div className='x__block'>
-        <div className='x__title'>
-          Filantropie
-        </div>
-        <div className='x__content'>
-          <p>1</p>
-          <p>2</p>
-          <p>3</p>
-          <p>4</p>
-          <p>5</p>
-          <p>6</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</FooterS>
+  </FooterS>
+}
 
 export default container (
   ['App', dispatchTable, selectorTable],
