@@ -1,8 +1,8 @@
 import {
   pipe, compose, composeRight,
-  noop, remapTuples, join,
+  noop, remapTuples, join, whenPredicate,
   whenOk, id, map, find, ok,
-  compact, concat,
+  compact, concat, againstAll, tap,
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
@@ -11,7 +11,7 @@ import { Link, useParams as useRouteParams, } from 'react-router-dom'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
-import {} from 'alleycat-js/es/general'
+import { logWith, } from 'alleycat-js/es/general'
 import { ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
@@ -28,10 +28,14 @@ import {
 
 import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
+import { isNotEmptyString, } from '../../util-general'
+
 const configTop = config | configure.init
 const imageEyeWall = configTop.get ('images.fonds')
 const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
+const okAndNotEmptyString = againstAll ([ok, isNotEmptyString])
+const whenOkAndNotEmptyString = okAndNotEmptyString | whenPredicate
 
 const jaNee = (x) => ['nee', 'ja'] [Number (x)]
 const link = (value) => <Link to={value} target='_blank'>{value}</Link>
@@ -62,34 +66,32 @@ const DetailS = styled.div`
     background: white;
     width: 100%;
     left: 0px;
-    top: 100px;
-    padding-left: 100px;
     padding-bottom: 20px;
-    .x__title {
-      font-size: 60px;
-    }
-    .x__doelstelling {
+    > .x__doelstelling {
       color: ${colors.highlight3};
     }
-  }
-  > .x__block {
-    font-size: 16px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    padding-left: 450px;
-    padding-right: 30px;
-    > .x__field {
-      > .x__name {
-        font-variant: small-caps;
-        display: inline;
-        &:after {
-          content: ': '
+    ${mediaQuery (
+      mediaPhone (`
+        top: 203px;
+        text-align: center;
+        > .x__title {
+          font-size: 35px;
         }
-      }
-      > .x__content {
-        display: inline;
-      }
-    }
+        > .x__doelstelling {
+          display: none;
+        }
+      `),
+      mediaTablet (`
+        top: 100px;
+        padding-left: 100px;
+        > .x__title {
+          font-size: 60px;
+        }
+        > .x__doelstelling {
+          display: initial;
+        }
+      `),
+    )}
   }
   > .x__rubriek {
     background: ${colors.textBlock1};
@@ -141,7 +143,7 @@ const FieldS = styled.div`
 `
 
 const Field = ({ name, value, wrap=id, }) => <FieldS>
-  {value | whenOk (() => <>
+  {value | whenOkAndNotEmptyString (() => <>
     <div className='x__field'>
       <div className='x__name'>
         {name}
@@ -154,14 +156,26 @@ const Field = ({ name, value, wrap=id, }) => <FieldS>
 </FieldS>
 
 const FieldsS = styled.div`
+  font-size: 16px;
+  padding-right: 30px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   > .x__block-title {
     text-decoration: underline;
   }
+  ${mediaQuery (
+    mediaPhone (`
+      padding-left: 50px;
+    `),
+    mediaTablet (`
+      padding-left: 450px;
+    `),
+  )}
 `
 
 const Fields = ({ title, data, }) => {
   const show = useMemo (() => data | find (
-    ([_name, value]) => value | ok,
+    ([_name, value]) => value | okAndNotEmptyString,
   ), [data])
   return show && <FieldsS>
     <div className='x__block-title'>
@@ -173,22 +187,21 @@ const Fields = ({ title, data, }) => {
   </FieldsS>
 }
 
-const Detail = ({ image: _image, data,
-doelstelling, title3, text3, }) => <DetailS>
+const Detail = ({ image: _image, data, }) => <DetailS>
   <div className='x__image-and-tag'>
     <img src={imageTest}/>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
-      <Link to={data.href} target='_blank'>
+      <Link to={data.website} target='_blank'>
         {data.naam_organisatie}
       </Link>
     </div>
-    <div className='x__doelstelling'>
-      {doelstelling}
-    </div>
+    {/*<div className='x__doelstelling'>
+      {data.doelstelling}
+    </div>*/}
   </div>
-  <div className='x__block x__rubriek'>
+  <div className='x__rubriek'>
     <Fields title='Rubriek' data={[
       ['categorieën', data.categories | whenOk (join (', '))],
       ['trefwoorden', data.trefwoorden | whenOk (join (', '))],
@@ -198,7 +211,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['trefwoorden', null],
     ]}/>
   </div>
-  <div className='x__block x__algemeen'>
+  <div className='x__algemeen'>
     <Fields title='Algemeen' data={[
       ['website', data.website, link],
       ['typering', data.type_organisatie],
@@ -216,7 +229,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ] | compact | join ('; ')],
     ]}/>
   </div>
-  <div className='x__block x__missie'>
+  <div className='x__missie'>
     <Fields title='Missie' data={[
       ['doelstelling', data.doelstelling],
       ['stichter(s)', data.stichter],
@@ -224,7 +237,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['beleidsplan op website', jaNee (data.beleidsplan_op_website)],
     ]}/>
   </div>
-  <div className='x__block x__doelgroep'>
+  <div className='x__doelgroep'>
     <Fields title='Doelgroep' data={[
       ['algemeen', data.doelgroep],
       ['specifiek', data.doelgroep_overig],
@@ -232,7 +245,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['interventieniveau', data.interventie_niveau],
     ]}/>
   </div>
-  <div className='x__block x__werkgebied'>
+  <div className='x__werkgebied'>
     <Fields title='Werkgebied' data={[
       ['werkgebied', data.werk_regio],
       ['regio’s', data.regios],
@@ -245,7 +258,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['plaats', data.plaats],
     ]}/> */ }
   </div>
-  <div className='x__block x__bestedingen'>
+  <div className='x__bestedingen'>
     <Fields title='Bestedingen' data={[
       ['budget', data.besteding_budget],
       ['ondersteunde projecten', data.ondersteunde_projecten],
@@ -254,7 +267,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['ondergrens', data.min_ondersteuning],
     ]}/>
   </div>
-  <div className='x__block x__projecten'>
+  <div className='x__projecten'>
     <Fields title='Projecten' data={[
       ['criteria', data.beschrijving_project_aanmerking],
         ['doorlooptijd', data.doorloop_tijd_act],
@@ -262,7 +275,7 @@ doelstelling, title3, text3, }) => <DetailS>
         ['voorkeur/uitsluiting', data.uitsluiting],
     ]}/>
   </div>
-  <div className='x__block x__proceduren'>
+  <div className='x__proceduren'>
     <Fields title='Procedure' data={[
       ['op aanvraag', jaNee (data.op_aanvraag)],
       ['doorlooptijd', data.doorloop_tijd],
@@ -270,7 +283,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['url', data.url_aanvraag_procedure, link],
     ]}/>
   </div>
-  <div className='x__block x__financieel'>
+  <div className='x__financieel'>
     <Fields title='Financieel' data={[
       ['eigen vermogen', data.eigen_vermogen],
       ['inkomsten EV', data.inkomsten_eigen_vermogen],
@@ -279,7 +292,7 @@ doelstelling, title3, text3, }) => <DetailS>
       ['jaarverslag op website', data.url_jaarverslag, link],
     ]}/>
   </div>
-  <div className='x__block x__contact'>
+  <div className='x__contact'>
     <Fields title='Contact' data={[
       ['bereikbaar per', data.contact],
       ['contactpersoon', data.cpfinaanvragen],
@@ -327,13 +340,6 @@ export default container (
         onResults: (data) => <Detail
           image={imageEyeWall}
           data={data}
-
-          title1='Vijf muzikale beurzen'
-          title2='Vijf muzikale beurzen'
-          title3='Vijf muzikale beurzen'
-          text1={data.doelstelling}
-          text2={data.doelstelling}
-          text3={data.doelstelling}
         />,
       })}
     </FondsDetailS>
