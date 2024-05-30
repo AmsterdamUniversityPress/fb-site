@@ -1,9 +1,11 @@
 import {
   pipe, compose, composeRight,
-  noop, remapTuples,
+  noop, remapTuples, join,
+  whenOk, id, map, find, ok,
+  compact, concat,
 } from 'stick-js/es'
 
-import React, { Fragment, useCallback, useEffect, useRef, useState, } from 'react'
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 import { Link, useParams as useRouteParams, } from 'react-router-dom'
 
 import styled from 'styled-components'
@@ -29,6 +31,8 @@ const configTop = config | configure.init
 const imageEyeWall = configTop.get ('images.fonds')
 const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
+
+const jaNee = (x) => ['nee', 'ja'] [Number (x)]
 
 const DetailS = styled.div`
   a {
@@ -71,49 +75,216 @@ const DetailS = styled.div`
     padding-top: 20px;
     padding-bottom: 20px;
     padding-left: 450px;
-    .x__title {
-      font-size: 30px;
+    padding-right: 30px;
+    > .x__field {
+      > .x__name {
+        font-variant: small-caps;
+        display: inline;
+        &:after {
+          content: ': '
+        }
+      }
+      > .x__content {
+        display: inline;
+      }
     }
   }
-  > .x__block1 {
+  > .x__rubriek {
     background: ${colors.textBlock1};
+    color: ${colors.textBlock1Fg};
   }
-  > .x__block2 {
+  > .x__algemeen {
     background: ${colors.textBlock2};
   }
-  > .x__block3 {
+  > .x__missie {
     background: ${colors.textBlock3};
+  }
+  > .x__doelgroep {
+    background: ${colors.textBlock4};
+  }
+  > .x__werkgebied {
+    background: ${colors.textBlock5};
+  }
+  > .x__bestedingen {
+    background: ${colors.textBlock6};
+  }
+  > .x__projecten {
+    background: ${colors.textBlock7};
+  }
+  > .x__proceduren {
+    background: ${colors.textBlock8};
+  }
+  > .x__financieel {
+    background: ${colors.textBlock9};
+  }
+  > .x__contact {
+    background: ${colors.textBlock10};
   }
 `
 
-const Detail = ({ image, href, name, tag, doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
+const FieldS = styled.div`
+  > .x__field {
+    > .x__name {
+      font-variant: small-caps;
+      text-transform: lowercase;
+      display: inline;
+      &:after {
+        content: ': '
+      }
+    }
+    > .x__content {
+      display: inline;
+    }
+  }
+`
+
+const Field = ({ name, value, wrap=id, }) => <FieldS>
+  {value | whenOk (() => <>
+    <div className='x__field'>
+      <div className='x__name'>
+        {name}
+      </div>
+      <div className='x__content'>
+        {wrap (value)}
+      </div>
+    </div>
+  </>)}
+</FieldS>
+
+const FieldsS = styled.div`
+  > .x__block-title {
+    text-decoration: underline;
+  }
+`
+
+const Fields = ({ data, }) => {
+  const show = useMemo (() => data | find (
+    ([_name, value]) => value | ok,
+  ), [data])
+  return show && <FieldsS>
+    <div className='x__block-title'>
+      Rubriek
+    </div>
+    {data | map (([name, value, wrap]) => <Field
+      key={name} name={name} value={value} wrap={wrap}
+    />)}
+  </FieldsS>
+}
+
+const Detail = ({ image: _image, data, trefwoorden, type_organisatie,
+
+categories=[],
+doelstelling, title1, title2, title3, text1, text2, text3, }) => <DetailS>
   <div className='x__image-and-tag'>
-    <img src={image}/>
-    <span>{tag}</span>
+    <img src={imageTest}/>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
-      <Link to={href} target='_blank'>
-        {name}
+      <Link to={data.href} target='_blank'>
+        {data.naam_organisatie}
       </Link>
     </div>
     <div className='x__doelstelling'>
       {doelstelling}
     </div>
   </div>
-  <div className='x__block x__block1'>
-    <div className='x__title'>
-      {title1}
-    </div>
-    {text1}
+  <div className='x__block x__rubriek'>
+    <Fields title='Rubriek' data={[
+      ['categorieën', data.categories | whenOk (join (', '))],
+      ['trefwoorden', data.trefwoorden | whenOk (join (', '))],
+    ]}/>
+    <Fields title='Rubriek' data={[
+      ['categorieën', null],
+      ['trefwoorden', null],
+    ]}/>
   </div>
-  <div className='x__block x__block2'>
-    <div className='x__title'>
-      {title2}
-    </div>
-    {text2}
+  <div className='x__block x__algemeen'>
+    <Fields title='Algemeen' data={[
+      ['website', data.website, (value) => <Link
+        to={value} target='_blank'
+      >{value}</Link>],
+        ['typering', data.type_organisatie],
+        ['beheerd door', data.naam_moeder_organisatie],
+        ['opgericht', data.oprichtings_datum],
+        ['rechtsvorm', data.rechtsvorm],
+        ['KVK', data.kvk_number],
+        ['ANBI status', jaNee (data.anbi_status)],
+        ['directie', data.directeur_algemeen],
+        ['bestuur', [
+          data.bestuursvoorzitter | whenOk (concat (', voorzitter')),
+          data.bestuurssecretaris | whenOk (concat (', secretaris')),
+          data.bestuurspenningmeester | whenOk (concat (', penningmeester')),
+          ... data.bestuursleden_overig,
+        ] | compact | join ('; ')],
+    ]}/>
   </div>
-  <div className='x__block x__block3'>
+  <div className='x__block x__missie'>
+    <div className='x__block-title'>
+      Missie
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__doelgroep'>
+    <div className='x__block-title'>
+      Doelgroep
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__werkgebied'>
+    <div className='x__block-title'>
+      Werkgebied
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__bestedingen'>
+    <div className='x__block-title'>
+      Bestedingen
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__projecten'>
+    <div className='x__block-title'>
+      Projecten
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__proceduren'>
+    <div className='x__block-title'>
+      Proceduren
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__financieel'>
+    <div className='x__block-title'>
+      Financieel
+    </div>
+    <div className='x__title'>
+      {title3}
+    </div>
+    {text3}
+  </div>
+  <div className='x__block x__contact'>
+    <div className='x__block-title'>
+      Contact
+    </div>
     <div className='x__title'>
       {title3}
     </div>
@@ -154,16 +325,14 @@ export default container (
         onError: noop,
         onResults: (data) => <Detail
           image={imageEyeWall}
-          name={data.naam_organisatie}
-          tag='Alles van waarde is weerloos'
-          doelstelling={data.doelstelling}
+          data={data}
+
           title1='Vijf muzikale beurzen'
           title2='Vijf muzikale beurzen'
           title3='Vijf muzikale beurzen'
           text1={data.doelstelling}
           text2={data.doelstelling}
           text3={data.doelstelling}
-          href={data.website}
         />,
       })}
     </FondsDetailS>
