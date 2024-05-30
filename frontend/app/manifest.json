@@ -1,14 +1,14 @@
 {
-    "short_name": "TODO",
-    "name": "TODO",
+    "short_name": "FB Online",
+    "name": "FB Online",
     "icons": [
         {
-            "src": "/icons-192.png",
+            "src": "/icons/android-chrome-192x192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/icons-512.png",
+            "src": "/icons/android-chrome-512x512.png",
             "type": "image/png",
             "sizes": "512x512"
         }

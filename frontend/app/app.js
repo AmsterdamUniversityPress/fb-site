@@ -18,8 +18,8 @@ import './polyfills'
 import './manifest.json'
 
 import './images/icons/favicon.ico'
-import './images/icons/icons-192.png'
-import './images/icons/icons-512.png'
+import './images/icons/android-chrome-192x192.png'
+import './images/icons/android-chrome-512x512.png'
 
 import React, { Fragment, } from 'react'
 import { createRoot, } from 'react-dom/client'
