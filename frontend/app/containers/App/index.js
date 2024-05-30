@@ -101,17 +101,8 @@ const AppWrapper = styled.div`
     z-index: 2;
     // --- not sure why this is necessary
     margin-top: -16px;
-    ${mediaQuery (
-      mediaTablet (`
-        position: sticky; left: 0;
-        bottom: 0px;
-      `),
-    )}
   }
   > .x__cookies {
-    position: sticky;
-    left: 0;
-    bottom: 0px;
     width: 100%;
     // --- not sure why this is necessary
     margin-top: -12px;
@@ -126,15 +117,29 @@ const AppWrapper = styled.div`
     }
   }
   > .x__ac-footer {
-    position: sticky;
-    left: 0;
-    bottom: 0px;
     width: 100%;
     z-index: 0;
     padding-top: 10px;
     padding-bottom: 10px;
   }
-
+  ${mediaQuery (
+    mediaTablet (`
+      > .x__footer {
+        position: sticky; left: 0;
+        bottom: 0px;
+      }
+      > .x__cookies {
+        position: sticky;
+        left: 0;
+        bottom: 0px;
+      }
+      > .x__ac-footer {
+        position: sticky;
+        left: 0;
+        bottom: 0px;
+      }
+    `),
+  )}
 `
 
 const dispatchTable = {
