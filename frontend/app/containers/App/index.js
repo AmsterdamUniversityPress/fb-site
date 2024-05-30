@@ -97,13 +97,16 @@ const AppWrapper = styled.div`
     background: white;
   }
   > .x__footer {
-    position: sticky;
-    left: 0;
-    bottom: 0px;
     width: 100%;
     z-index: 2;
     // --- not sure why this is necessary
     margin-top: -16px;
+    ${mediaQuery (
+      mediaTablet (`
+        position: sticky; left: 0;
+        bottom: 0px;
+      `),
+    )}
   }
   > .x__cookies {
     position: sticky;
@@ -235,40 +238,112 @@ const Cookies = container2 (
 
 const FooterS = styled.div`
   ${mediaQuery (
-    mediaPhone ('height: 100vh'),
+    // mediaPhone ('height: 100vh'),
     mediaTablet ('height: auto'),
   )}
   > .x__main {
+    padding-top: 30px;
+    padding-left: 50px;
+    min-height: 728px;
     background: ${colors.highlight};
     color: white;
     height: 100%;
-    padding-left: 50px;
+    > .x__contact {
+      height: 200px;
+    }
+    > .x__grid {
+      display: flex;
+      flex-wrap: wrap;
+      > .x__block {
+        flex-grow: 0;
+        flex-shrink: 0;
+        > .x__title {
+          font-size: 25px;
+          font-weight: bold;
+        }
+        > .x__content {
+          font-size: 20px;
+        }
+      }
+    }
+    ${mediaQuery (
+      mediaPhone (`
+        > .x__grid {
+          > .x__block {
+            flex-basis: 100%;
+          }
+        }
+      `),
+      mediaTablet (`
+        > .x__grid {
+          > .x__block {
+            flex-basis: 25%;
+          }
+        }
+      `),
+    )}
   }
 `
 
 const Footer = () => <FooterS>
   <div className='x__main'>
-      <h1>Contact</h1>
-      <h1>Word abonnee</h1>
-      <h1>Colofon</h1>
-      <h1>Links</h1>
-      <h1>...</h1>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
+    <div className='x__contact'>
+      <p>Contactformulier</p>
+    </div>
+    <div className='x__grid'>
+      <div className='x__block'>
+        <div className='x__title'>
+          Onze uitgaves
+        </div>
+        <div className='x__content'>
+          <p>1</p>
+          <p>2</p>
+          <p>3</p>
+          <p>4</p>
+          <p>5</p>
+          <p>6</p>
+        </div>
+      </div>
+      <div className='x__block'>
+        <div className='x__title'>
+          Blijf in contact
+        </div>
+        <div className='x__content'>
+          <p>1</p>
+          <p>2</p>
+          <p>3</p>
+          <p>4</p>
+          <p>5</p>
+          <p>6</p>
+        </div>
+      </div>
+      <div className='x__block'>
+        <div className='x__title'>
+          Over AUP
+        </div>
+        <div className='x__content'>
+          <p>1</p>
+          <p>2</p>
+          <p>3</p>
+          <p>4</p>
+          <p>5</p>
+          <p>6</p>
+        </div>
+      </div>
+      <div className='x__block'>
+        <div className='x__title'>
+          Filantropie
+        </div>
+        <div className='x__content'>
+          <p>1</p>
+          <p>2</p>
+          <p>3</p>
+          <p>4</p>
+          <p>5</p>
+          <p>6</p>
+        </div>
+      </div>
+    </div>
   </div>
 </FooterS>
 
