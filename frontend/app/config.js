@@ -14,6 +14,8 @@ import iconAdmin from './images/icons/admin.svg'
 import iconArrow from './images/icons/arrow.svg'
 import iconFacebook from './images/icons/facebook-wit.svg'
 import iconFilter from './images/icons/filter.svg'
+import iconInstagram from './images/icons/instagram-wit.svg'
+import iconLinkedin from './images/icons/linkedin-wit.svg'
 import iconLogin from './images/icons/login.svg'
 import iconLogout from './images/icons/logout.svg'
 import iconMore from './images/icons/more-grey.svg'
@@ -23,6 +25,7 @@ import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
+import iconXTwitter from './images/icons/x-twitter-wit.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoAUP from './images/logo-aup.svg'
 import imageLogoFB from './images/logo-fb.svg'
@@ -100,6 +103,8 @@ export default {
     arrow: iconArrow,
     facebook: iconFacebook,
     filter: iconFilter,
+    instagram: iconInstagram,
+    linkedin: iconLinkedin,
     login: iconLogin,
     logout: iconLogout,
     more: iconMore,
@@ -109,6 +114,7 @@ export default {
     'show-password-shown': iconShowPasswordShown,
     user: iconUser,
     update: iconUpdate,
+    xtwitter: iconXTwitter,
   },
   text: {
     filterLabels: {
@@ -156,5 +162,27 @@ export default {
   },
   links: {
     aup: 'https://aup.nl',
+    contactAUP: "https://www.aup.nl/nl/about/contact",
+    artikelenAUP: "https://www.aup.nl/nl/articles",
+    privacybeleidAUP: "https://www.aup.nl/nl/about/privacy-policy",
+    vacaturesAUP: "https://www.aup.nl/nl/about/vacancies",
+    toegangEnAbonnementen: "https://www.aup-online.com/how-to-subscribe",
+    tijdschriften: "https://www.aup-online.com/content/publications",
+    collecties: "ihttps://www.aup-online.com/content/collections",
+    boeken: "https://www.aup.nl/en/academic",
+    textboeken: "https://www.aup.nl/en/educational",
+    facebookAUP: 'https://www.facebook.com/aupacademic/',
+    instagramAUP: 'https://www.instagram.com/amsterdamuniversitypress/',
+    linkedinAUP: 'https://www.linkedin.com/company/amsterdam-university-press/',
+    xtwitterAUP: 'https://twitter.com/amsterdamupress',
+    abonneeWordenAUP: "https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/",
+    // @todo url might change in the future?
+    nieuwsbriefAUP: "https://aup.us5.list-manage.com/subscribe?u=ae618e98510c18013898e0ee3&id=50ef6b34aa",
+    dikkeblauwe: "https://www.aup-online.com/content/periodicals/26664186",
   },
+  emailLinks: {
+    // @todo use encodeURIComponent?
+    meldFondsAan: "mailto:fondsen@aup.nl?subject=Fonds%20aanmelden",
+    aanmerkingen: "mailto:fondsen@aup.nl?subject=Suggestie",
+  }
 }

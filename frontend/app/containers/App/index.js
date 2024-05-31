@@ -7,7 +7,7 @@ import {
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
 import styled from 'styled-components'
-import { createBrowserRouter, RouterProvider, } from 'react-router-dom'
+import { createBrowserRouter, Link, RouterProvider, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 
 import FontFaceObserver from 'fontfaceobserver'
@@ -46,7 +46,35 @@ import config from '../../config'
 const configTop = config | configure.init
 const configColors = configTop.focus ('colors')
 const configIcons = configTop.focus ('icons')
+const configLinks = configTop.focus ('links')
+const configEmailLinks = configTop.focus ('emailLinks')
+
+const linkFacebookAUP = configLinks.get ('facebookAUP')
+const linkInstagramAUP = configLinks.get ('instagramAUP')
+const linkLinkedinAUP = configLinks.get ('linkedinAUP')
+const linkXTwitterAUP = configLinks.get ('xtwitterAUP')
+
+const linkAbonneeWordenAUP = configLinks.get ('abonneeWordenAUP')
+const linkNieuwsbriefAUP = configLinks.get ('nieuwsbriefAUP')
+
+const linkDikkeBlauwe = configLinks.get ('dikkeblauwe')
+const linkContactAUP = configLinks.get ('contactAUP')
+const linkArtikelenAUP = configLinks.get ('artikelenAUP')
+const linkPrivacybeleidAUP = configLinks.get ('privacybeleidAUP')
+const linkVacaturesAUP = configLinks.get ('vacaturesAUP')
+const linkToegangEnAbonnementen = configLinks.get ('toegangEnAbonnementen')
+const linkTijdschriften = configLinks.get ('tijdschriften')
+const linkCollecties = configLinks.get ('collecties')
+const linkBoeken = configLinks.get ('boeken')
+const linkTextboeken = configLinks.get ('textboeken')
+
+const emailLinkMeldFondsAan = configEmailLinks.get ('meldFondsAan')
+const emailLinkAanmerkingen = configEmailLinks.get ('aanmerkingen')
+
 const imageIconFacebook = configIcons.get ('facebook')
+const imageIconInstagram = configIcons.get ('instagram')
+const imageIconLinkedin = configIcons.get ('linkedin')
+const imageIconXTwitter = configIcons.get ('xtwitter')
 
 const colors = configColors.gets (
   'highlight', 'highlightAlpha',
@@ -252,21 +280,35 @@ const FooterS = styled.div`
   )}
   > .x__main {
     padding-top: 30px;
-    padding-left: 50px;
+    padding-left: 5%;
+    padding-right: 5%;
     min-height: 728px;
     background: ${colors.highlight};
     color: white;
     height: 100%;
     > .x__socials {
-      padding-top: 40px;
+      display: flex;
+      justify-content: space-evenly;
+      padding-top: 60px;
+      margin-right: 20%;
+      margin-left: 20%;
     }
+    // @todo not used atm
     > .x__contact {
-      height: 200px;
-      font-size: 25px;
+      font-size: 20px;
+      display: flex;
+      justify-content: space-evenly;
+      height: 50px;
+      margin-top: 40px;
+      margin-right: 10%;
+      margin-left: 10%;
+
     }
     > .x__grid {
+      margin-top: 60px;
       display: flex;
-      flex-wrap: wrap;
+      justify-content: space-evenly;
+      // flex-wrap: wrap;
       > .x__block {
         flex-grow: 0;
         flex-shrink: 0;
@@ -298,11 +340,26 @@ const FooterS = styled.div`
   }
 `
 
+const AS = styled.a`
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+`
+
+const LinkElementS = styled.div`
+  color: white;
+  margin-top: 15px;
+`
+
+const LinkElement = ({ text, link, }) => <LinkElementS>
+  <AS href={link}>{text}</AS>
+</LinkElementS>
+
 const SocialS = styled.div`
-  height: 100px;
-  width: 100px;
-  display: inline-block;
-  margin-left: 10%;
+  height: 30px;
+  width: 30px;
+  flex-grow: 0;
+  flex-shrink: 0;
 `
 
 const Social = ({ img, link }) => <SocialS>
@@ -313,77 +370,38 @@ const Social = ({ img, link }) => <SocialS>
 
 // @todo use encodeURIComponent
 // @todo use Link (place Footer in Main container)
-// @todo use right images
+// @todo use right icons (from fb-design)
 const Footer = () => {
     return <FooterS>
     <div className='x__main'>
       <div className='x__socials'>
-        <Social
-          img={imageIconFacebook}
-          link={'https://facebook.com'}
+        <Social img={imageIconFacebook} link={linkFacebookAUP} />
+        <Social img={imageIconInstagram} link={linkInstagramAUP} />
+        <Social img={imageIconLinkedin} link={linkLinkedinAUP} />
+        <Social img={imageIconXTwitter} link={linkXTwitterAUP}
         />
-        <Social
-          img={imageIconFacebook}
-          link={'https://twitter.com'}
-        />
-        <Social
-          img={imageIconFacebook}
-          link={'https://twitter.com'}
-        />
-        <Social
-          img={imageIconFacebook}
-          link={'https://twitter.com'}
-        />
-        <Social
-          img={imageIconFacebook}
-          link={'https://twitter.com'}
-        />
-      </div>
-      <div className='x__contact'>
-        <p>Contact</p>
-        <p>
-          <a href="https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/">Abonnee worden?</a>
-        </p>
-        <p>
-          <a href="mailto:fondsen@aup.nl?subject=Fonds%20aanmelden">Meld een fonds aan: </a>
-        </p>
-        <p>
-          <a href="mailto:fondsen@aup.nl?subject=Suggestie">Op of aanmerkingen?</a>
-        </p>
-        {/*
-        // @todo url might change in the future?
-        */}
-        <p>
-          <a href="https://aup.us5.list-manage.com/subscribe?u=ae618e98510c18013898e0ee3&id=50ef6b34aa">
-            AUP nieuwsbrief ontvangen?
-          </a>
-        </p>
       </div>
       <div className='x__grid'>
+        <div className='x__block'>
+          <div className='x__title'>
+            Fondsenboek
+          </div>
+          <div className='x__content'>
+            <LinkElement text={"Abonnee worden"} link={linkAbonneeWordenAUP}/>
+            <LinkElement text={"Meld een fonds aan"} link={emailLinkMeldFondsAan}/>
+            <LinkElement text={"Op of aanmerkingen"} link={emailLinkAanmerkingen}/>
+          </div>
+        </div>
         <div className='x__block'>
           <div className='x__title'>
             Onze uitgaves
           </div>
           <div className='x__content'>
-            <p>1</p>
-            <p>2</p>
-            <p>3</p>
-            <p>4</p>
-            <p>5</p>
-            <p>6</p>
-          </div>
-        </div>
-        <div className='x__block'>
-          <div className='x__title'>
-            Blijf in contact
-          </div>
-          <div className='x__content'>
-            <p>1</p>
-            <p>2</p>
-            <p>3</p>
-            <p>4</p>
-            <p>5</p>
-            <p>6</p>
+            <LinkElement text={"Toegang en abonnementen"} link={linkToegangEnAbonnementen}/>
+            <LinkElement text={"Tijdschriften"} link={linkTijdschriften}/>
+            <LinkElement text={"Collecties"} link={linkCollecties}/>
+            <LinkElement text={"Boeken"} link={linkBoeken}/>
+            <LinkElement text={"Textboeken"} link={linkTextboeken}/>
           </div>
         </div>
         <div className='x__block'>
@@ -391,12 +409,11 @@ const Footer = () => {
             Over AUP
           </div>
           <div className='x__content'>
-            <p>1</p>
-            <p>2</p>
-            <p>3</p>
-            <p>4</p>
-            <p>5</p>
-            <p>6</p>
+            <LinkElement text={"AUP nieuwsbrief ontvangen"} link={linkNieuwsbriefAUP}/>
+            <LinkElement text={"Contact"} link={linkContactAUP}/>
+            <LinkElement text={"Nieuwsberichten en artikelen"} link={linkArtikelenAUP}/>
+            <LinkElement text={"Privacybeleid"} link={linkPrivacybeleidAUP}/>
+            <LinkElement text={"Vacatures"} link={linkVacaturesAUP}/>
           </div>
         </div>
         <div className='x__block'>
@@ -404,12 +421,7 @@ const Footer = () => {
             Filantropie
           </div>
           <div className='x__content'>
-            <p>1</p>
-            <p>2</p>
-            <p>3</p>
-            <p>4</p>
-            <p>5</p>
-            <p>6</p>
+            <LinkElement text={"De dikke blauwe"} link={linkDikkeBlauwe}/>
           </div>
         </div>
       </div>
