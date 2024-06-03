@@ -142,7 +142,7 @@ export default component (
     const onClear = useCallback (() => {
       setValue ('')
       onClearProp ()
-    }, [onClearProp])
+    }, [setValue, onClearProp])
     const valueForIdx = useCallback ((idx) => {
       if (idx === -1) return enteredValue
       return idx | lookupOnOr (

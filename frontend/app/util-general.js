@@ -37,6 +37,7 @@ export const isNotEmptyList = not << isEmptyList
 export const whenIsNotEmptyString = isNotEmptyString | whenPredicate
 export const whenIsNotEmptyList = isNotEmptyList | whenPredicate
 export const ifIsEmptyString = isEmptyString | ifPredicate
+export const whenIsEmptyString = isEmptyString | whenPredicate
 
 // --- functor map for `null` which treats it like `Nothing`
 export const nullMap = recurry (2) (

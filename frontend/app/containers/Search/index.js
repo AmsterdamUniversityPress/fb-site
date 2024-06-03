@@ -46,6 +46,7 @@ import { component, container, container2, mediaPhone, mediaTablet, useWhy, requ
 import {
   effects, isNotEmptyString, mapX, ifEven,
   whenIsNotEmptyList,
+  whenIsEmptyString,
   mapRemapTuples,
   mapUpdate,
   setRemap,
@@ -607,15 +608,26 @@ export const SearchBar = container2 (
     const inputRef = useRef (null)
 
     // --- @todo change name
-    const onChangeValue = useCallbackConst (effects ([
-      setQuery,
-      dispatch << autocompleteQueryUpdated,
-    ]))
+    // const _onChangeValue = useCallbackConst (effects ([
+      // setQuery,
+      // dispatch << autocompleteQueryUpdated,
+    // ]))
+    const onChangeValue = useCallback ((value) => {
+      setQuery (value)
+      value | (dispatch << autocompleteQueryUpdated)
+      value | whenIsEmptyString (
+        () => setSuggestions ([])
+      )
+    }, [setSuggestions, setQuery])
     const onChange = useCallback (targetValue >> trim >> onChangeValue, [onChangeValue])
     const onClear = useCallback (() => {
       onChangeValue ('')
-      setSuggestions ([])
-    }, [onChangeValue])
+      inputRef.current.focus ()
+      // @todo somehow this setSuggestions makes that the inputValue is not updated, so
+      // input.current.value = '' doesn't work. However, if we don't clean the suggestions, this
+      // leads to weird behavior when making a new search.
+      // setSuggestions ([])
+    }, [setSuggestions, onChangeValue])
     const onFocus = useCallback (
       (event) => isMobile && event.target.scrollIntoView ('top'),
       [isMobile],
