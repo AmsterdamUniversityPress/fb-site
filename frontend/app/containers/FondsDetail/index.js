@@ -248,15 +248,10 @@ const Detail = ({ image: _image, data, }) => <DetailS>
   <div className='x__werkgebied'>
     <Fields title='Werkgebied' data={[
       ['werkgebied', data.werk_regio],
-      ['regio’s', data.regios],
-    ]}/>
-    { /* -- @todo moet dit worden, fix ingest
-    <Fields title='Werkgebied' data={[
-      ['werkgebied', data.werk_regio],
+      ['regio in Nederland', data.regio_in_nederland],
+      ['plaats in Nederland', data.plaats_in_nederland],
       ['landen', data.landen],
-      ['regio', data.regio],
-      ['plaats', data.plaats],
-    ]}/> */ }
+    ]}/>
   </div>
   <div className='x__bestedingen'>
     <Fields title='Bestedingen' data={[
@@ -270,9 +265,9 @@ const Detail = ({ image: _image, data, }) => <DetailS>
   <div className='x__projecten'>
     <Fields title='Projecten' data={[
       ['criteria', data.beschrijving_project_aanmerking],
-        ['doorlooptijd', data.doorloop_tijd_act],
-        ['status aanvrager', data.fonds_type_aanvraag],
-        ['voorkeur/uitsluiting', data.uitsluiting],
+      ['doorlooptijd', data.doorloop_tijd_act],
+      ['status aanvrager', data.fonds_type_aanvraag],
+      ['voorkeur/uitsluiting', data.uitsluiting],
     ]}/>
   </div>
   <div className='x__proceduren'>
