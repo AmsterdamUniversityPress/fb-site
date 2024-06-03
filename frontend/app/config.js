@@ -164,6 +164,7 @@ export default {
     aup: 'https://aup.nl',
     contactAUP: "https://www.aup.nl/nl/about/contact",
     artikelenAUP: "https://www.aup.nl/nl/articles",
+    overOnsAUP: "https://aup.nl/nl/about",
     privacybeleidAUP: "https://www.aup.nl/nl/about/privacy-policy",
     vacaturesAUP: "https://www.aup.nl/nl/about/vacancies",
     toegangEnAbonnementen: "https://www.aup-online.com/how-to-subscribe",

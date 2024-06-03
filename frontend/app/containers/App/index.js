@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   map, dot, dot1, die, sprintf1,
   prop, whenOk, ifFalse, ifTrue,
-  eq, nil, not,
+  eq, nil, not, whenTrue,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
@@ -59,6 +59,7 @@ const linkNieuwsbriefAUP = configLinks.get ('nieuwsbriefAUP')
 
 const linkDikkeBlauwe = configLinks.get ('dikkeblauwe')
 const linkContactAUP = configLinks.get ('contactAUP')
+const linkOverOnsAUP = configLinks.get ('overOnsAUP')
 const linkArtikelenAUP = configLinks.get ('artikelenAUP')
 const linkPrivacybeleidAUP = configLinks.get ('privacybeleidAUP')
 const linkVacaturesAUP = configLinks.get ('vacaturesAUP')
@@ -282,7 +283,7 @@ const FooterS = styled.div`
     padding-top: 30px;
     padding-left: 5%;
     padding-right: 5%;
-    min-height: 728px;
+    min-height: 675px;
     background: ${colors.highlight};
     color: white;
     height: 100%;
@@ -293,8 +294,7 @@ const FooterS = styled.div`
       margin-right: 20%;
       margin-left: 20%;
     }
-    // @todo not used atm
-    > .x__contact {
+    > .x__actions {
       font-size: 20px;
       display: flex;
       justify-content: space-evenly;
@@ -312,13 +312,29 @@ const FooterS = styled.div`
       > .x__block {
         flex-grow: 0;
         flex-shrink: 0;
+        padding-left: 5%;
         > .x__title {
           font-size: 25px;
           font-weight: bold;
         }
         > .x__content {
           font-size: 20px;
+          .x__small {
+            font-size: 16px;
+            margin-top: 12px;
+          }
         }
+        > .x__contact {
+          margin-top: 6px;
+        }
+      }
+    }
+    > .x__copyright-wrapper {
+      margin-top: 80px;
+      display: flex;
+      justify-content: space-evenly;
+      > .x__copyright {
+        font-size: 15px;
       }
     }
     ${mediaQuery (
@@ -349,11 +365,22 @@ const AS = styled.a`
 const LinkElementS = styled.div`
   color: white;
   margin-top: 15px;
+  ${prop ('attention') >> whenTrue (
+    () => `
+      border: 1px solid red;
+      border-radius: 100px;
+      background: white;
+      color: ${colors.highlight};
+      a {
+        margin: 15px;
+      }
+    `,
+  )}
 `
 
-const LinkElement = ({ text, link, }) => <LinkElementS>
-  <AS href={link}>{text}</AS>
-</LinkElementS>
+const LinkElement = ({ attention, text, link, }) => <LinkElementS attention={attention}>
+    <AS href={link}>{text}</AS>
+  </LinkElementS>
 
 const SocialS = styled.div`
   height: 30px;
@@ -368,9 +395,6 @@ const Social = ({ img, link }) => <SocialS>
   </a>
 </SocialS>
 
-// @todo use encodeURIComponent
-// @todo use Link (place Footer in Main container)
-// @todo use right icons (from fb-design)
 const Footer = () => {
     return <FooterS>
     <div className='x__main'>
@@ -381,15 +405,24 @@ const Footer = () => {
         <Social img={imageIconXTwitter} link={linkXTwitterAUP}
         />
       </div>
+      <div className='x__actions'>
+        <LinkElement attention={true} text={"Abonnee worden"} link={linkAbonneeWordenAUP}/>
+        <LinkElement attention={true} text={"Meld een fonds aan"} link={emailLinkMeldFondsAan}/>
+        <LinkElement attention={true} text={"Op of aanmerkingen"} link={emailLinkAanmerkingen}/>
+        <LinkElement attention={true} text={"AUP nieuwsbrief"} link={linkNieuwsbriefAUP}/>
+      </div>
       <div className='x__grid'>
         <div className='x__block'>
           <div className='x__title'>
-            Fondsenboek
+            Contact
           </div>
-          <div className='x__content'>
-            <LinkElement text={"Abonnee worden"} link={linkAbonneeWordenAUP}/>
-            <LinkElement text={"Meld een fonds aan"} link={emailLinkMeldFondsAan}/>
-            <LinkElement text={"Op of aanmerkingen"} link={emailLinkAanmerkingen}/>
+          <div className='x__content x__contact'>
+            <div className='x__small'>Amsterdam University Press</div>
+            <div className='x__small'>Nieuwe Prinsengracht 89</div>
+            <div className='x__small'>1018 VR Amsterdam</div>
+            <div className='x__small'>Nederland</div>
+            <div className='x__small'>Tel: 020-4200050 (ma-vr 14:00-16:00) </div>
+            <div className='x__small'>Mail: support@aup.nl</div>
           </div>
         </div>
         <div className='x__block'>
@@ -409,7 +442,7 @@ const Footer = () => {
             Over AUP
           </div>
           <div className='x__content'>
-            <LinkElement text={"AUP nieuwsbrief ontvangen"} link={linkNieuwsbriefAUP}/>
+            <LinkElement text={"Over ons"} link={linkOverOnsAUP}/>
             <LinkElement text={"Contact"} link={linkContactAUP}/>
             <LinkElement text={"Nieuwsberichten en artikelen"} link={linkArtikelenAUP}/>
             <LinkElement text={"Privacybeleid"} link={linkPrivacybeleidAUP}/>
@@ -424,6 +457,9 @@ const Footer = () => {
             <LinkElement text={"De dikke blauwe"} link={linkDikkeBlauwe}/>
           </div>
         </div>
+      </div>
+      <div className='x__copyright-wrapper'>
+        <div className='x__copyright'>© Amsterdam University Press 2024</div>
       </div>
     </div>
   </FooterS>
