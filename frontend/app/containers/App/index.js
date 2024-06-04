@@ -136,11 +136,17 @@ const AppWrapper = styled.div`
     margin-top: -16px;
   }
   > .x__cookies {
+    position: sticky;
+    // left: 50%;
+    // transform: translateX(-50%);
+    bottom: 0;
+
     width: 100%;
     // --- not sure why this is necessary
     margin-top: -12px;
-    z-index: 1;
-    background: #ffeaea;
+    // z-index: 1;
+    z-index: 4;
+    // background: #ffeaea;
     padding-top: 50px;
     padding-bottom: 50px;
     display: flex;
@@ -148,6 +154,13 @@ const AppWrapper = styled.div`
     > * {
       flex: 0 1 580px;
     }
+    ${mediaQuery (
+      mediaPhone (`
+      `),
+      mediaTablet (`
+        padding-right: 50px;
+      `),
+    )}
   }
   > .x__ac-footer {
     position: sticky;
@@ -165,9 +178,9 @@ const AppWrapper = styled.div`
         bottom: 0px;
       }
       > .x__cookies {
-        position: sticky;
-        left: 0;
-        bottom: 0px;
+        // position: sticky;
+        // left: 0;
+        // bottom: 0px;
       }
       > .x__ac-footer {
       }
