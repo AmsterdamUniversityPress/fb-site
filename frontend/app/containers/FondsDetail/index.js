@@ -41,6 +41,7 @@ const jaNee = (x) => ['nee', 'ja'] [Number (x)]
 const link = (value) => <Link to={value} target='_blank'>{value}</Link>
 
 const DetailS = styled.div`
+  color: ${colors.textBlock1Fg};
   a {
     color: initial;
   }
@@ -72,8 +73,9 @@ const DetailS = styled.div`
     }
     ${mediaQuery (
       mediaPhone (`
-        top: 203px;
+        top: 0px;
         text-align: center;
+        margin-top: 20px;
         > .x__title {
           font-size: 35px;
         }
@@ -84,6 +86,7 @@ const DetailS = styled.div`
       mediaTablet (`
         top: 100px;
         padding-left: 100px;
+        margin-top: 20px;
         > .x__title {
           font-size: 60px;
         }
@@ -95,7 +98,6 @@ const DetailS = styled.div`
   }
   > .x__rubriek {
     background: ${colors.textBlock1};
-    color: ${colors.textBlock1Fg};
   }
   > .x__algemeen {
     background: ${colors.textBlock2};
@@ -161,7 +163,6 @@ const FieldsS = styled.div`
   padding-top: 20px;
   padding-bottom: 20px;
   > .x__block-title {
-    text-decoration: underline;
   }
   ${mediaQuery (
     mediaPhone (`

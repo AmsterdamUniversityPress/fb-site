@@ -9,6 +9,8 @@ import configure from 'alleycat-js/es/configure'
 import config from './config'
 
 const configTop = config | configure.init
+const colorHighlight1 = configTop.get ('colors.highlight')
+const colorHighlight2 = configTop.get ('colors.highlight2')
 
 const fontMainCss = 'font.main.css' | configTop.get
 const fontMainFamily = 'font.main.family' | configTop.get
@@ -34,7 +36,15 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   h1, h2, h3, h4, p, .text {
+    color: ${colorHighlight1};
     cursor: text;
+  }
+
+  a {
+    color: ${colorHighlight1};
+    // text-decoration: underline;
+    text-decoration: none;
+    border-bottom: 1px solid ${colorHighlight2};
   }
 
   #app {

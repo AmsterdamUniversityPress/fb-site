@@ -2,7 +2,7 @@ import {
   pipe, compose, composeRight,
   prop, sprintf1, ifNil, noop, lets,
   sprintfN, tap, not, ifTrue,
-  ifOk,
+  ifOk, whenOk,
 } from 'stick-js/es'
 
 import React, { useCallback, } from 'react'
@@ -423,11 +423,9 @@ export const Link = ({ disabled, children, onClick: onClickProp=noop, ... restPr
 }
 
 const RouterLinkS = styled (Link)`
-  ${prop ('color') >> ifOk (
+  ${prop ('color') >> whenOk (
     (color) => `color: ${color};`,
-    () => 'color: #bbb;'
   )}
-  text-decoration: none;
   cursor: pointer;
 `
 

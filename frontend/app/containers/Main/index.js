@@ -1251,7 +1251,7 @@ const Landing = () => {
       </div>}
       {/* --- @todo actually just a margin-left */}
       <div className='x__empty'/>
-      <div className='x__text'>
+      <div className='x__text text'>
         <div className='x__heading-1'>
           Over Amsterdam University Press
         </div>
@@ -1265,11 +1265,11 @@ const Landing = () => {
           Fondsenboek.com is een uitgave van <RouterLink
             to='https://aup.nl'
             target='_blank'
-            color={colors.highlight}>Amsterdam University Press
+          >Amsterdam University Press
           </RouterLink>. De onlineversie is gebaseerd op <RouterLink
             to='https://www.aup.nl/nl/book/9789048564187/fondsenboek-2024'
             target='_blank'
-            color={colors.highlight}>de gedrukte versie van het Fondsenboek</RouterLink>.
+            >de gedrukte versie van het Fondsenboek</RouterLink>.
         </p>
         <p>
           Maatschappelijke ondernemers en organisaties, maar ook particulieren, zijn steeds vaker op zoek naar private bijdragen voor de realisering van hun projecten en idealen. Voor deze fondsenzoekers is het FondsenBoek al jaren dé complete en betrouwbare vraagbaak.
@@ -1281,7 +1281,6 @@ const Landing = () => {
           Interesse in een abonnement op het online Fondsenboek voor het meest actuele en complete online overzicht van Nederlandse vermogensfondsen? Klik <RouterLink
             to='https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/'
             target='_blank'
-            color={colors.highlight}
           >hier</RouterLink> voor meer informatie over een abonnement.
         </p>
         <p>
