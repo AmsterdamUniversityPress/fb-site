@@ -172,9 +172,15 @@ const AppWrapper = styled.div`
     padding-bottom: 10px;
   }
   ${mediaQuery (
+    mediaPhone (`
+      > .x__footer {
+        position: relative;
+      }
+    `),
     mediaTablet (`
       > .x__footer {
-        position: sticky; left: 0;
+        position: sticky;
+        left: 0;
         bottom: 0px;
       }
       > .x__cookies {
