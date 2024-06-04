@@ -1156,19 +1156,12 @@ const LandingS = styled.div`
   cursor: text;
   > .x__hero {
     margin: auto;
-    margin-bottom: 50px;
   }
   > .x__contents {
     display: flex;
-    margin-left: 100px;
-    margin-right: 100px;
-    margin-top: 30px;
     // > .x__outline {
       // flex: 0 0 400px;
     // }
-    > .x__empty {
-      flex: 0 0 400px;
-    }
     > .x__text {
       flex: 1 0 0px;
       margin-bottom: 50px;
@@ -1186,6 +1179,37 @@ const LandingS = styled.div`
       }
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__hero {
+        margin-bottom: 20px;
+      }
+      > .x__contents {
+        > .x__empty {
+          flex: 0 0 0px;
+        }
+        > .x__text {
+          padding: 0px 20px;
+        }
+      }
+    `),
+    mediaTablet (`
+      > .x__hero {
+        margin-bottom: 50px;
+      }
+      > .x__contents {
+        margin-top: 30px;
+        margin-left: 100px;
+        margin-right: 100px;
+        > .x__empty {
+          flex: 0 0 400px;
+        }
+        > .x__text {
+          padding: initial;
+        }
+      }
+    `),
+  )}
 `
 
 const Landing = () => {
@@ -1225,6 +1249,7 @@ const Landing = () => {
           Educative publicaties
         </div>
       </div>}
+      {/* --- @todo actually just a margin-left */}
       <div className='x__empty'/>
       <div className='x__text'>
         <div className='x__heading-1'>
