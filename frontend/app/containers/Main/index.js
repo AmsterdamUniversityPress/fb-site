@@ -487,6 +487,7 @@ const MainS = styled.div`
   ${mediaQuery (
     mediaPhone (`
       > .x__contents > .x__header {
+        position: relative;
       }
     `),
     mediaTablet (`

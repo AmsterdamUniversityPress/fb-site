@@ -19,6 +19,8 @@ import config from '../config'
 
 const configTop = config | configure.init
 
+import iconX from './x-je-blue.svg'
+
 const {
   'app.element': appElement,
   'general.appWrapperSelector': appWrapperSelector,
@@ -66,12 +68,26 @@ const ModalContentsS = styled.div`
     position: absolute;
     right: 10px;
     top: 10px;
-    font-size: 20px;
+    height: 30px;
+    width: 30px;
     cursor: pointer;
+    border: 1px solid black;
+    border-radius: 1000px;
+    > img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+    }
   }
   ${mediaQuery (
     mediaPhoneOnly (`
-      box-shadow: 1px 1px 5px 1px;
+      // box-shadow: 1px 1px 5px 1px;
+      border: 0;
+      .x__close {
+        top: 10px;
+        right: 20px;
+      }
     `),
     mediaTablet (`
       border: 2px solid black;
@@ -168,7 +184,7 @@ export default component (
         <ModalContents2S>
           {showCloseButton &&
             <div className='x__close' onClick={onRequestClose}>
-              x
+              <img src={iconX} width='10px'/>
             </div>}
           {children}
         </ModalContents2S>

@@ -17,6 +17,7 @@ import iconDoel from './images/icons/doel.svg'
 import iconDoelgroep from './images/icons/doelgroep.svg'
 import iconFacebook from './images/icons/facebook-wit.svg'
 import iconFilter from './images/icons/filter.svg'
+import iconI from './images/icons/i-tje-blue.svg'
 import iconInstagram from './images/icons/instagram-wit.svg'
 import iconLinkedin from './images/icons/linkedin-wit.svg'
 import iconLogin from './images/icons/login.svg'
@@ -28,6 +29,7 @@ import iconShowPasswordHidden from './images/icons/show-password-hidden.svg'
 import iconShowPasswordShown from './images/icons/show-password-shown.svg'
 import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
+import iconX from './images/icons/x-je-blue.svg'
 import iconXTwitter from './images/icons/x-twitter-wit.svg'
 import iconWerkRegio from './images/icons/werkregio.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
@@ -106,6 +108,7 @@ export default {
     arrow: iconArrow,
     facebook: iconFacebook,
     filter: iconFilter,
+    i: iconI,
     instagram: iconInstagram,
     linkedin: iconLinkedin,
     login: iconLogin,
@@ -118,6 +121,7 @@ export default {
     user: iconUser,
     update: iconUpdate,
     xtwitter: iconXTwitter,
+    x: iconX,
     result: {
       doel: iconDoel,
       doelgroep: iconDoelgroep,

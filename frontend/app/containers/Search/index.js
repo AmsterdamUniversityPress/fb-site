@@ -37,6 +37,8 @@ import {
   selectNumResults as selectNumResultsSearch,
 } from './selectors'
 
+import Dialog from '../../alleycat-components/Dialog'
+
 import { Button, PaginationAndExplanation, } from '../../components/shared'
 import { Input as InputReal } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
@@ -62,7 +64,7 @@ import config from '../../config'
 const configTop = configure.init (config)
 const colorHighlight = configTop.get ('colors.highlight')
 const paginationKey = configTop.get ('app.keys.Pagination.search')
-const iconLogin = configTop.get ('icons.login')
+const iconI = configTop.get ('icons.i')
 const configIcons = configTop.focus ('icons.result')
 const iconDoel = configIcons.get ('doel')
 const iconDoelgroep = configIcons.get ('doelgroep')
@@ -92,6 +94,14 @@ const Input = forwardRef (({ isMobile, children, inputProps={}, ... restProps },
   </InputReal>
 })
 
+const DialogContentsHelp = styled.div`
+  font-size: 16px;
+  line-height: 1.5em;
+  > div {
+    margin-bottom: 12px;
+  }
+`
+
 const SearchS = styled.div`
   > .x__show-hide-filters {
     margin-bottom: 40px;
@@ -113,17 +123,19 @@ const SearchS = styled.div`
         margin: auto;
         position: relative;
         z-index: 3;
-        > .x__zoeken {
-          position: absolute;
-          border-radius: 10px;
+        display: flex;
+        align-items: center;
+        > .x__bar {
+          flex: 1 0 0;
+          vertical-align: middle;
+          padding-right: 20px;
+        }
+        > .x__itje {
           cursor: pointer;
-          left: 550px;
-          top: 5px;
-          padding: 10px;
-          background: white;
-          margin-left: 20px;
-          &.x--disabled {
-            cursor: inherit;
+          vertical-align: middle;
+          border: 2px solid black;
+          border-radius: 1000px;
+          > img {
           }
         }
       }
@@ -151,6 +163,16 @@ const SearchS = styled.div`
           width: 100%;
           > .x__search {
             width: 95%;
+            > .x__itje {
+              flex: 0 0 46px;
+              height: 46px;
+              > img {
+                position: relative;
+                top: 3px;
+                left: -0px;
+                width: 10px;
+              }
+            }
           }
         }
       `),
@@ -164,6 +186,18 @@ const SearchS = styled.div`
           width: calc(95% - 450px - 25px);
           > .x__search-results-wrapper {
             // width: 95%;
+          }
+          > .x__search {
+            > .x__itje {
+              flex: 0 0 65px;
+              height: 65px;
+              > img {
+                position: relative;
+                top: 2px;
+                left: 1px;
+                width: 20px;
+              }
+            }
           }
         }
       `),
@@ -878,8 +912,11 @@ export const Search = container (
     // suddenly gets replaced by new text when the new results come in.
     const [isNewQuery, setIsNewQuery] = useState (false)
     const [hideSidebar, setHideSidebar] = useState (isMobile)
+    const [helpDialogIsOpen, setHelpDialogIsOpen] = useState (false)
     const onSelect = useCallbackConst ((isNew) => setIsNewQuery (isNew))
     const onClickShowHideSidebar = useCallbackConst (() => setHideSidebar (not))
+    const openHelpDialog = useCallbackConst (() => setHelpDialogIsOpen (true))
+    const closeHelpDialog = useCallbackConst (() => setHelpDialogIsOpen (false))
 
     const showResults = useMemo (
       () => allV (
@@ -903,6 +940,33 @@ export const Search = container (
     useSaga ({ saga, key: 'Search', })
 
     return <SearchS>
+      <Dialog
+        isOpen={helpDialogIsOpen}
+        onRequestClose={closeHelpDialog}
+        closeOnOverlayClick={true}
+        isMobile={isMobile}
+        showCloseButton={isMobile}
+      >
+        <DialogContentsHelp>
+          <div>
+            Op de zoekpagina worden standaard de resultaten voor <em>alle</em> fondsen getoond. Door gebruik te maken van de zoekbalk en de zoekfilters wordt het aantal zoekresultaten beperkt.
+          </div>
+
+          <div>
+            De zoekbalk doorzoekt alle fondsinformatie. Als de zoekterm is gevonden toont het
+            zoekresultaat een stuk tekst met de term daarin gemarkeerd. De <em>autocomplete</em> functie vult
+            de zoekterm aan zodra er in de zoekbalk wordt getypt. Het is mogelijk een term uit de
+            autocomplete te selecteren  met pijltje omhoog of omlaag en dan enter.
+          </div>
+
+          <div>
+          In de zoekbalk kunnen meerdere termen worden ingegeven.
+          </div>
+
+          <div>De zoekfilters zijn dynamisch: het aantal zoekresultaten verandert naar gelang de opties in de filters worden geselecteerd of gedeselecteerd. Selectie vindt plaats in de filters links op de zoekpagina of in de ballonnetje onder de zoekbalk. Er is ook een optie om alle filters in één keer te deselecteren.
+          </div>
+        </DialogContentsHelp>
+      </Dialog>
       <div className='x__show-hide-filters'>
         {isMobile && <Button onClick={onClickShowHideSidebar}>
           {showHideSidebarButtonText}
@@ -914,7 +978,12 @@ export const Search = container (
         </div>
         <div className='x__main'>
           <div className='x__search'>
-            <SearchBar isMobile={isMobile} query={queryProp} onSelect={onSelect}/>
+            <div className='x__bar'>
+              <SearchBar isMobile={isMobile} query={queryProp} onSelect={onSelect}/>
+            </div>
+            <div className='x__itje'>
+              <img src={iconI} onClick={openHelpDialog}/>
+            </div>
           </div>
           <div className='x__filters'>
             <ActiveFilters/>
