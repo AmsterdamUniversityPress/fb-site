@@ -304,6 +304,8 @@ const Detail = ({ image: _image, data, }) => <DetailS>
 const FondsDetailS = styled.div`
   height: 100%;
   background: white;
+  // --- @todo
+  // cursor: text;
 `
 
 const dispatchTable = {

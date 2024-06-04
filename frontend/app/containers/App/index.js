@@ -297,22 +297,38 @@ const FooterS = styled.div`
     > .x__actions {
       font-size: 20px;
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-evenly;
-      height: 50px;
       margin-top: 40px;
       margin-right: 10%;
       margin-left: 10%;
-
+      > * {
+        ${mediaQuery (
+          mediaPhone (`
+            flex: 0 0 100%;
+            text-align: center;
+            margin-bottom: 10px;
+          `),
+          mediaTablet (`
+            flex: 0 0 60%;
+            height: 50px;
+            margin-bottom: 0px;
+          `),
+          mediaDesktop (`
+            flex: 0 0 auto;
+          `),
+        )}
+      }
     }
     > .x__grid {
       margin-top: 60px;
       display: flex;
       justify-content: space-evenly;
-      // flex-wrap: wrap;
+      flex-wrap: wrap;
       > .x__block {
         flex-grow: 0;
         flex-shrink: 0;
-        padding-left: 5%;
+        // padding-left: 5%;
         > .x__title {
           font-size: 25px;
           font-weight: bold;
@@ -320,13 +336,30 @@ const FooterS = styled.div`
         > .x__content {
           font-size: 20px;
           .x__small {
-            font-size: 16px;
-            margin-top: 12px;
+            // font-size: 16px;
+            // margin-top: 12px;
           }
         }
         > .x__contact {
-          margin-top: 6px;
+          // margin-top: 6px;
+          a {
+            text-decoration: none;
+            color: inherit;
+            &:hover {
+              // text-decoration: underline;
+            }
+          }
         }
+        ${mediaQuery (
+          mediaPhone (`
+            margin-top: 10px;
+          `),
+          mediaTablet (`
+            margin-top: 0px;
+          `),
+          mediaDesktop (`
+          `),
+        )}
       }
     }
     > .x__copyright-wrapper {
@@ -363,24 +396,37 @@ const AS = styled.a`
 `
 
 const LinkElementS = styled.div`
-  color: white;
-  margin-top: 15px;
-  ${prop ('attention') >> whenTrue (
-    () => `
-      border: 1px solid red;
-      border-radius: 100px;
-      background: white;
-      color: ${colors.highlight};
-      a {
-        margin: 15px;
-      }
-    `,
-  )}
+  > a {
+    > .x__inner {
+      color: white;
+      // margin-top: 15px;
+      ${prop ('attention') >> whenTrue (
+        () => `
+          border-radius: 100px;
+          padding: 8px 12px;
+          color: ${colors.highlight};
+          background: white;
+          cursor: pointer;
+          a {
+            margin: 15px;
+            vertical-align: middle;
+          }
+          &:hover {
+            background: #ddd;
+          }
+        `,
+      )}
+    }
+  }
 `
 
 const LinkElement = ({ attention, text, link, }) => <LinkElementS attention={attention}>
-    <AS href={link}>{text}</AS>
-  </LinkElementS>
+  <AS href={link}>
+    <div className='x__inner'>
+      {text}
+    </div>
+  </AS>
+</LinkElementS>
 
 const SocialS = styled.div`
   height: 30px;
@@ -406,10 +452,10 @@ const Footer = () => {
         />
       </div>
       <div className='x__actions'>
-        <LinkElement attention={true} text={"Abonnee worden"} link={linkAbonneeWordenAUP}/>
-        <LinkElement attention={true} text={"Meld een fonds aan"} link={emailLinkMeldFondsAan}/>
-        <LinkElement attention={true} text={"Op of aanmerkingen"} link={emailLinkAanmerkingen}/>
-        <LinkElement attention={true} text={"AUP nieuwsbrief"} link={linkNieuwsbriefAUP}/>
+        <LinkElement attention={true} text="Abonnee worden" link={linkAbonneeWordenAUP}/>
+        <LinkElement attention={true} text="Meld een fonds aan" link={emailLinkMeldFondsAan}/>
+        <LinkElement attention={true} text="Suggesties" link={emailLinkAanmerkingen}/>
+        <LinkElement attention={true} text="AUP nieuwsbrief" link={linkNieuwsbriefAUP}/>
       </div>
       <div className='x__grid'>
         <div className='x__block'>
@@ -421,8 +467,8 @@ const Footer = () => {
             <div className='x__small'>Nieuwe Prinsengracht 89</div>
             <div className='x__small'>1018 VR Amsterdam</div>
             <div className='x__small'>Nederland</div>
-            <div className='x__small'>Tel: 020-4200050 (ma-vr 14:00-16:00) </div>
-            <div className='x__small'>Mail: support@aup.nl</div>
+            <div className='x__small'>Tel: 020-4200050<br/> (ma-vr 14:00-16:00) </div>
+            <div className='x__small'><a href='mailto:support@aup.nl'>support@aup.nl</a></div>
           </div>
         </div>
         <div className='x__block'>
@@ -454,7 +500,7 @@ const Footer = () => {
             Filantropie
           </div>
           <div className='x__content'>
-            <LinkElement text={"De dikke blauwe"} link={linkDikkeBlauwe}/>
+            <LinkElement text='De Dikke Blauwe' link={linkDikkeBlauwe}/>
           </div>
         </div>
       </div>
