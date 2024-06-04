@@ -110,7 +110,6 @@ const SearchS = styled.div`
       z-index: 1;
       display: inline-block;
       > .x__search {
-        width: 75%;
         margin: auto;
         position: relative;
         z-index: 3;
@@ -125,9 +124,6 @@ const SearchS = styled.div`
           margin-left: 20px;
           &.x--disabled {
             cursor: inherit;
-            > .x__text {
-              opacity: 0.6;
-            }
           }
         }
       }
@@ -153,6 +149,9 @@ const SearchS = styled.div`
         }
         > .x__main {
           width: 100%;
+          > .x__search {
+            width: 95%;
+          }
         }
       `),
       mediaTablet (`
@@ -161,9 +160,10 @@ const SearchS = styled.div`
           width: calc(450px);
         }
         > .x__main {
-          width: calc(100% - 450px);
+          // --- roughly 25px for scrollbar
+          width: calc(95% - 450px - 25px);
           > .x__search-results-wrapper {
-            width: 95%;
+            // width: 95%;
           }
         }
       `),
@@ -228,7 +228,7 @@ const ResultsS = styled.div`
 `
 
 const ResultS = styled.div`
-  font-size: 15px;
+  font-size: 16px;
   width: 100%;
   padding: 3%;
   display: flex;
@@ -247,7 +247,6 @@ const ResultS = styled.div`
     }
   }
   > .x__left {
-// border: 3px solid red;
     > .x__image {
       img {
         width: 320px;
@@ -255,7 +254,6 @@ const ResultS = styled.div`
     }
   }
   > .x__right {
-// border: 3px solid green;
     > .x__name {
       margin-bottom: 5px;
       font-size: 19px;
@@ -264,8 +262,6 @@ const ResultS = styled.div`
       color: ${colorHighlight};
     }
     > .x__categories {
-      // font-size: 15px;
-      // font-family: Lora, serif;
       padding-top: 8px;
       margin-bottom: 10px;
       // text-transform: uppercase;
@@ -299,7 +295,7 @@ const ResultS = styled.div`
         }
         > .x__image {
           img {
-            width: 200px;
+            width: 260px;
           }
         }
       }
@@ -349,9 +345,6 @@ const ResultS = styled.div`
         }
         flex: 1 1 0px;
         margin-top: 0px;
-        > .text {
-          font-size: 15px;
-        }
       }
     `),
   )}
@@ -372,7 +365,7 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
         <img src={imgSrc} />
       </div>
     </div>
-    <div className='x__right'>
+    <div className='x__right text'>
       <div className='x__name'>
         {name}
       </div>
@@ -474,12 +467,10 @@ const FilterS = styled.div`
     background: #00000022;
     height: 2px;
     margin-bottom: 8px;
-    width: 94%;
+    width: 100%;
   }
   > .x__input {
-    width: 92%;
-    position: relative;
-    left: 7%;
+    width: 100%;
     margin-bottom: 10px;
   }
   > .x__row {
@@ -512,6 +503,7 @@ const FilterS = styled.div`
   }
   > .x__show-all {
     margin-top: 10px;
+    margin-bottom: 10px;
     > span {
       padding: 5px;
       border: 1px solid #dee2e6;
@@ -581,18 +573,18 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
           withIcon={['filter', 'right', [filterIconCls]]}
         />
       </div>
-      {Contents}
       {showShowMoreLessButton && <div className='x__show-all'>
         <Button onClick={onClickShowMore}>
           {showMoreLessButtonText}
         </Button>
       </div>}
+      {Contents}
     </>}
   </FilterS>
 }
 
 const FiltersS = styled.div`
-  font-size: 15px;
+  font-size: 16px;
 `
 
 const Filters = container2 (

@@ -35,9 +35,11 @@ const ArrowEndLeft = () => <ArrowEndRight style={{ transform: 'scaleX(-1)', }}/>
 
 const PaginationInnerS = styled.div`
   line-height: 2em;
-  margin-top: 13px;
+  cursor: text;
 
   >.x__num-per-page {
+    position: relative;
+    top: -18px;
   }
   >.x__cur-page {
     >.x__arrow {
@@ -70,7 +72,7 @@ const PaginationInnerS = styled.div`
             top: 30px;
           `),
           mediaTablet (`
-            top: 40px;
+            top: 33px;
           `),
         )}
       }
@@ -219,10 +221,6 @@ const PaginationInner = component ([
   }))
 
   return <PaginationInnerS>
-    {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
-      {textNumber}
-      {numsPerPageDisplay}
-    </div>}
     {page.length > 1 && <div className='x__cur-page'>
       <div>{textPage}</div>
       <div className={clss ('x__arrow', 'x__left2', canLeft || 'x--disabled')} onClick={onClickLeft2}>
@@ -247,6 +245,10 @@ const PaginationInner = component ([
       <div className={clss ('x__arrow', 'x__right2', canRight || 'x--disabled')} onClick={onClickRight2}>
         <ArrowEndRight/>
       </div>
+    </div>}
+    {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
+      {textNumber}
+      {numsPerPageDisplay}
     </div>}
   </PaginationInnerS>
 })

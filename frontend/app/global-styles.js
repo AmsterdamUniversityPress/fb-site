@@ -33,7 +33,7 @@ export const GlobalStyle = createGlobalStyle`
     color: #333;
   }
 
-  h1, h2, h3, h4, p {
+  h1, h2, h3, h4, p, .text {
     cursor: text;
   }
 

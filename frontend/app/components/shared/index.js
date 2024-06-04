@@ -364,14 +364,13 @@ const PaginationAndExplanationS = styled.div`
   background: white;
   min-height: 70px;
   text-align: center;
+  font-size: 16px;
   ${mediaQuery (
     mediaPhone (`
-      font-size: 16px;
       width: 90%;
       padding: 20px 0px 0px 0px;
     `),
     mediaTablet (`
-      font-size: 20px;
       width: 500px;
       padding: 20px 20px 20px 20px;
     `),

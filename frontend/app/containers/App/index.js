@@ -461,7 +461,7 @@ const Social = ({ img, link }) => <SocialS>
 </SocialS>
 
 const Footer = () => {
-    return <FooterS>
+    return <FooterS className='text'>
     <div className='x__main'>
       <div className='x__socials'>
         <Social img={imageIconFacebook} link={linkFacebookAUP} />

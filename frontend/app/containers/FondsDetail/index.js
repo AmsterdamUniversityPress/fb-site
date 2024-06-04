@@ -187,7 +187,7 @@ const Fields = ({ title, data, }) => {
   </FieldsS>
 }
 
-const Detail = ({ image: _image, data, }) => <DetailS>
+const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__image-and-tag'>
     <img src={imageTest}/>
   </div>
@@ -304,8 +304,6 @@ const Detail = ({ image: _image, data, }) => <DetailS>
 const FondsDetailS = styled.div`
   height: 100%;
   background: white;
-  // --- @todo
-  // cursor: text;
 `
 
 const dispatchTable = {

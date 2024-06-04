@@ -473,7 +473,6 @@ const MainS = styled.div`
   > .x__contents {
     > .x__header {
       z-index: 4;
-      position: sticky;
       top: 0;
       left: 0;
     }
@@ -485,6 +484,21 @@ const MainS = styled.div`
       cursor: pointer;
     }
   }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__contents > .x__header {
+      }
+    `),
+    mediaTablet (`
+      > .x__contents > .x__header {
+        position: sticky;
+      }
+    `),
+    mediaDesktop (`
+      > .x__contents > .x__header {
+      }
+    `),
+  )}
 `
 
 const IconShowPasswordS = styled.div`
