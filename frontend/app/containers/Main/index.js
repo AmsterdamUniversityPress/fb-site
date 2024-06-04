@@ -93,6 +93,7 @@ const iconUser = configIcons.get ('user')
 const imageFonds = configImages.get ('fonds')
 const imageLogoFB = configImages.get ('logo-fb')
 const imageLogoAUP = configImages.get ('logo-aup')
+const imageHeroFB = configImages.get ('hero-fb')
 
 const minimumPasswordScore = configGeneral.get ('minimumPasswordScore')
 const enforcePasswordStrength = configGeneral.get ('enforcePasswordStrength')
@@ -1139,23 +1140,18 @@ const SearchWrapper = ({ style, ... rest }) => <SearchWrapperS style={style}>
 const LandingS = styled.div`
   cursor: text;
   > .x__hero {
-    position: sticky;
-    top: 0;
-    width: 1200px;
-    height: 640px;
     margin: auto;
-    margin-top: 300px;
-    margin-bottom: 200px;
-    &.x--assembled {
-      position: static;
-    }
+    margin-bottom: 50px;
   }
   > .x__contents {
     display: flex;
     margin-left: 100px;
     margin-right: 100px;
     margin-top: 30px;
-    > .x__outline {
+    // > .x__outline {
+      // flex: 0 0 400px;
+    // }
+    > .x__empty {
       flex: 0 0 400px;
     }
     > .x__text {
@@ -1199,12 +1195,11 @@ const Landing = () => {
     return () => el.removeEventListener ('scroll', listener)
   }, [triggerSecondEffect, listener])
   return <LandingS>
-    <div className={clss ('x__hero', assembled && 'x--assembled')}>
-      {/* <Hero rows={16} cols={30} blockWidth='40px' blockHeight='40px' go={assembleHero}/> */}
-      <Hero rows={16} cols={30} blockWidth='20px' blockHeight='20px' go={assembleHero} onAssembled={onAssembled}/>
+    <div className='x__hero'>
+      <img src={imageHeroFB} width='100%'/>
     </div>
     <div className='x__contents'>
-      <div className='x__outline'>
+      {false && <div className='x__outline'>
         <div className='x__item'>
           Over
         </div>
@@ -1214,7 +1209,8 @@ const Landing = () => {
         <div className='x__item'>
           Educative publicaties
         </div>
-      </div>
+      </div>}
+      <div className='x__empty'/>
       <div className='x__text'>
         <div className='x__heading-1'>
           Over Amsterdam University Press

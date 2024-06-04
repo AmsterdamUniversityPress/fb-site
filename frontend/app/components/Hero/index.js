@@ -18,9 +18,7 @@ import config from '../../config'
 import ImageText from '../../images/hero-text-svg'
 
 const configTop = config | configure.init
-const imageE = configTop.get ('images.hero-e')
-const imageText = configTop.get ('images.hero-text')
-const colorHighlight = configTop.get ('colors.highlight')
+// const colorHighlight = configTop.get ('colors.highlight')
 
 const [[ll, lr], [tl, tr]] = [
   [-20, 20], [-20, 20],
@@ -68,7 +66,6 @@ const Block = ({ color, left, top, opacity, blockWidth='40px', blockHeight='40px
   <div className='x__img' style={{
     opacity,
   }}>
-    <img src={imageE}/>
   </div>
   <div className='x__overlay' style={{
     left, top,

@@ -169,11 +169,11 @@ const ResultsS = styled.div`
   min-width: 100px;
   > .x__pagination {
     > .x__separator {
-      --width: 60%;
+      // --width: 60%;
       height: 1px;
       background: #000;
       width: var(--width);
-      margin-left: calc((100% - var(--width))/2);
+      // margin-left: calc((100% - var(--width))/2);
       &.x--waiting {
         width: 0%;
       }
@@ -269,11 +269,12 @@ const ResultS = styled.div`
         }
       }
       > .x__separator {
+        flex: 0 0 60%;
         height: 2px;
         background: #ccc;
         width: 200px;
         margin: auto;
-        margin-top: 10px;
+        margin-top: 20px;
       }
     `),
     mediaTablet (`

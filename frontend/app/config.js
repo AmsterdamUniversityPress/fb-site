@@ -29,8 +29,7 @@ import iconXTwitter from './images/icons/x-twitter-wit.svg'
 import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoAUP from './images/logo-aup.svg'
 import imageLogoFB from './images/logo-fb.svg'
-import imageHeroE from './images/hero-e.png'
-import imageHeroText from './images/hero-text.svg'
+import imageHeroFB from './images/hero-fb.svg'
 import imageTest from './images/fonds/output_row_259.png'
 
 const debugRenders = false
@@ -128,8 +127,9 @@ export default {
     fonds: imageEyeWall,
     'logo-fb': imageLogoFB,
     'logo-aup': imageLogoAUP,
-    'hero-e': imageHeroE,
-    'hero-text': imageHeroText,
+    'hero-fb': imageHeroFB,
+    // 'hero-e': imageHeroE,
+    // 'hero-text': imageHeroText,
   },
   imagesFonds: {
     test: imageTest,
