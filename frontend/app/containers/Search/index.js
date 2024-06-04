@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  path, noop, ok, join, map, not, recurry, ifTrue,
+  path, noop, ok, join, map, not, recurry, ifTrue, invoke,
   sprintfN, nil, tap, concatM, concat, take,
   ifOk, dot, id, always, defaultToV, reduce,
   prop, whenOk, split, lets,
@@ -60,7 +60,14 @@ import {
 
 import config from '../../config'
 const configTop = configure.init (config)
+const colorHighlight = configTop.get ('colors.highlight')
 const paginationKey = configTop.get ('app.keys.Pagination.search')
+const iconLogin = configTop.get ('icons.login')
+const configIcons = configTop.focus ('icons.result')
+const iconDoel = configIcons.get ('doel')
+const iconDoelgroep = configIcons.get ('doelgroep')
+const iconWerkRegio = configIcons.get ('werkRegio')
+const iconCategories = configIcons.get ('categories')
 const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
 const lowercase = dot ('toLowerCase')
@@ -164,16 +171,49 @@ const SearchS = styled.div`
   }
 `
 
+const ResultIconsS = styled.div`
+  margin-bottom: 5px;
+  img {
+    position: relative;
+    top: 3px;
+    width: 15px;
+    display: inline-block;
+    margin-right: 15px;
+    vertical-align: text-top;
+  }
+  .x__contents {
+    vertical-align: top;
+    width: calc(100% - 15px - 15px);
+    display: inline-block;
+  }
+`
+
+const ResultIcon = invoke (() => {
+  const icons = {
+    werkRegio: iconWerkRegio,
+    categories: iconCategories,
+    doel: iconDoel,
+    doelgroep: iconDoelgroep,
+  }
+  return ({ children, type, }) => {
+    const icon = type | lookupOnOrDie ('bad type') (icons)
+    return <ResultIconsS>
+      <img src={icon}/>
+      <div className='x__contents'>
+        {children}
+      </div>
+    </ResultIconsS>
+  }
+})
+
 const ResultsS = styled.div`
   background: white;
   min-width: 100px;
   > .x__pagination {
     > .x__separator {
-      // --width: 60%;
       height: 1px;
       background: #000;
       width: var(--width);
-      // margin-left: calc((100% - var(--width))/2);
       &.x--waiting {
         width: 0%;
       }
@@ -188,6 +228,7 @@ const ResultsS = styled.div`
 `
 
 const ResultS = styled.div`
+  font-size: 15px;
   width: 100%;
   padding: 3%;
   display: flex;
@@ -197,7 +238,8 @@ const ResultS = styled.div`
     background: yellow;
   }
   &:hover {
-    background: #d2a89233;
+    // background: #d2a89233;
+    background: #dcdcde;
     > .x__left {
       > .x__name {
         text-decoration: underline;
@@ -205,31 +247,34 @@ const ResultS = styled.div`
     }
   }
   > .x__left {
+// border: 3px solid red;
     > .x__image {
       img {
         width: 320px;
       }
     }
-    > .x__name {
-      font-size: 19px;
-      padding-top: 15px;
-      font-family: Lora, serif;
-      font-weight: bold;
-      color: #4a001a;
-    }
-    > .x__categories {
-      font-size: 14px;
-      font-family: Lora, serif;
-      padding-top: 8px;
-      text-transform: uppercase;
-    }
   }
   > .x__right {
+// border: 3px solid green;
+    > .x__name {
+      margin-bottom: 5px;
+      font-size: 19px;
+      font-family: Lora, serif;
+      font-weight: bold;
+      color: ${colorHighlight};
+    }
+    > .x__categories {
+      // font-size: 15px;
+      // font-family: Lora, serif;
+      padding-top: 8px;
+      margin-bottom: 10px;
+      // text-transform: uppercase;
+    }
     > div {
       padding: 0.2%;
     }
     > .x__objective {
-      padding-bottom: 2%;
+      // padding-bottom: 2%;
     }
     // --- not currently used
     > .x__type {
@@ -237,7 +282,7 @@ const ResultS = styled.div`
       margin-right: 4px;
     }
     > .x__targetGroup {
-      padding-right: 2%;
+      // padding-right: 2%;
     }
     > .x__workingRegion {
     }
@@ -259,12 +304,16 @@ const ResultS = styled.div`
         }
       }
       > .x__right {
-        flex: 1 1 100vw;
-        margin-top: 8px;
+        flex: 0 1 70vw;
+        margin: auto;
+        margin-top: 16px;
         > * {
+          // text-align: center;
+        }
+        > .x__name {
           text-align: center;
         }
-        > .text, > .text2 {
+        > .text {
           font-size: 16px;
         }
       }
@@ -274,21 +323,23 @@ const ResultS = styled.div`
         background: #ccc;
         width: 200px;
         margin: auto;
-        margin-top: 20px;
+        margin-top: 60px;
       }
     `),
     mediaTablet (`
       min-width: 550px;
-      padding-right: 70px;
+      padding-right: 40px;
       > .x__left {
         > * {
-          text-align: right;
+          text-align: left;
         }
-        margin-right: 40px;
-        flex: 0 0 320px;
+        // margin-right: 40px;
+        flex: 0 0 280px;
         > .x__image {
           img {
-            width: 320px;
+            position: relative;
+            top: 7px;
+            width: 240px;
           }
         }
       }
@@ -320,26 +371,36 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
       <div className='x__image'>
         <img src={imgSrc} />
       </div>
+    </div>
+    <div className='x__right'>
       <div className='x__name'>
         {name}
       </div>
-      <div className='x__categories'>
-        {categories}
-      </div>
-    </div>
-    <div className='x__right'>
-      <div className='x__objective text'>
-        {[objective]}
-      </div>
+      <ResultIcon type='categories'>
+        <div className='x__categories'>
+          {categories}
+        </div>
+      </ResultIcon>
+      <ResultIcon type='doel'>
+        <div className='x__objective text'>
+          <div className='x__main'>
+            {[objective]}
+          </div>
+        </div>
+      </ResultIcon>
       <div className='x__type text'>{[type] | sprintfN ("Type: %s")}</div>
       {targetGroup | whenIsNotEmptyList (
-        () => <div className='x__targetGroup text2'>Doelgroep:&nbsp;
-          {targetGroup}
+        () => <div className='x__targetGroup'>
+          <ResultIcon type='doelgroep'>
+            {targetGroup}
+          </ResultIcon>
         </div>,
       )}
       {workingRegion | whenIsNotEmptyList (
-        () => <div className='x__workingRegion text2'>Werkregio:&nbsp;
-          {workingRegion}
+        () => <div className='x__workingRegion'>
+          <ResultIcon type='werkRegio'>
+            {workingRegion}
+          </ResultIcon>
         </div>,
       )}
     </div>
