@@ -195,9 +195,9 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
-      <Link to={data.website} target='_blank'>
+      <StyledLink to={data.website} target='_blank'>
         {data.naam_organisatie}
-      </Link>
+      </StyledLink>
     </div>
     {/*<div className='x__doelstelling'>
       {data.doelstelling}

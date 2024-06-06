@@ -182,7 +182,7 @@ const UserinfoInstitution = container (
     )
     return <UserinfoInstitutionS>
       <div className='x__item x__institution-message'>
-        Je bent ingelogd courtesy of:
+        Je bent ingelogd via:
       </div>
       <div className='x__item x__institution-name'>
         {getInstitutionName ()}
@@ -511,10 +511,8 @@ const IconShowPassword = ({ shown=false, height=24, className='', onClick=noop, 
 </IconShowPasswordS>
 
 const LoginS = styled.div`
-  // > .x__form {
-    // margin-top: 70px;
-  // }
-  > .x__message {
+  > .x__message-wrapper {
+    margin-top: 40px;
     margin-bottom: 40px;
   }
 `
@@ -530,6 +528,10 @@ const TextBoxS = styled.div`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+`
+
+const TextBox2S = styled (TextBoxS)`
+  padding: 20px;
 `
 
 const FullHeightCenter = styled.div`
@@ -831,15 +833,17 @@ const UserPasswordForm = container (
       >
         <ContentsForgotPasswordDialog/>
       </Dialog>
-      {mode === 'login' && isLoggedInInstitution && <TextBoxS className='x__message'>
-        <p>
-          Je bent ingelogd courtesy of {getInstitutionName ()}.
-        </p>
-        <p>
-          Je kunt door naar <StyledLink to='/'>de fondsen</StyledLink>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
-        </p>
-      </TextBoxS>
-      }
+      <div className='x__message-wrapper'>
+        {mode === 'login' && isLoggedInInstitution && <TextBox2S className='x__message'>
+          <p>
+            Je bent ingelogd via {getInstitutionName ()}.
+          </p>
+          <p>
+            Je kunt door naar <StyledLink to='/search/*'>de zoekpagina</StyledLink>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
+          </p>
+        </TextBox2S>
+        }
+      </div>
       <FullHeightCenter>
         <ResponsiveForm>
           {/* --- the form is there to silence a chromium warning, but doesn't really do anything; make sure to use event.preventDefault so it doesn't submit */}

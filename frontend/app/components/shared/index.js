@@ -59,7 +59,8 @@ const ButtonBaseS = styled.button`
 `
 
 export const ButtonS = styled (ButtonBaseS)`
-  background: ${colorHighlight2};
+  background: ${colorHighlight1};
+  color: white;
   position: relative;
   opacity: 0.5;
   padding: 2px;
