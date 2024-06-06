@@ -4,13 +4,11 @@
         "frontend"
     ],
     "dependencies": {
-        "@11ty/eleventy": "^2.0.1",
         "@babel/core": "^7.23.9",
         "@babel/eslint-parser": "^7.23.10",
         "alleycat-js": "^0.4.20",
         "eslint": "^8.56.0",
         "eslint-plugin-import": "^2.29.1",
-        "sass": "^1.70.0",
         "zxcvbn": "^4.4.2"
     },
     "packageManager": "yarn@4.2.2"
