@@ -774,7 +774,7 @@ export const SearchBar = container2 (
             },
           },
         }}
-        initValue={query}
+        value={query}
         closeOnSelected={true}
         suggestions={suggestions}
         onChange={onChange}

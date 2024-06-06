@@ -91,7 +91,6 @@ export default component (
   forwardRef ((props, ref) => {
     const {
       Input=InputDefault, inputWrapperProps={},
-      initValue: initValueProp=null,
       value: valueProp='',
       suggestions: suggestionsProp=null,
       closeOnSelected=false,
@@ -105,10 +104,16 @@ export default component (
     } = props
     const { inputProps={}, ... restInputWrapperProps } = inputWrapperProps
     const suggestions = useMemo (() => suggestionsProp ?? [], [suggestionsProp])
-    const [value, setValue] = useState (initValueProp ?? valueProp)
-    useEffect (() => { setValue (initValueProp) }, [initValueProp])
     const [showSuggestions, setShowSuggestions] = useState (false)
+
+    // --- value and enteredValue both get synced to valueProp, while only value gets updated by
+    // typing in the box.
+    const [value, setValue] = useState (valueProp)
+    useEffect (() => { setValue (valueProp) }, [valueProp])
+
     const [enteredValue, setEnteredValue] = useState (valueProp)
+    useEffect (() => { setEnteredValue (valueProp) }, [valueProp])
+
     // --- -1 means use the value, >= 0 means that idx of the suggestions.
     const [selectedIdx, setSelectedIdx] = useState (-1)
     // --- for hovering with the mouse, which should highlight the rows in the same way as selecting
@@ -205,8 +210,9 @@ export default component (
     )
     // --- we do not want to depend on `valueForIdx` here, even though the linter complains.
     useEffect (() => {
-      setValue (valueForIdx (selectedIdx))
-    }, [selectedIdx])
+      if (selectedIdx === -1) setValue (enteredValue)
+      else setValue (valueForIdx (selectedIdx))
+    }, [enteredValue, selectedIdx])
     useEffect (() => {
       setSelectedIdx (-1)
       setHoverIdx (null)
