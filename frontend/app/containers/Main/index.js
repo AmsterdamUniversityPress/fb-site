@@ -10,7 +10,7 @@ import {
 
 import React, { useCallback, useLayoutEffect, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { useNavigate, useParams, } from 'react-router-dom'
+import { Link, useNavigate, useParams, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 import zxcvbn from 'zxcvbn'
@@ -60,7 +60,7 @@ import { spinner, } from '../../alleycat-components/spinner'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
 import { Search, } from '../../containers/Search'
-import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, Link, RouterLink, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, StyledLink, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import mkPagination from '../../containers/shared/Pagination'
 
@@ -836,7 +836,7 @@ const UserPasswordForm = container (
           Je bent ingelogd courtesy of {getInstitutionName ()}.
         </p>
         <p>
-          Je kunt door naar <Link to='/'>de fondsen</Link>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
+          Je kunt door naar <StyledLink to='/'>de fondsen</StyledLink>, of je kunt inloggen met een gebruikersnaam en wachtwoord als je een account bij ons hebt.
         </p>
       </TextBoxS>
       }
@@ -1262,14 +1262,14 @@ const Landing = () => {
           */}
         </div>
         <p>
-          Fondsenboek.com is een uitgave van <RouterLink
+          Fondsenboek.com is een uitgave van <StyledLink
             to='https://aup.nl'
             target='_blank'
           >Amsterdam University Press
-          </RouterLink>. De onlineversie is gebaseerd op <RouterLink
+          </StyledLink>. De onlineversie is gebaseerd op <StyledLink
             to='https://www.aup.nl/nl/book/9789048564187/fondsenboek-2024'
             target='_blank'
-            >de gedrukte versie van het Fondsenboek</RouterLink>.
+            >de gedrukte versie van het Fondsenboek</StyledLink>.
         </p>
         <p>
           Maatschappelijke ondernemers en organisaties, maar ook particulieren, zijn steeds vaker op zoek naar private bijdragen voor de realisering van hun projecten en idealen. Voor deze fondsenzoekers is het FondsenBoek al jaren dé complete en betrouwbare vraagbaak.
@@ -1278,10 +1278,10 @@ const Landing = () => {
           Naast evidente informatie zoals: werkgebied, contact- en proceduregegevens is ook informatie te vinden over de missie, doelgroep, bestedingen en de financiën van het vermogensfonds.
         </p>
         <p>
-          Interesse in een abonnement op het online Fondsenboek voor het meest actuele en complete online overzicht van Nederlandse vermogensfondsen? Klik <RouterLink
+          Interesse in een abonnement op het online Fondsenboek voor het meest actuele en complete online overzicht van Nederlandse vermogensfondsen? Klik <StyledLink
             to='https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/'
             target='_blank'
-          >hier</RouterLink> voor meer informatie over een abonnement.
+          >hier</StyledLink> voor meer informatie over een abonnement.
         </p>
         <p>
           {/*

@@ -24,6 +24,7 @@ import Dialog from '../../alleycat-components/Dialog'
 import config from '../../config'
 
 const configTop = config | configure.init
+const colorHighlight1 = configTop.get ('colors.highlight')
 const colorHighlight2 = configTop.get ('colors.highlight2')
 const iconArrow = configTop.get ('icons.arrow')
 
@@ -124,20 +125,6 @@ const SpinnerS = styled.div`
       .x__kid-d { display: block; top: -10%; }
     `),
   )}
-`
-
-const linkBaseMixin = `
-  text-decoration: underline;
-  cursor: pointer;
-`
-
-const linkMixin = sprintf1 (`
-  color: darkblue;
-  ${linkBaseMixin}
-`)
-
-export const LinkLike = styled.span`
-  ${linkMixin}
 `
 
 // --- trivial styled component to allow passing ref.
@@ -405,14 +392,17 @@ export const PaginationAndExplanation = ({ numItems, showExplanation, Pagination
 
 const LinkS = styled (LinkReal)`
   cursor: text;
+  color: ${colorHighlight1};
+  text-decoration: none;
+  border-bottom: 1px solid ${colorHighlight2};
   ${prop ('disabled') >> ifTrue (
     () => 'cursor: inherit',
     () => 'cursor: pointer',
   )}
 `
 
-// --- a wrapper around React Router's Link which takes a boolean `disabled` prop
-export const Link = ({ disabled, children, onClick: onClickProp=noop, ... restProps }) => {
+// --- a wrapper around React Router's Link with style and a boolean `disabled` prop
+export const StyledLink = ({ disabled, children, onClick: onClickProp=noop, ... restProps }) => {
   const onClick = useCallback ((event) => {
     if (disabled) return event.preventDefault ()
     return onClickProp (event)
@@ -421,21 +411,3 @@ export const Link = ({ disabled, children, onClick: onClickProp=noop, ... restPr
     {children}
   </LinkS>
 }
-
-const RouterLinkS = styled (Link)`
-  ${prop ('color') >> whenOk (
-    (color) => `color: ${color};`,
-  )}
-  cursor: pointer;
-`
-
-const RouterLinkDarkS = styled (RouterLinkS)`
-  color: black;
-`
-
-export const BlueLink = styled (Link)`
-  color: darkblue;
-`
-
-export const RouterLink = RouterLinkS
-export const RouterLinkDark = RouterLinkDarkS

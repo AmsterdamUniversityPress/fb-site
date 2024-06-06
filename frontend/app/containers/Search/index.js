@@ -272,7 +272,6 @@ const ResultS = styled.div`
     background: yellow;
   }
   &:hover {
-    // background: #d2a89233;
     background: #dcdcde;
     > .x__left {
       > .x__name {
@@ -399,7 +398,7 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
         <img src={imgSrc} />
       </div>
     </div>
-    <div className='x__right text'>
+    <div className='x__right'>
       <div className='x__name'>
         {name}
       </div>
@@ -409,13 +408,13 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
         </div>
       </ResultIcon>
       <ResultIcon type='doel'>
-        <div className='x__objective text'>
+        <div className='x__objective'>
           <div className='x__main'>
             {[objective]}
           </div>
         </div>
       </ResultIcon>
-      <div className='x__type text'>{[type] | sprintfN ("Type: %s")}</div>
+      <div className='x__type'>{[type] | sprintfN ("Type: %s")}</div>
       {targetGroup | whenIsNotEmptyList (
         () => <div className='x__targetGroup'>
           <ResultIcon type='doelgroep'>

@@ -40,13 +40,6 @@ export const GlobalStyle = createGlobalStyle`
     cursor: text;
   }
 
-  a {
-    color: ${colorHighlight1};
-    // text-decoration: underline;
-    text-decoration: none;
-    border-bottom: 1px solid ${colorHighlight2};
-  }
-
   #app {
     height: 100%;
     width: 100%;
