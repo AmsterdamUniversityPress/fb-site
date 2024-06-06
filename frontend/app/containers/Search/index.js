@@ -290,7 +290,7 @@ const ResultS = styled.div`
     > .x__name {
       margin-bottom: 5px;
       font-size: 19px;
-      font-family: Lora, serif;
+      // font-family: Lora, serif;
       font-weight: bold;
       color: ${colorHighlight};
     }

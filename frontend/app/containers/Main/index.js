@@ -325,7 +325,7 @@ const HeaderS = styled.div`
   justify-content: space-between;
   align-items: center;
   > .x__logo-aup {
-    height: 5vw;
+    height: 100%;
     margin-right: 40px;
     min-height: 60px;
     img {
@@ -469,7 +469,7 @@ const MainS = styled.div`
   background: white;
   background-size: 100%;
   font-size: 20px;
-  font-family: Arial;
+  // font-family: Arial;
   > .x__contents {
     > .x__header {
       z-index: 4;
@@ -952,7 +952,7 @@ const FondsS = styled.div`
     > .x__naam-organisatie {
       text-decoration: underline;
       font-size: 30px;
-      font-family: Lora, serif;
+      // font-family: Lora, serif;
     }
     .x__categories {
       margin-top: 20px;

@@ -44,10 +44,10 @@ const debugSelectors = false
 
 const getMainFontCss = () => join ('\n\n', [
   fontFace (
-    'Lora',
+    'Montserrat',
     [
       [
-        require ('./fonts/lora.woff2'),
+        require ('./fonts/Montserrat-Regular.ttf'),
         'woff',
       ],
     ],
@@ -99,7 +99,7 @@ export default {
   font: {
     main: {
       css: getMainFontCss (),
-      family: 'Lora',
+      family: 'Montserrat',
     },
   },
   icons: {

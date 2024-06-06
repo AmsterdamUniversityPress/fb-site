@@ -121,7 +121,7 @@ const AppWrapper = styled.div`
   overflow-x: hidden;
   margin: 0 auto;
   height: 100%;
-  font-family: Arial;
+  // font-family: Arial;
 
   > .x__main {
     position: relative;
