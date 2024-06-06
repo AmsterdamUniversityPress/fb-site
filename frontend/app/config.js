@@ -44,7 +44,7 @@ const debugSelectors = false
 
 const getMainFontCss = () => join ('\n\n', [
   fontFace (
-    'Montserrat',
+    'Montserrat Regular',
     [
       [
         require ('./fonts/Montserrat-Regular.ttf'),
@@ -99,8 +99,12 @@ export default {
   font: {
     main: {
       css: getMainFontCss (),
-      family: 'Montserrat',
+      family: 'Montserrat Regular',
     },
+    // text: {
+      // css: getTextFontCss (),
+      // family: 'Open Sans',
+    // },
   },
   icons: {
     add: iconAdd,
