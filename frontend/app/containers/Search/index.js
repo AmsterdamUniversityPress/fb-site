@@ -376,7 +376,7 @@ const ResultS = styled.div`
         > * {
           text-align: left;
         }
-        flex: 1 1 0px;
+        flex: 1 1 calc(100% - 280px);
         margin-top: 0px;
       }
     `),

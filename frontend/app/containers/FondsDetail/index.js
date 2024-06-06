@@ -26,6 +26,7 @@ import {
   selectFonds,
 } from './selectors'
 
+import { StyledLink, } from '../../components/shared'
 import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 import { isNotEmptyString, } from '../../util-general'
@@ -38,7 +39,7 @@ const okAndNotEmptyString = againstAll ([ok, isNotEmptyString])
 const whenOkAndNotEmptyString = okAndNotEmptyString | whenPredicate
 
 const jaNee = (x) => ['nee', 'ja'] [Number (x)]
-const link = (value) => <Link to={value} target='_blank'>{value}</Link>
+const link = (value) => <StyledLink to={value} target='_blank'>{value}</StyledLink>
 
 const DetailS = styled.div`
   color: ${colors.textBlock1Fg};
