@@ -438,8 +438,20 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
 // of string fields (doelstelling etc.) and several elements in the case of an array field
 // (categories).
 
+// --- @todo svg bullet
+
+const SepS = styled.span`
+  font-size: 100%;
+  vertical-align: middle;
+  padding: 0px 5px;
+`
+
+const Sep = () => <SepS>
+  ･
+</SepS>
+
 const highlightJoin = recurry (2) (
-  (joiner=(idx) => idx === 0 ? '' : ', ') => (xss) => xss | mapX (
+  (joiner=(idx) => idx === 0 ? '' : <Sep/>) => (xss) => xss | mapX (
     (xs, idx) => [joiner (idx), ... xs | mapX (
       (x, idx2) => idx2 | ifEven (
         () => <span key={idx2}>{x}</span>,
