@@ -208,6 +208,7 @@ const router = (passProps) => createBrowserRouter ([
   { path: '/detail/:uuid', element: <Main page='detail' passProps={passProps}/>},
   { path: '/login', element: <Main page='login' passProps={passProps}/>},
   { path: '/login/:email', element: <Main page='login' passProps={passProps}/>},
+  { path: '/search', element: <Main page='search' passProps={passProps}/>},
   { path: '/search/:query', element: <Main page='search' passProps={passProps}/>},
   { path: '/user', element: <Main page='user' passProps={passProps}/>},
   { path: '/init-password/:email/:token', element: <Main page='init-password' passProps={passProps}/>},

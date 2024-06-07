@@ -1341,6 +1341,7 @@ const Contents = container (
   ({ isMobile, page, }) => {
     const params = useParams ()
     const dispatch = useDispatch ()
+    const navigate = useNavigate ()
     const [element, shiftUp=false, effect=noop] = page | lookupOnOrDie ('Invalid page ' + page) ({
       landing: [() => <Landing/>],
       detail: [() => <FondsDetail/>, true],
@@ -1350,7 +1351,7 @@ const Contents = container (
         false,
         () => {
           const query = params.query
-          if (nil (query)) return
+          if (nil (query)) navigate ('/search/*')
           const searchParams = document.location.search | mkURLSearchParams (
             ['categories', 'trefwoorden', 'naam_organisatie', 'regios'],
           )
