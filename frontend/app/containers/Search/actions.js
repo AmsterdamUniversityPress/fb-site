@@ -51,3 +51,8 @@ export const updateFilterToggle = action (
   (navigate, filterName, value) => ({ navigate, filterName, value, }),
   'updateFilterToggle',
 )
+
+export const updateSearchQuery = action (
+  (navigate, searchQuery) => ({ navigate, searchQuery, }),
+  'updateSearchQuery',
+)

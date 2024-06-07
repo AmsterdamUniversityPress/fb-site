@@ -12,9 +12,11 @@ import { EffAction, EffSaga, EffNoEffect, } from 'alleycat-js/es/saga'
 import {
   clearFilters as a_clearFilters,
   updateFilterToggle as a_updateFilterToggle,
+  updateSearchQuery as a_updateSearchQuery,
 } from './actions'
 import {
   selectQuery as selectSearchQuery,
+  selectSelectedFilters,
   selectSelectedFiltersTuplesWithUpdate,
 } from './selectors'
 
@@ -35,10 +37,23 @@ function *s_updateFilterToggle ({ filterName, value, navigate, }) {
     '/search/%s?%s',
   ))
 }
+// --- @todo
+// this function could be refactored with s_updateFilterToggle.
+// The use of selectSelectedFiltersTuplesWithUpdate, to be precise, to give null as 'updateSpec'
+// might be confusing.
+function *s_updateSearchQuery ({ searchQuery, navigate, }) {
+  const selector = yield select (selectSelectedFiltersTuplesWithUpdate)
+  const tuples = selector (null)
+  const params = new URLSearchParams (tuples)
+  navigate ([encodeURIComponent (searchQuery), params.toString ()] | sprintfN (
+    '/search/%s?%s',
+  ))
+}
 
 export default function *sagaRoot () {
   yield all ([
     saga (takeLatest, a_clearFilters, s_clearFilters),
     saga (takeLatest, a_updateFilterToggle, s_updateFilterToggle),
+    saga (takeLatest, a_updateSearchQuery, s_updateSearchQuery),
   ])
 }

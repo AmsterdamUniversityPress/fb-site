@@ -24,7 +24,12 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 
 import { createReducer, } from '../../redux'
 
-import { autocompleteQueryUpdated, clearFilters, updateFilterToggle, } from './actions'
+import {
+  autocompleteQueryUpdated,
+  clearFilters,
+  updateFilterToggle,
+  updateSearchQuery,
+} from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import {
@@ -466,7 +471,7 @@ const highlightJoin = recurry (2) (
         () => <span key={idx + idx2 + 1}>{x}</span>,
         () => <span key={idx + idx2 + 1} className='highlight'>{x}</span>,
       ),
-    )],
+    )] ,
   ),
 )
 
@@ -820,9 +825,13 @@ const ActiveFilters = container2 (
     const dispatch = useDispatch ()
     const hasFilters = useSelector (selectHasSelectedFilters)
     const selectedFilters = useSelector (selectSelectedFilters)
+    const searchQuery = useSelector (selectSearchQuery)
 
     const onClickBubble = useCallbackConst ((filterName, value) => {
       dispatch (updateFilterToggle (navigate, filterName, value))
+    })
+    const onClickQueryBubble = useCallbackConst (() => {
+      dispatch (updateSearchQuery (navigate, '*'))
     })
     const onClickClear = useCallbackConst (() => {
       dispatch (clearFilters (navigate))
@@ -834,6 +843,13 @@ const ActiveFilters = container2 (
           Actieve filters
         </div>
         <div className='x__filters'>
+            <span
+              key={"zoekterm" + ':' + searchQuery}
+              className='x__item'
+              onClick={() => onClickQueryBubble ()}
+            ><FilterBubbleText>
+              zoekterm: {searchQuery==="*" ? "alles" : searchQuery}
+            </FilterBubbleText></span>
           {selectedFilters | mapFlatRemapTuples (
             (filterName, values) => values | setRemap (
             (value) => <span
@@ -906,7 +922,6 @@ export const Search = container (
     {},
     {
       resultsSearch: selectResultsSearch,
-      searchQuery: selectSearchQuery,
     },
   ],
   (props) => {
@@ -916,8 +931,6 @@ export const Search = container (
       searchParamsString: searchParamsStringProp='',
       showResults: showResultsProp,
       resultsSearch,
-      // --- `searchQuery` is the query that has actually been executed (contrast with `queryProp`)
-      searchQuery,
     } = props
     // --- `queryProp` is the query that has been accepted, set in the URL, and passed down to us
     // again by React Router. If this is the first time this component sees this value for `queryProp` then it hasn't been searched on yet (it's our job to do it using the effect below).
