@@ -590,7 +590,9 @@ const Filter = ({ name, counts, selecteds=new Set, onChange: onChangeProp, }) =>
       (key) => key.match (new RegExp (inputValue.trim (), 'i')),
     )
   }, [doAutocomplete, counts, inputValue])
-  const show = useMemo (() => counts.size > 0, [counts])
+  // we used to only show Filters when there was at least one option present
+  // const show = useMemo (() => counts.size > 0, [counts])
+  const show = true
   const showShowMoreLessButton = useMemo (() => filteredCounts.size > 10, [filteredCounts])
   const showMoreLessButtonText = useMemo (() => showAll ? '- Minder tonen' : '+ Meer tonen', [showAll])
   const abridge = useMemo (() => showAll ? id : mapTake (10), [showAll])
