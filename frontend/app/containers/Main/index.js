@@ -1396,8 +1396,8 @@ export default container (
     useEffect (() => {
       setReturnBlank (false)
       landingDecision (page) (
-        // --- unauthorized and visiting a private page: send to login
-        () => navigate ('/login'),
+        // --- unauthorized and visiting a private page: send to landingspage
+        () => navigate ('/'),
         () => setReturnBlank (true),
         // --- send away from login if logged in as user and visiting /login
         () => {
