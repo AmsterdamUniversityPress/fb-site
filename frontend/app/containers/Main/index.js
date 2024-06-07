@@ -1,7 +1,7 @@
 import {
   pipe, compose, composeRight,
   tap, gt, gte, nil, ok,
-  not, noop, ifTrue, F, T,
+  not, noop, ifTrue, ifFalse, F, T,
   map, path, condS, eq, guard, otherwise,
   lets, id, whenTrue, invoke, prop,
   sprintfN,
@@ -245,7 +245,7 @@ const User = container (
       getUserType: selectGetUserType,
       hasPrivilegeAdminUser: selectHasPrivilegeAdminUser,
     }],
-  ({ isMobile, getUserType, hasPrivilegeAdminUser, logOutDispatch, }) => {
+  ({ isMobile, isLoggedIn, getUserType, hasPrivilegeAdminUser, logOutDispatch, }) => {
     const navigate = useNavigate ()
 
     const [open, setOpen] = useState (false)
@@ -269,6 +269,13 @@ const User = container (
     const onNavigate = useCallbackConst (
       () => setOpen (not),
     )
+    const onClickLogIn = useCallback (
+      () => {
+        navigate ('/login')
+        onNavigate ()
+      },
+      [navigate, onNavigate],
+    )
     const onClickAdmin = useCallback (
       () => {
         setOpen (false)
@@ -280,30 +287,39 @@ const User = container (
       <img src={iconUser} width='100%' onClick={onClick}/>
       <div className='x__dropdown-wrapper'>
         <DropDown open={open} contentsStyle={{ right: '0px', position: 'absolute', width: isMobile ? '90vw' : null, }}>
-          {invoke (getUserType | lookupOnOrDie ('Bad user type') ({
-            institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
-            user: () => <>
-              <UserinfoUser/>
-              <hr/>
-              <div className='x__menu-items'>
+          {isLoggedIn | ifFalse (
+            () => <div className='x__menu-items'>
                 <MenuItem
-                  onClick={onClickLogout}
-                  imgSrc={iconLogout}
-                  text='afmelden'
+                  onClick={onClickLogIn}
+                  imgSrc={iconLogin}
+                  text='log in'
                 />
-                <MenuItem
-                  onClick={onClickPasswordUpdate}
-                  imgSrc={iconUpdate}
-                  text='wachtwoord veranderen'
-                />
-                {hasPrivilegeAdminUser && <MenuItem
-                  onClick={onClickAdmin}
-                  imgSrc={iconAdmin}
-                  text='gebruikers beheren'
-                />}
-              </div>
-            </>,
-          }))}
+              </div>,
+            () => invoke (getUserType | lookupOnOrDie ('Bad user type') ({
+              institution: () => <UserinfoInstitution onNavigate={onNavigate}/>,
+              user: () => <>
+                <UserinfoUser/>
+                <hr/>
+                <div className='x__menu-items'>
+                  <MenuItem
+                    onClick={onClickLogout}
+                    imgSrc={iconLogout}
+                    text='afmelden'
+                  />
+                  <MenuItem
+                    onClick={onClickPasswordUpdate}
+                    imgSrc={iconUpdate}
+                    text='wachtwoord veranderen'
+                  />
+                  {hasPrivilegeAdminUser && <MenuItem
+                    onClick={onClickAdmin}
+                    imgSrc={iconAdmin}
+                    text='gebruikers beheren'
+                  />}
+                </div>
+              </>,
+            })),
+          )}
         </DropDown>
       </div>
     </UserS>
@@ -441,7 +457,7 @@ const Header = ({ isMobile, isLoggedIn, page, }) => {
       </div>
     </div>
     <div className='x__user-menu'>
-      {isLoggedIn && <User isMobile={isMobile}/>}
+      <User isMobile={isMobile} isLoggedIn={isLoggedIn}/>
     </div>
   </HeaderS>
 }
