@@ -433,12 +433,11 @@ const Header = ({ isMobile, isLoggedIn, page, }) => {
     </div>
     <div className='x__nav-links'>
       <div className='x__wrapper'>
-        {isLoggedIn && <>
-          <Link to='/search/*' disabled={page === 'search'}>
-            Zoek een fonds
-          </Link>
-          <div className={clss ('x__cursor', cls ('search'))}/>
-        </>}
+        {isLoggedIn | ifTrue (
+          () => <Link to='/search/*' disabled={page === 'search'}> Zoek een fonds </Link>,
+          () => <Link to='/login'> Zoek een fonds </Link>,
+        )}
+        <div className={clss ('x__cursor', cls ('search'))}/>
       </div>
     </div>
     <div className='x__user-menu'>
