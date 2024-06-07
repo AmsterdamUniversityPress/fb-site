@@ -451,7 +451,7 @@ const Sep = () => <SepS>
 </SepS>
 
 const highlightJoin = recurry (2) (
-  (joiner=(idx) => idx === 0 ? '' : <Sep/>) => (xss) => xss | mapX (
+  (joiner=(idx) => idx === 0 ? '' : <Sep key={idx}/>) => (xss) => xss | mapX (
     (xs, idx) => [joiner (idx), ... xs | mapX (
       (x, idx2) => idx2 | ifEven (
         () => <span key={idx2}>{x}</span>,
