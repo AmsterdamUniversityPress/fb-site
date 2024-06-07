@@ -48,10 +48,15 @@ let esClient
 // --- this is just a manual custom filter which does the same as the filter
 // 'dutch' (see elastic docs), but it lets us tweak things.
 const customDutchFilter = {
-  dutch_stop: {
-    type:       'stop',
-    stopwords:  '_dutch_',
-  },
+  // --- @todo
+  // by removing dutch_stop, the word 'doen' is indexed and found. It is, however, unclear which
+  // words are exactly in '_dutch_', because the reference
+  // https://github.com/apache/lucene/blob/main/lucene/analysis/common/src/resources/org/apache/lucene/analysis/snowball/dutch_stop.txt
+  // that elastic gives, does not seem to agree with searchResults
+  // dutch_stop: {
+    // type:       'stop',
+    // stopwords:  '_dutch_',
+  // },
   dutch_stop_extra: {
     type:       'stop',
     stopwords:  ['t'],
@@ -89,7 +94,7 @@ const customDutchAnalyzer = {
   tokenizer: 'standard',
   filter: [
     'lowercase',
-    'dutch_stop',
+    // 'dutch_stop',
     'dutch_stop_extra',
     'dutch_keywords',
     'dutch_override',
