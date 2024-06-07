@@ -450,12 +450,21 @@ const Sep = () => <SepS>
   ･
 </SepS>
 
+// --- wicked bug about each child should have a unique key. This (key={idx1 + idx2 + 1}) looks like it works (but it might
+// be better to have a (virtual) div around a sub list: e.g
+// <div key={idx1}>
+//   <>
+//     <div key={idx2}
+//     <div key={idx2}
+//   </>
+// </div>
+// )
 const highlightJoin = recurry (2) (
   (joiner=(idx) => idx === 0 ? '' : <Sep key={idx}/>) => (xss) => xss | mapX (
     (xs, idx) => [joiner (idx), ... xs | mapX (
       (x, idx2) => idx2 | ifEven (
-        () => <span key={idx2}>{x}</span>,
-        () => <span key={idx2} className='highlight'>{x}</span>,
+        () => <span key={idx + idx2 + 1}>{x}</span>,
+        () => <span key={idx + idx2 + 1} className='highlight'>{x}</span>,
       ),
     )],
   ),
