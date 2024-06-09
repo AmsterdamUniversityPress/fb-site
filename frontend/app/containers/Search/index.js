@@ -1022,8 +1022,8 @@ export const Search = container (
             <div className='x__bar'>
               <SearchBar isMobile={isMobile} query={queryProp} onSelect={onSelect}/>
             </div>
-            <div className='x__itje'>
-              <img src={iconI} onClick={openHelpDialog}/>
+            <div className='x__itje' onClick={openHelpDialog}>
+              <img src={iconI}/>
             </div>
           </div>
           <div className='x__filters'>
