@@ -393,7 +393,7 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
   const navigate = useNavigate ()
   const onClick = useCallback (
     () => navigate (href),
-    navigate, href,
+    [navigate, href],
   )
 
   return <ResultS onClick={onClick}>
