@@ -217,14 +217,29 @@ const SearchS = styled.div`
 
 const ResultIconsS = styled.div`
   margin-bottom: 5px;
-  > svg {
-    position: relative;
-    top: 3px;
-    width: 20px;
-    height: 20px;
+  > .x__icon {
     display: inline-block;
-    margin-right: 15px;
-    vertical-align: text-top;
+    position: relative;
+    > svg {
+      position: relative;
+      top: 3px;
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      margin-right: 15px;
+    }
+    &.x__categories {
+      top: -3px;
+    }
+    &.x__doel {
+      top: -3px;
+    }
+    &.x__doelgroep {
+      top: -5px;
+    }
+    &.x__werkregio {
+      top: -5px;
+    }
   }
   > .x__contents {
     vertical-align: top;
@@ -235,16 +250,18 @@ const ResultIconsS = styled.div`
 
 const ResultIcon = invoke (() => {
   const icons = {
-    werkRegio: <IconWerkRegio strokeWidth='40'/>,
-    categories: <IconCategory strokeWidth='50'/>,
-    doel: <IconDoel strokeWidth='50'/>,
-    doelgroep: <IconDoelgroep strokeWidth='50'/>,
+    categories: [<IconCategory strokeWidth='80'/>, 'x__categories'],
+    doel: [<IconDoel strokeWidth='60'/>, 'x__doel'],
+    doelgroep: [<IconDoelgroep strokeWidth='70'/>, 'x__doelgroep'],
+    werkRegio: [<IconWerkRegio strokeWidth='40'/>, 'x__werkregio'],
   }
   return ({ children, type, }) => {
-    const icon = type | lookupOnOrDie ('bad type') (icons)
+    const [icon, cls] = type | lookupOnOrDie ('bad type') (icons)
     return <ResultIconsS>
-      {icon}
-      <div className='x__contents'>
+      <div className={clss ('x__icon', cls)}>
+        {icon}
+      </div>
+      <div className={clss ('x__contents', cls)}>
         {children}
       </div>
     </ResultIconsS>
