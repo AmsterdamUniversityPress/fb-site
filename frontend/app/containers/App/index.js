@@ -389,6 +389,7 @@ const FooterS = styled.div`
         > .x__grid {
           > .x__block {
             flex-basis: 100%;
+            margin-bottom: 15px;
           }
         }
       `),
@@ -396,6 +397,7 @@ const FooterS = styled.div`
         > .x__grid {
           > .x__block {
             flex-basis: 25%;
+            margin-bottom: initial;
           }
         }
       `),
@@ -459,7 +461,7 @@ const Social = ({ img, link }) => <SocialS>
 </SocialS>
 
 const Footer = () => {
-    return <FooterS className='text'>
+  return <FooterS className='text'>
     <div className='x__main'>
       <div className='x__socials'>
         <Social img={imageIconFacebook} link={linkFacebookAUP} />
