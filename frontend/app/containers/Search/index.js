@@ -778,6 +778,10 @@ export const SearchBar = container2 (
           isMobile,
           withIcon: ['search', 'left'],
           showClearIcon: true,
+          clearIconStyle: {
+            fontSize: '55px',
+            ... isMobile && { top: '-1px', fontSize: '45px', },
+          },
           doFocusFix: false,
           style: { display: 'inline-block', },
           inputProps: {

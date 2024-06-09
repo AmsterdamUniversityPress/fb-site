@@ -121,6 +121,7 @@ const InputWrapper = invoke (() => {
       doFocusFix=true,
       width,
       clear: clearProp={},
+      clearIconStyle={},
       onBlur=noop, onChange=noop, onClear=noop, onFocus=noop, onKeyDown=noop,
       inputProps={},
       type='text',
@@ -152,7 +153,7 @@ const InputWrapper = invoke (() => {
       {hasIcon && <div className={clsIcon} onClick={onClickIcon}>
         {icons (icon, iconClasses) || null}
       </div>}
-      {showTheClearIcon && <div className='x__clear-icon' onClick={onClickClear}>
+      {showTheClearIcon && <div className='x__clear-icon' onClick={onClickClear} style={clearIconStyle}>
         <span>
           ×
         </span>
