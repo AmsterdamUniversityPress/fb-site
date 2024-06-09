@@ -292,7 +292,7 @@ const User = container (
                 <MenuItem
                   onClick={onClickLogIn}
                   imgSrc={iconLogin}
-                  text='log in'
+                  text='aanmelden'
                 />
               </div>,
             () => invoke (getUserType | lookupOnOrDie ('Bad user type') ({
