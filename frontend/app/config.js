@@ -101,10 +101,6 @@ export default {
       css: getMainFontCss (),
       family: 'Montserrat Regular',
     },
-    // text: {
-      // css: getTextFontCss (),
-      // family: 'Open Sans',
-    // },
   },
   icons: {
     add: iconAdd,

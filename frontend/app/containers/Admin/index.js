@@ -35,7 +35,7 @@ import {
   userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
-import { AreYouSureDialog, Button, DialogContentsS, MenuItem, } from '../../components/shared'
+import { AreYouSureDialog, BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
 import { spinner, } from '../../alleycat-components/spinner'
@@ -51,6 +51,7 @@ import Dialog from '../../alleycat-components/Dialog'
 
 const configTop = configure.init (config)
 const configIcons = configTop.focus ('icons')
+import IconAdd from '../../images/icons/plus.svg.js'
 const {
   add: iconAdd,
   more: iconMore,
@@ -236,6 +237,13 @@ const UserTable = styled.div`
       grid-auto-rows: 90px;
       > .x__add-user {
         grid-column: 1 / span col-end;
+        svg {
+          padding-right: 10px;
+          width: 25px;
+        }
+        .x__text {
+          vertical-align: middle;
+        }
       }
       > .x__header {
         > span {
@@ -445,10 +453,12 @@ export default container (
           onError: noop,
           onResults: (users) => <UserTable isMobile={isMobile}>
             <div className='x__add-user'>
-              <Button onClick={onClickAddUser}>
-                <img src={iconAdd}/>
-                Gebruiker toevoegen
-              </Button>
+              <BigButton onClick={onClickAddUser}>
+                <IconAdd stroke='white'/>
+                <span className='x__text'>
+                  Gebruiker toevoegen
+                </span>
+              </BigButton>
             </div>
             <div className='col0 x__header'>
               <span>

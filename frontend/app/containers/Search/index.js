@@ -295,20 +295,17 @@ const ResultS = styled.div`
     > .x__name {
       margin-bottom: 5px;
       font-size: 19px;
-      // font-family: Lora, serif;
       font-weight: bold;
       color: ${colorHighlight};
     }
     > .x__categories {
       padding-top: 8px;
       margin-bottom: 10px;
-      // text-transform: uppercase;
     }
     > div {
       padding: 0.2%;
     }
     > .x__objective {
-      // padding-bottom: 2%;
     }
     // --- not currently used
     > .x__type {

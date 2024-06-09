@@ -5,28 +5,19 @@
    id="svg236"
    viewBox="0 0 41.70462 36.845161"
    stroke-width="4.5"
+   stroke="#000000"
    sodipodi:docname="add.svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview7"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     showgrid="false" />
-  <defs
-     id="defs240" />
-  <g
-     id="g242"
-     transform="translate(-22.790852,-17.269157)">
+  <g transform="translate(-22.790852,-17.269157)">
     <path
-       style="fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       style="stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
        d="m 25.040852,35.658718 37.204619,0.13982"
-       id="path348" />
+    />
   </g>
   <path
-     style="fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+     style="stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
      d="m 20.87508,2.25 0.03364,32.345165"
      id="path346" />
 </svg>
