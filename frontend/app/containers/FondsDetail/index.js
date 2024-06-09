@@ -25,7 +25,7 @@ import saga from './saga'
 import { selectFonds, } from './selectors'
 import { selectQuery, selectFilterSearchParams, } from '../Search/selectors'
 
-import { StyledLink, } from '../../components/shared'
+import { StyledLink, MenuItem, } from '../../components/shared'
 import { container, container2, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 import { isNotEmptyString, } from '../../util-general'
@@ -216,14 +216,15 @@ const Back = container2 (['Back'], () => {
   const navigate = useNavigate ()
   const onClick = useCallbackConst (() => navigate (-1))
   const query = useSelector (selectQuery)
-  const Elem = ({ children, }) => query | ifOk (
-    () => <span onClick={onClick}>{children}</span>,
-    () => <Link to='/search/*'>{children}</Link>,
-  )
+  const MI = useCallbackConst ((props) => <MenuItem withArrow={false} style={{ display: 'inline-block', }} {... props}/>)
+  const Elem = useCallback (({ text, }) => query | ifOk (
+    () => <MI text={text} onClick={onClick}/>,
+    () => <Link to='/search/*'><MI text={text}/></Link>,
+  ), [query])
   return <BackS>
     <img src={iconArrow}/>
     <span className='x__link'>
-      <Elem>terug naar zoekresultaten</Elem>
+      <Elem text='terug naar zoekresultaten'/>
     </span>
   </BackS>
 })
