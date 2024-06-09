@@ -11,9 +11,9 @@ export default ({ stroke='#000000', strokeWidth='36', }) => <svg
     style={{
       strokeWidth,
       fill: 'none',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      'stroke-dasharray': 'none',
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      strokeDasharray: 'none',
     }}
     />
 </svg>

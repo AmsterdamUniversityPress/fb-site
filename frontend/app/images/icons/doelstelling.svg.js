@@ -9,10 +9,10 @@ export default ({ stroke='#000000', strokeWidth='36.3', }) => <svg
 >
   <g
     style={{
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      "stroke-dasharray": "none",
-      "fill": "none",
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      strokeDasharray: 'none',
+      fill: 'none',
     }}
   >
   <path
