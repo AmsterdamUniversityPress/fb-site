@@ -1,17 +1,17 @@
 import {
   pipe, compose, composeRight,
   noop, remapTuples, join, whenPredicate,
-  whenOk, id, map, find, ok,
-  compact, concat, againstAll, tap,
+  whenOk, id, map, find, ok, concatTo,
+  compact, concat, againstAll, tap, ifOk, lets,
 } from 'stick-js/es'
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
-import { Link, useParams as useRouteParams, } from 'react-router-dom'
-
+import { Link, useNavigate, useParams as useRouteParams, } from 'react-router-dom'
+import { useSelector, } from 'react-redux'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
-import { logWith, } from 'alleycat-js/es/general'
+import { logWith, toString, } from 'alleycat-js/es/general'
 import { ifEquals, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
 import { useReduxReducer, useSaga, } from 'alleycat-js/es/redux-hooks'
@@ -22,16 +22,16 @@ import { createReducer, } from '../../redux'
 import { fondsDetailFetch, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
-import {
-  selectFonds,
-} from './selectors'
+import { selectFonds, } from './selectors'
+import { selectQuery, selectFilterSearchParams, } from '../Search/selectors'
 
 import { StyledLink, } from '../../components/shared'
-import { container, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
+import { container, container2, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
 import { isNotEmptyString, } from '../../util-general'
 
 const configTop = config | configure.init
+const iconArrow = configTop.get ('icons.arrow')
 const imageEyeWall = configTop.get ('images.fonds')
 const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
@@ -49,8 +49,6 @@ const DetailS = styled.div`
   > .x__image-and-tag {
     width: 100%;
     position: relative;
-    // margin-top: 1%;
-    // padding: 2%;
     img {
       height: 100%;
       width: 100%;
@@ -63,6 +61,11 @@ const DetailS = styled.div`
       font-size: 60px;
     }
   }
+  > .x__back {
+    font-size: 18px;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
   > .x__title-and-doelstelling {
     position: sticky;
     background: white;
@@ -72,8 +75,13 @@ const DetailS = styled.div`
     > .x__doelstelling {
       color: ${colors.highlight3};
     }
-    ${mediaQuery (
-      mediaPhone (`
+  }
+  ${mediaQuery (
+    mediaPhone (`
+      > .x__back {
+        margin-top: 30px;
+      }
+      > .x__title-and-doelstelling {
         top: 0px;
         text-align: center;
         margin-top: 20px;
@@ -83,8 +91,13 @@ const DetailS = styled.div`
         > .x__doelstelling {
           display: none;
         }
-      `),
-      mediaTablet (`
+      }
+    `),
+    mediaTablet (`
+      > .x__back {
+        margin-top: 10px;
+      }
+      > .x__title-and-doelstelling {
         top: 100px;
         padding-left: 100px;
         margin-top: 20px;
@@ -94,9 +107,9 @@ const DetailS = styled.div`
         > .x__doelstelling {
           display: initial;
         }
-      `),
-    )}
-  }
+      }
+    `),
+  )}
   > .x__rubriek {
     background: ${colors.textBlock1};
   }
@@ -189,9 +202,38 @@ const Fields = ({ title, data, }) => {
   </FieldsS>
 }
 
+const BackS = styled.div`
+  cursor: pointer;
+  > img {
+    transform: rotate(180deg);
+  }
+  > .x__link {
+    padding-left: 10px;
+  }
+`
+
+const Back = container2 (['Back'], () => {
+  const navigate = useNavigate ()
+  const onClick = useCallbackConst (() => navigate (-1))
+  const query = useSelector (selectQuery)
+  const Elem = ({ children, }) => query | ifOk (
+    () => <span onClick={onClick}>{children}</span>,
+    () => <Link to='/search/*'>{children}</Link>,
+  )
+  return <BackS>
+    <img src={iconArrow}/>
+    <span className='x__link'>
+      <Elem>terug naar zoekresultaten</Elem>
+    </span>
+  </BackS>
+})
+
 const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__image-and-tag'>
     <img src={imageTest}/>
+  </div>
+  <div className='x__back'>
+    <Back/>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>

@@ -219,7 +219,6 @@ const ResultIconsS = styled.div`
   margin-bottom: 5px;
   > svg {
     position: relative;
-    display: none;
     top: 3px;
     width: 20px;
     height: 20px;
