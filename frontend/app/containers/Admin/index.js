@@ -35,7 +35,7 @@ import {
   userAdd, userAddStart, userRemove, usersFetch,
 } from '../App/actions/main'
 
-import { AreYouSureDialog, BigButton, DialogContentsS, MenuItem, } from '../../components/shared'
+import { AreYouSureDialog, BigButton, Button, DialogContentsS, MenuItem, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 
 import { spinner, } from '../../alleycat-components/spinner'
@@ -271,9 +271,15 @@ const UserTable = styled.div`
         }
         > .col0 {
           border-left: 2px solid #00000022;
-          > .x__admin-user-marker {
-            width: 20px;
-            font-size: 10px;
+          > .x__value {
+            > .x__admin-user-marker {
+              font-size: 14px;
+              padding-right: 7px;
+              vertical-align: middle;
+            }
+            > .x__text {
+              vertical-align: middle;
+            }
           }
         }
         > .col4 {
@@ -485,7 +491,9 @@ export default container (
                     <span className='x__admin-user-marker'>
                       {isAdminUser && '★'}
                     </span>
-                    {firstName} {lastName}
+                    <span className='x__text'>
+                      {firstName} {lastName}
+                    </span>
                   </div>
                 </div>
                 <div className={clss ('col1', 'x__data', 'x__email', isActive || 'x--not-active')}>

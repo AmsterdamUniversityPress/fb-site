@@ -12,9 +12,9 @@ import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 import iconAdd from './images/icons/plus.svg'
 import iconAdmin from './images/icons/admin.svg'
 import iconArrow from './images/icons/arrow.svg'
-import iconCategories from './images/icons/categorieen.svg'
-import iconDoel from './images/icons/doel.svg'
-import iconDoelgroep from './images/icons/doelgroep.svg'
+import iconCategories from './images/icons/category.svg.js'
+import iconDoel from './images/icons/doelstelling.svg.js'
+import iconDoelgroep from './images/icons/doelgroep.svg.js'
 import iconFacebook from './images/icons/facebook-wit.svg'
 import iconFilter from './images/icons/filter.svg'
 import iconI from './images/icons/i-tje-blue.svg'
@@ -31,7 +31,7 @@ import iconUpdate from './images/icons/update.svg'
 import iconUser from './images/icons/user.svg'
 import iconX from './images/icons/x-je-blue.svg'
 import iconXTwitter from './images/icons/x-twitter-wit.svg'
-import iconWerkRegio from './images/icons/werkregio.svg'
+import iconWerkRegio from './images/icons/werkregio.svg.js'
 import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoAUP from './images/logo-aup.svg'
 import imageLogoFB from './images/logo-fb.svg'
@@ -125,7 +125,7 @@ export default {
     result: {
       doel: iconDoel,
       doelgroep: iconDoelgroep,
-      categories: iconCategories,
+      category: iconCategories,
       werkRegio: iconWerkRegio,
     }
   },

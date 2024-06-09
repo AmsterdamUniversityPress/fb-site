@@ -71,10 +71,10 @@ const colorHighlight = configTop.get ('colors.highlight')
 const paginationKey = configTop.get ('app.keys.Pagination.search')
 const iconI = configTop.get ('icons.i')
 const configIcons = configTop.focus ('icons.result')
-const iconDoel = configIcons.get ('doel')
-const iconDoelgroep = configIcons.get ('doelgroep')
-const iconWerkRegio = configIcons.get ('werkRegio')
-const iconCategories = configIcons.get ('categories')
+const IconCategory = configIcons.get ('category')
+const IconDoel = configIcons.get ('doel')
+const IconDoelgroep = configIcons.get ('doelgroep')
+const IconWerkRegio = configIcons.get ('werkRegio')
 const imageEyeWall = configTop.get ('images.fonds')
 const targetValue = path (['target', 'value'])
 const lowercase = dot ('toLowerCase')
@@ -212,32 +212,34 @@ const SearchS = styled.div`
 
 const ResultIconsS = styled.div`
   margin-bottom: 5px;
-  img {
+  > svg {
     position: relative;
+    display: none;
     top: 3px;
-    width: 15px;
+    width: 20px;
+    height: 20px;
     display: inline-block;
     margin-right: 15px;
     vertical-align: text-top;
   }
-  .x__contents {
+  > .x__contents {
     vertical-align: top;
-    width: calc(100% - 15px - 15px);
+    width: calc(100% - 20px - 15px);
     display: inline-block;
   }
 `
 
 const ResultIcon = invoke (() => {
   const icons = {
-    werkRegio: iconWerkRegio,
-    categories: iconCategories,
-    doel: iconDoel,
-    doelgroep: iconDoelgroep,
+    werkRegio: <IconWerkRegio strokeWidth='40'/>,
+    categories: <IconCategory strokeWidth='50'/>,
+    doel: <IconDoel strokeWidth='50'/>,
+    doelgroep: <IconDoelgroep strokeWidth='50'/>,
   }
   return ({ children, type, }) => {
     const icon = type | lookupOnOrDie ('bad type') (icons)
     return <ResultIconsS>
-      <img src={icon}/>
+      {icon}
       <div className='x__contents'>
         {children}
       </div>
@@ -391,7 +393,7 @@ const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objectiv
   const navigate = useNavigate ()
   const onClick = useCallback (
     () => navigate (href),
-    [navigate, href],
+    navigate, href,
   )
 
   return <ResultS onClick={onClick}>
