@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  map, spreadTo, lets, flip, invoke, addIndex, not, eq, ne, dot, fromPairs,
+  map, spreadTo, lets, flip, invoke, addIndex, not, eq, ne, dot, fromPairs, each,
   sprintf1, sprintfN, id, T, recurry, reduceRight, reduce, isString,
   ifOk, ifNil, always, die, tryCatch, assocM, ifPredicate,
   ifPredicateResults, whenPredicateResults,
@@ -518,4 +518,10 @@ export const nullMap = recurry (2) (
 // --- keeps `null` and `undefined` as they are; maps everything else using `f`.
 export const nilMap = recurry (2) (
   (f) => ifNil (id, f),
+)
+
+export const setDeleteNM = recurry (2) (
+  (xs) => (s) => xs | each (
+    (x) => s.delete (x),
+  ),
 )

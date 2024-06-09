@@ -12,13 +12,31 @@ import { recover, then, startP, rejectP, } from 'alleycat-js/es/async'
 import { flatMap, } from 'alleycat-js/es/bilby'
 import { logWith, trim, } from 'alleycat-js/es/general'
 import { ifEquals, } from 'alleycat-js/es/predicate'
-import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifNotLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, } from './util.mjs'
+import { decorateAndReject, eachP, inspect, retryPDefaultMessage, thenWhenTrue, mapX, ifNotLengthOne, regexAlphaNumSpace, stripNonAlphaNum, tapWhen, setDeleteNM, } from './util.mjs'
 
 // --- how many unique buckets to return per filter. The Elastic docs recommend 1000 as a general
 // limit so this is quite high. But we have more than 1000 funds and want to try to show the entire
 // list of unique values for naam_organsatie. Note that if the number exceeds FILTER_VALUE_COUNT
 // then the list will be truncated.
 const FILTER_VALUE_COUNT = 2000
+
+const STOP_DUTCH = new Set ([
+  't', 'de', 'en', 'van', 'ik', 'te', 'dat', 'die', 'in', 'een', 'hij', 'het', 'niet',
+  'zijn', 'is', 'was', 'op', 'aan', 'met', 'als', 'voor', 'had', 'er',
+  'maar', 'om', 'hem', 'dan', 'zou', 'of', 'wat', 'mijn', 'men', 'dit',
+  'zo', 'door', 'over', 'ze', 'zich', 'ook', 'tot', 'je', 'mij', 'uit',
+  'der', 'daar', 'naar', 'heb', 'hoe', 'heeft', 'hebben', 'deze', 'u', 'nog',
+  'zal', 'me', 'zij', 'nu', 'ge', 'geen', 'omdat', 'iets', 'worden', 'toch',
+  'al', 'veel', 'doen', 'toen', 'moet', 'ben', 'zonder', 'kan', 'hun', 'dus',
+  'alles', 'onder', 'ja', 'eens', 'hier', 'wie', 'werd', 'altijd', 'doch', 'wordt',
+  'kunnen', 'ons', 'zelf', 'tegen', 'na',
+  // --- these are words which we usually want to ignore, but this can be altered below
+  // if we want to un-ignore them (e.g. wezen for orphans, bij voor bee, meer voor lake)
+  'bij', 'haar', 'want', 'waren', 'meer', 'wezen',
+])
+STOP_DUTCH | setDeleteNM ([
+  'wezen', 'doen',
+])
 
 // --- debug / analyze
 const analyze = false
@@ -48,18 +66,9 @@ let esClient
 // --- this is just a manual custom filter which does the same as the filter
 // 'dutch' (see elastic docs), but it lets us tweak things.
 const customDutchFilter = {
-  // --- @todo
-  // by removing dutch_stop, the word 'doen' is indexed and found. It is, however, unclear which
-  // words are exactly in '_dutch_', because the reference
-  // https://github.com/apache/lucene/blob/main/lucene/analysis/common/src/resources/org/apache/lucene/analysis/snowball/dutch_stop.txt
-  // that elastic gives, does not seem to agree with searchResults
-  // dutch_stop: {
-    // type:       'stop',
-    // stopwords:  '_dutch_',
-  // },
   dutch_stop_extra: {
     type:       'stop',
-    stopwords:  ['t'],
+    stopwords:  [... STOP_DUTCH],
   },
   dutch_keywords: {
     type:       'keyword_marker',
