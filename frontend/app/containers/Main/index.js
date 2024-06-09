@@ -10,7 +10,7 @@ import {
 
 import React, { useCallback, useLayoutEffect, useEffect, useMemo, useRef, useState, } from 'react'
 
-import { Link, useNavigate, useParams, } from 'react-router-dom'
+import { useNavigate, useParams, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 import zxcvbn from 'zxcvbn'
@@ -60,7 +60,7 @@ import { spinner, } from '../../alleycat-components/spinner'
 import Dialog from '../../alleycat-components/Dialog'
 import Hero from '../../components/Hero'
 import { Search, } from '../../containers/Search'
-import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, StyledLink, } from '../../components/shared'
+import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, StyledLink, Link, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
 import mkPagination from '../../containers/shared/Pagination'
 
@@ -433,7 +433,6 @@ const HeaderS = styled.div`
       }
     `),
   )}
-
 `
 
 const Header = ({ isMobile, isLoggedIn, page, }) => {
@@ -450,8 +449,8 @@ const Header = ({ isMobile, isLoggedIn, page, }) => {
     <div className='x__nav-links'>
       <div className='x__wrapper'>
         {isLoggedIn | ifTrue (
-          () => <Link to='/search/*' disabled={page === 'search'}> Zoek een fonds </Link>,
-          () => <Link to='/login'> Zoek een fonds </Link>,
+          () => <Link to='/search/*' preserveQueryParams={true} disabled={page === 'search'}> Zoek een fonds </Link>,
+          () => <Link to='/login' preserveQueryParams={true}> Zoek een fonds </Link>,
         )}
         <div className={clss ('x__cursor', cls ('search'))}/>
       </div>
@@ -1394,18 +1393,19 @@ export default container (
     useSaga ({ saga, key: 'Main', })
 
     useEffect (() => {
+      const root = '/' + (document.location.search ?? '')
       setReturnBlank (false)
       landingDecision (page) (
         // --- unauthorized and visiting a private page: send to landingspage
-        () => navigate ('/'),
+        () => navigate (root),
         () => setReturnBlank (true),
         // --- send away from login if logged in as user and visiting /login
         () => {
           setReturnBlank (true)
-          navigate ('/')
+          navigate (root)
         },
         // --- forbid /user-admin without the right privileges
-        () => not (hasPrivilegeAdminUser) && navigate ('/'),
+        () => not (hasPrivilegeAdminUser) && navigate (root),
       )
     }, [page, landingDecision, navigate, hasPrivilegeAdminUser])
 

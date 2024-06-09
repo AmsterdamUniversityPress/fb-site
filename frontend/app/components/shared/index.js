@@ -1,6 +1,6 @@
 import {
   pipe, compose, composeRight,
-  prop, sprintf1, ifNil, noop, lets,
+  prop, sprintf1, ifNil, noop, lets, ok,
   sprintfN, tap, not, ifTrue,
   ifOk, whenOk,
 } from 'stick-js/es'
@@ -415,4 +415,11 @@ export const StyledLink = ({ disabled, children, onClick: onClickProp=noop, ... 
   return <LinkS disabled={disabled} onClick={onClick} {... restProps}>
     {children}
   </LinkS>
+}
+
+export const Link = ({ children, to: toProp, preserveQueryParams=false, ... rest }) => {
+  const to = (ok (toProp) && preserveQueryParams) ? (toProp + document.location.search) : toProp
+  return <LinkReal to={to} {... rest}>
+    {children}
+  </LinkReal>
 }
