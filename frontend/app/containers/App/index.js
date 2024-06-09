@@ -78,7 +78,7 @@ const imageIconLinkedin = configIcons.get ('linkedin')
 const imageIconXTwitter = configIcons.get ('xtwitter')
 
 const colors = configColors.gets (
-  'highlight', 'highlightAlpha',
+  'highlight', 'highlightAlpha', 'highlight2',
 )
 
 const fontMainFamily = 'font.main.family' | configTop.get
@@ -296,7 +296,6 @@ const Cookies = container2 (
 
 const FooterS = styled.div`
   ${mediaQuery (
-    // mediaPhone ('height: 100vh'),
     mediaTablet ('height: auto'),
   )}
   > .x__main {
@@ -348,7 +347,6 @@ const FooterS = styled.div`
       > .x__block {
         flex-grow: 0;
         flex-shrink: 0;
-        // padding-left: 5%;
         > .x__title {
           font-size: 25px;
           font-weight: bold;
@@ -356,17 +354,13 @@ const FooterS = styled.div`
         > .x__content {
           font-size: 20px;
           .x__small {
-            // font-size: 16px;
-            // margin-top: 12px;
           }
         }
         > .x__contact {
-          // margin-top: 6px;
           a {
             text-decoration: none;
             color: inherit;
             &:hover {
-              // text-decoration: underline;
             }
           }
         }
@@ -419,7 +413,9 @@ const LinkElementS = styled.div`
   > a {
     > .x__inner {
       color: white;
-      // margin-top: 15px;
+      &:hover {
+        color: ${colors.highlight2};
+      }
       ${prop ('attention') >> whenTrue (
         () => `
           border-radius: 100px;
@@ -432,7 +428,8 @@ const LinkElementS = styled.div`
             vertical-align: middle;
           }
           &:hover {
-            background: #ddd;
+            color: initial;
+            background: ${colors.highlight2};
           }
         `,
       )}

@@ -44,7 +44,7 @@ import {
 
 import Dialog from '../../alleycat-components/Dialog'
 
-import { Button, PaginationAndExplanation, } from '../../components/shared'
+import { BigButton, Button, PaginationAndExplanation, } from '../../components/shared'
 import { Input as InputReal } from '../../components/shared/Input'
 import InputWithAutocomplete from '../../components/shared/InputWithAutocomplete'
 import mkPagination from '../../containers/shared/Pagination'
@@ -560,6 +560,9 @@ const FilterS = styled.div`
     }
   }
   > .x__show-all {
+    > button {
+      padding: 5px;
+    }
     margin-top: 10px;
     margin-bottom: 10px;
     > span {

@@ -74,6 +74,10 @@ export const ButtonS = styled (ButtonBaseS)`
     &:active {
       border-style: solid;
     }
+    &:hover {
+      color: black;
+      background: ${colorHighlight2};
+    }
   }
 `
 
