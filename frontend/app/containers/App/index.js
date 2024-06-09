@@ -2,17 +2,17 @@ import {
   pipe, compose, composeRight,
   map, dot, dot1, die, sprintf1,
   prop, whenOk, ifFalse, ifTrue,
-  eq, nil, not, whenTrue,
+  eq, nil, not, whenTrue, tap,
 } from 'stick-js/es'
 
 import React, { useCallback, useEffect, useRef, useState, } from 'react'
 import styled from 'styled-components'
-import { createBrowserRouter, Link, RouterProvider, } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
 
 import FontFaceObserver from 'fontfaceobserver'
 
-import { then, recover, promiseToEither, allP, } from 'alleycat-js/es/async'
+import { then, recover, allP, } from 'alleycat-js/es/async'
 import configure from 'alleycat-js/es/configure'
 import { clss, } from 'alleycat-js/es/dom'
 import { logWith, iwarn, } from 'alleycat-js/es/general'
@@ -555,6 +555,7 @@ export default container (
 
     useEffect (() => {
       fontMainFamily
+        | tap (logWith ('main family'))
         | startFontObserver
         // --- if the font fails, keep going.
         | recover (console.error)
@@ -583,6 +584,8 @@ export default container (
 
     if (process.env.APP_ENV | notContainedInV (['dev', 'tst', 'acc', 'prd']))
       return 'Missing/invalid APP_ENV'
+
+    if (not (fontLoaded)) return null
 
     return error | ifTrue (
       () => <div>
