@@ -718,7 +718,8 @@ export const SearchBar = container2 (
     // --- this is the query as it's being entered, but hasn't been accepted yet.
     const [query, setQuery] = useState ('')
     useEffect (() => {
-      if (ok (queryProp) && queryProp !== '*') setQuery (queryProp)
+      if (queryProp === '*') setQuery ('')
+      else if (ok (queryProp)) setQuery (queryProp)
     }, [queryProp])
 
     const [suggestions, setSuggestions] = useState (null)
@@ -834,6 +835,7 @@ const ActiveFilters = container2 (
     const hasFilters = useSelector (selectHasSelectedFilters)
     const selectedFilters = useSelector (selectSelectedFilters)
     const searchQuery = useSelector (selectSearchQuery)
+    const showSearchBubble = useMemo (() => searchQuery !== '*', [searchQuery])
 
     const onClickBubble = useCallbackConst ((filterName, value) => {
       dispatch (updateFilterToggle (navigate, filterName, value))
@@ -851,13 +853,12 @@ const ActiveFilters = container2 (
           Actieve filters
         </div>
         <div className='x__filters'>
-            <span
-              key={"zoekterm" + ':' + searchQuery}
-              className='x__item'
-              onClick={() => onClickQueryBubble ()}
-            ><FilterBubbleText>
-              zoekterm: {searchQuery==="*" ? "alles" : searchQuery}
-            </FilterBubbleText></span>
+          {showSearchBubble && <span
+            className='x__item'
+            onClick={() => onClickQueryBubble ()}
+          ><FilterBubbleText>
+            zoekterm: {searchQuery}
+          </FilterBubbleText></span>}
           {selectedFilters | mapFlatRemapTuples (
             (filterName, values) => values | setRemap (
             (value) => <span
