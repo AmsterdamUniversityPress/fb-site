@@ -124,6 +124,7 @@ const SearchS = styled.div`
       position: relative;
       z-index: 1;
       display: inline-block;
+      transition: height .2s;
       > .x__search {
         margin: auto;
         position: relative;
@@ -178,6 +179,10 @@ const SearchS = styled.div`
                 width: 10px;
               }
             }
+          }
+          &.x--hide {
+            height: 0;
+            overflow-y: hidden;
           }
         }
       `),
@@ -1018,7 +1023,7 @@ export const Search = container (
         <div className={clss ('x__sidebar', hideSidebar && 'x--hide')}>
           <Sidebar/>
         </div>
-        <div className='x__main'>
+        <div className={clss ('x__main', isMobile && not (hideSidebar) && 'x--hide')}>
           <div className='x__search'>
             <div className='x__bar'>
               <SearchBar isMobile={isMobile} query={queryProp} onSelect={onSelect}/>
