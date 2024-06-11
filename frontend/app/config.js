@@ -1,13 +1,16 @@
 import {
   pipe, compose, composeRight,
-  join, take, id, lets,
+  join, take, id, lets, sprintfN,
   tap,
 } from 'stick-js/es'
 
 import { fontFace, cssFont, } from 'alleycat-js/es/font'
+import { iwarn, } from 'alleycat-js/es/general'
 import { logWith, } from 'alleycat-js/es/general'
 
 import { envIsDev, envIsTst, envIsNotPrd, } from './env'
+
+import { mapLookupOnOr, } from './util-general'
 
 import iconAdd from './images/icons/plus.svg'
 import iconAdmin from './images/icons/admin.svg'
@@ -38,6 +41,8 @@ import imageLogoFB from './images/logo-fb.svg'
 import imageHeroFB from './images/hero-fb.svg'
 import imageTest from './images/fonds/output_row_259.png'
 
+import imagesFondsMapping from './config-fonds-images'
+
 const debugRenders = false
 const debugReducers = false
 const debugSelectors = false
@@ -59,7 +64,7 @@ const getMainFontCss = () => join ('\n\n', [
   ),
 ])
 
-export default {
+const config = {
   app: {
     keys: {
       Pagination: {
@@ -138,32 +143,25 @@ export default {
     },
   },
   images: {
-    fonds: imageEyeWall,
+    fondsPlaceholder: imageEyeWall,
     'logo-fb': imageLogoFB,
     'logo-aup': imageLogoAUP,
     'hero-fb': imageHeroFB,
-    // 'hero-e': imageHeroE,
-    // 'hero-text': imageHeroText,
   },
   imagesFonds: {
     test: imageTest,
+    mapping: imagesFondsMapping,
   },
   colors: {
     header: {
       color1: '#EEEEEE',
       color2: '#FFBBBB',
     },
-    // highlight: '#cb0233',
     highlight: '#164856',
-    // highlightAlpha: '#cb0233ff',
     highlightAlpha: '#164856',
     highlight2: '#fdc600',
-    // highlight2: '#3089b7',
-    // highlight2: '#45acb7',
     highlight3: '#761b07',
-    // textBlock1: '#f9e9d7',
-    // textBlock2: '#a1142d',
-    // textBlock3: '#e74b67',
+    textBlock3: '#e74b67',
     textBlock1: 'white',
     textBlock1Fg: '#164856',
     textBlock2: 'white',
@@ -203,3 +201,13 @@ export default {
     aanmerkingen: "mailto:fondsen@aup.nl?subject=Suggestie",
   }
 }
+
+export const getFondsImage = (imgId) => imgId | mapLookupOnOr (
+  () => {
+    iwarn ([imgId] | sprintfN ('Unable to find image for %s, using fallback'))
+    return imageHeroFB
+  },
+  imagesFondsMapping,
+)
+
+export default config

@@ -65,6 +65,7 @@ import {
   lookupOnOrDie,
 } from '../../util-general'
 
+import { getFondsImage, } from '../../config'
 import config from '../../config'
 const configTop = configure.init (config)
 const colorHighlight = configTop.get ('colors.highlight')
@@ -75,7 +76,7 @@ const IconCategory = configIcons.get ('category')
 const IconDoel = configIcons.get ('doel')
 const IconDoelgroep = configIcons.get ('doelgroep')
 const IconWerkRegio = configIcons.get ('werkRegio')
-const imageEyeWall = configTop.get ('images.fonds')
+const imageEyeWall = configTop.get ('images.fondsPlaceholder')
 const targetValue = path (['target', 'value'])
 const lowercase = dot ('toLowerCase')
 const filterLabels = configTop.get ('text.filterLabels')
@@ -909,7 +910,6 @@ const SearchResults = container2 (
     const { query, } = props
     const searchResults = useSelector (selectResultsSearch)
     const numResults = useSelector (selectNumResultsSearch)
-    const imgSrc = imageEyeWall
     const isLoading = searchResults | requestIsLoading
     return <ResultsS>
       {searchResults | requestResults ({
@@ -931,7 +931,7 @@ const SearchResults = container2 (
             {results | map (
               ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
                 key={uuid}
-                imgSrc={imgSrc}
+                imgSrc={getFondsImage (1)}
                 categories={highlightList (categories)}
                 name={highlightString (name)}
                 objective={highlightString (objective)}

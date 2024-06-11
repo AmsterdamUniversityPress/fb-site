@@ -23,7 +23,7 @@ import { fondsDetailFetch, } from './actions'
 import reducer from './reducer'
 import saga from './saga'
 import { selectFonds, } from './selectors'
-import { selectQuery, selectFilterSearchParams, } from '../Search/selectors'
+import { selectQuery, } from '../Search/selectors'
 
 import { StyledLink, MenuItem, } from '../../components/shared'
 import { container, container2, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
@@ -32,7 +32,7 @@ import { isNotEmptyString, } from '../../util-general'
 
 const configTop = config | configure.init
 const iconArrow = configTop.get ('icons.arrow')
-const imageEyeWall = configTop.get ('images.fonds')
+const imageEyeWall = configTop.get ('images.fondsPlaceholder')
 const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
 const okAndNotEmptyString = againstAll ([ok, isNotEmptyString])
