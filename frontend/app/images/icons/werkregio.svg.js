@@ -5,8 +5,6 @@ export default ({ stroke='#000000', strokeWidth='30', }) => <svg
   version="1.1"
   width="500"
   height="500"
-  // strokeLinecap='round'
-  // strokeLinejoin='round'
   stroke={stroke}
   strokeWidth={strokeWidth}
 >

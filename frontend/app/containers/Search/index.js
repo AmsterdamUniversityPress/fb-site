@@ -253,7 +253,7 @@ const ResultIcon = invoke (() => {
     categories: [<IconCategory strokeWidth='80'/>, 'x__categories'],
     doel: [<IconDoel strokeWidth='60'/>, 'x__doel'],
     doelgroep: [<IconDoelgroep strokeWidth='70'/>, 'x__doelgroep'],
-    werkRegio: [<IconWerkRegio strokeWidth='40'/>, 'x__werkregio'],
+    werkRegio: [<IconWerkRegio strokeWidth='60'/>, 'x__werkregio'],
   }
   return ({ children, type, }) => {
     const [icon, cls] = type | lookupOnOrDie ('bad type') (icons)
