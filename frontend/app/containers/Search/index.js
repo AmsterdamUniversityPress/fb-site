@@ -736,7 +736,8 @@ export const SearchBar = container2 (
     const resultsRequest = useSelector (selectResultsAutocomplete)
 
     // --- this is the query as it's being entered, but hasn't been accepted yet.
-    const [query, setQuery] = useState ('')
+    // note that it can be nil (for example if the url was /search/)
+    const [query, setQuery] = useState (queryProp === "*" ? '' : queryProp)
     useEffect (() => {
       if (queryProp === '*') setQuery ('')
       else if (ok (queryProp)) setQuery (queryProp)
@@ -817,7 +818,7 @@ export const SearchBar = container2 (
             },
           },
         }}
-        value={query}
+        value={query ?? ''}
         closeOnSelected={true}
         suggestions={suggestions}
         onChange={onChange}
