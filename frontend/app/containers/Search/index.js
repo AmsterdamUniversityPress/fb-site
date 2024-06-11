@@ -76,12 +76,10 @@ const IconCategory = configIcons.get ('category')
 const IconDoel = configIcons.get ('doel')
 const IconDoelgroep = configIcons.get ('doelgroep')
 const IconWerkRegio = configIcons.get ('werkRegio')
-const imageEyeWall = configTop.get ('images.fondsPlaceholder')
 const targetValue = path (['target', 'value'])
 const lowercase = dot ('toLowerCase')
 const filterLabels = configTop.get ('text.filterLabels')
 const toFilterLabel = (name) => name | lookupOnOrDie ('no label for ' + name, filterLabels)
-// const filterLabelCategories = filterLabels.get ('categories')
 
 const Pagination = mkPagination (paginationKey)
 
