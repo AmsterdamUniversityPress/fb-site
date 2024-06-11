@@ -927,9 +927,9 @@ const SearchResults = container2 (
           </div>
           <div className='x__results'>
             {results | map (
-              ({ uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
+              ({ id: theId, idx, uuid, name, type, workingRegion, objective, categories, targetGroup, }) => <Result
                 key={uuid}
-                imgSrc={getFondsImage (1)}
+                imgSrc={getFondsImage (idx)}
                 categories={highlightList (categories)}
                 name={highlightString (name)}
                 objective={highlightString (objective)}

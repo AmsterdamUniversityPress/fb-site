@@ -39,7 +39,6 @@ import imageEyeWall from './images/eye-wall-painting.jpg'
 import imageLogoAUP from './images/logo-aup.svg'
 import imageLogoFB from './images/logo-fb.svg'
 import imageHeroFB from './images/hero-fb.svg'
-import imageTest from './images/fonds/output_row_259.png'
 
 import imagesFondsMapping from './config-fonds-images'
 

@@ -497,12 +497,14 @@ const search = (query, searchFilters, pageSize, pageNum, filters) => esSearch (q
           (y) => tag + y + tag,
         ),
       ))
-      const { uuid, } = fonds
+      const { id: theId, idx: idxFromJson, uuid, } = fonds
       const transform = mkTransform (highlight, fonds)
       matches.push ({
         matchKey: ++idx,
         ... simpleFields | transform (transformHighlightsMain, query),
         ... [['objective', 'doelstelling']] | transform (transformHighlightsDoelstelling >> transformHighlightsMain, query),
+        id: theId,
+        idx: idxFromJson,
         uuid,
       })
     })

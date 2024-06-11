@@ -28,12 +28,12 @@ import { selectQuery, } from '../Search/selectors'
 import { StyledLink, MenuItem, } from '../../components/shared'
 import { container, container2, useWhy, mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth, requestResults, } from '../../common'
 import config from '../../config'
+import { getFondsImage, } from '../../config'
 import { isNotEmptyString, } from '../../util-general'
 
 const configTop = config | configure.init
 const iconArrow = configTop.get ('icons.arrow')
 const imageEyeWall = configTop.get ('images.fondsPlaceholder')
-const imageTest = configTop.get ('imagesFonds.test')
 const colors = configTop.get ('colors')
 const okAndNotEmptyString = againstAll ([ok, isNotEmptyString])
 const whenOkAndNotEmptyString = okAndNotEmptyString | whenPredicate
@@ -231,7 +231,7 @@ const Back = container2 (['Back'], () => {
 
 const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__image-and-tag'>
-    <img src={imageTest}/>
+    <img src={getFondsImage (data.idx)}/>
   </div>
   <div className='x__back'>
     <Back/>
