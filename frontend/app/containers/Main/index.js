@@ -1,14 +1,12 @@
 import {
   pipe, compose, composeRight,
-  tap, gt, gte, nil, ok,
-  not, noop, ifTrue, ifFalse, F, T,
-  map, path, condS, eq, guard, otherwise,
-  lets, id, whenTrue, invoke, prop,
-  sprintfN,
-  take, recurry,
+  gt, gte, nil,
+  not, noop, ifTrue, ifFalse,
+  condS, guard, otherwise,
+  lets, whenTrue, invoke, prop,
 } from 'stick-js/es'
 
-import React, { useCallback, useLayoutEffect, useEffect, useMemo, useRef, useState, } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 
 import { useNavigate, useParams, } from 'react-router-dom'
 import { useDispatch, useSelector, } from 'react-redux'
@@ -18,9 +16,9 @@ import zxcvbn from 'zxcvbn'
 import configure from 'alleycat-js/es/configure'
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
 import { iwarn, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
-import { all, ifUndefined, } from 'alleycat-js/es/predicate'
+import { all, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
-import { media, mediaQuery, } from 'alleycat-js/es/styled'
+import { mediaQuery, } from 'alleycat-js/es/styled'
 import { useSaga, } from 'alleycat-js/es/redux-hooks'
 
 import {
@@ -45,10 +43,6 @@ import {
   selectHasPrivilegeAdminUser,
 } from '../App/store/app/selectors'
 import {
-  selectFondsen,
-  selectNumFondsen,
-} from '../App/store/domain/selectors'
-import {
   selectPasswordUpdated,
 } from '../App/store/ui/selectors'
 
@@ -58,20 +52,17 @@ import FondsDetail from '../FondsDetail'
 import Admin from '../Admin'
 import { spinner, } from '../../alleycat-components/spinner'
 import Dialog from '../../alleycat-components/Dialog'
-import Hero from '../../components/Hero'
 import { Search, } from '../../containers/Search'
 import { BigButton, DialogContentsS, DropDown, MenuItem, PaginationAndExplanation, StyledLink, Link, } from '../../components/shared'
 import { Input, } from '../../components/shared/Input'
-import mkPagination from '../../containers/shared/Pagination'
 
 import {
   component, container, container2,
   useWhy,
   mediaPhone, mediaTablet, mediaDesktop, mediaTabletWidth,
-  requestResults,
 } from '../../common'
 import {
-  foldWhenJust, isNotEmptyString, lookupOn, lookupOnOrDie, mapGet, mapSetM, mapUpdateM, mapX,
+  isNotEmptyString, lookupOnOrDie,
 } from '../../util-general'
 import { mkURLSearchParams, } from '../../util-web'
 import config from '../../config'
@@ -81,7 +72,6 @@ const configGeneral = configTop.focus ('general')
 const configIcons = configTop.focus ('icons')
 const configImages = configTop.focus ('images')
 
-const paginationKey = configTop.get ('app.keys.Pagination.fonds')
 const iconLogin = configIcons.get ('login')
 const iconLogout = configIcons.get ('logout')
 const iconUpdate = configIcons.get ('update')
@@ -90,7 +80,6 @@ const iconShowPasswordHidden = configIcons.get ('show-password-hidden')
 const iconShowPasswordShown = configIcons.get ('show-password-shown')
 const iconUser = configIcons.get ('user')
 
-const imageFonds = configImages.get ('fonds')
 const imageLogoFB = configImages.get ('logo-fb')
 const imageLogoAUP = configImages.get ('logo-aup')
 const imageHeroFB = configImages.get ('hero-fb')
@@ -975,68 +964,6 @@ const FondsS = styled.div`
   }
 `
 
-const Fonds = ({ uuid, naam_organisatie, categories, website, }) => {
-  const href = '/detail/' + uuid
-  return <FondsS>
-    <Link to={href}>
-      <div className='x__img'>
-        <img src={imageFonds}/>
-      </div>
-    </Link>
-      <div className='x__text'>
-        <div className='x__naam-organisatie'>
-          <Link to={website}>
-            {naam_organisatie}
-          </Link>
-        </div>
-        <div className='x__categories'>
-          {categories | map ((category) => <div key={category} className='x__category'>
-            {category}
-          </div>)}
-        </div>
-      </div>
-  </FondsS>
-}
-
-const FondsenS = styled.div`
-  text-align: center;
-  min-width: 100px;
-  .x__main {
-  }
-`
-
-const Pagination = mkPagination (paginationKey)
-
-const Fondsen = container (
-  ['Fondsen', {}, {
-    fondsen: selectFondsen,
-    numFondsenMb: selectNumFondsen,
-  }],
-  ({ fondsen, numFondsenMb, }) => <FondsenS>
-    {numFondsenMb | foldWhenJust (
-      (numItems) => <PaginationAndExplanation
-        showExplanation={false}
-        numItems={numItems}
-        Pagination={Pagination}
-      />,
-    )}
-    {fondsen | requestResults ({
-      spinnerProps: { color: 'white', size: 60, delayMs: 400, },
-      onError: noop,
-      onResults: (results) => <>
-        {results | map (
-          ({ uuid, naam_organisatie, categories, website, ... _rest }) => {
-            return <Fonds
-              key={uuid} uuid={uuid} naam_organisatie={naam_organisatie} categories={categories}
-              website={website}
-            />
-          },
-        )}
-      </>,
-    })}
-  </FondsenS>,
-)
-
 const UserPage = container (
   ['UserPage',
     {
@@ -1050,7 +977,6 @@ const UserPage = container (
   ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, passwordUpdated, }) => {
     const [oldPassword, setOldPassword] = useState ('')
     const [newPassword, setNewPassword] = useState ('')
-    const [showPassword, setShowPassword] = useState (false)
 
     const inputOldPasswordRef = useRef (null)
     const inputNewPasswordRef = useRef (null)
@@ -1072,10 +998,6 @@ const UserPage = container (
 
     const onChangeNewPassword = useCallbackConst (
       (event) => setNewPassword (event.target.value),
-    )
-
-    const onClickShowPassword = useCallbackConst (
-      () => setShowPassword (not),
     )
 
     const doPasswordUpdate = useCallback (
