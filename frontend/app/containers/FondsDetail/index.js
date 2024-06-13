@@ -275,7 +275,8 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
       ['website', data.website, link],
       ['typering', data.type_organisatie],
       ['beheerd door', data.naam_moeder_organisatie],
-      ['opgericht', data.oprichtings_datum],
+      // --- het veld opgericht bevat onjuiste waarden: voor nu tonen we het niet.
+      // ['opgericht', data.oprichtings_datum],
       ['rechtsvorm', data.rechtsvorm],
       ['KVK', data.kvk_number],
       ['ANBI status', jaNee (data.anbi_status)],
