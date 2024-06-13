@@ -74,11 +74,17 @@ export const ButtonS = styled (ButtonBaseS)`
     &:active {
       border-style: solid;
     }
-    &:hover {
-      color: black;
-      background: ${colorHighlight2};
-    }
   }
+  ${mediaQuery (
+    mediaTablet (`
+      &:not(:disabled) {
+        &:hover {
+          color: black;
+          background: ${colorHighlight2};
+        }
+      }
+    `),
+  )}
 `
 
 export const Button = ({ children, innerStyle={}, cls='', ... restProps }) => {
