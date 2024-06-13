@@ -53,6 +53,9 @@ import {
   userAllowAnalyticalUpdate as dbUserAllowAnalyticalUpdate,
   usersGet as dbUsersGet,
 } from './db.mjs'
+import {
+  getPasswordChangedEmail,
+} from './emails.mjs'
 import { errorX, warn, } from './io.mjs'
 import {
   env, envOptional, envOrConfig, ifMapHas,
@@ -108,6 +111,7 @@ import {
 const configUserTop = configUser | configure.init
 const configFbTop = configFb () | configure.init
 
+// --- @todo
 // const cacheExpireSecs = 10 * 3600
 const cacheExpireSecs = null
 
@@ -573,7 +577,7 @@ const getWelcomeOrResetLink = (stub, email, token) => join ('/', [
   'https://' + fbDomain, stub, email, encodeURIComponent (token),
 ])
 
-const getPasswordChangedEmail = (email, _) => {
+const xgetPasswordChangedEmail = (email, _) => {
   const contents = [
     'Je wachtwoord voor FB Online is zojuist veranderd.',
     'Je gebruikersnaam is: ' + email,
