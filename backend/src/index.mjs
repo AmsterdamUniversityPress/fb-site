@@ -53,9 +53,7 @@ import {
   userAllowAnalyticalUpdate as dbUserAllowAnalyticalUpdate,
   usersGet as dbUsersGet,
 } from './db.mjs'
-import {
-  getPasswordChangedEmail,
-} from './emails.mjs'
+import { getPasswordChangedEmail, getResetEmail, getWelcomeEmail, } from './emails.mjs'
 import { errorX, warn, } from './io.mjs'
 import {
   env, envOptional, envOrConfig, ifMapHas,
@@ -558,63 +556,10 @@ const completeQueriesSimple = invoke (() => {
   )
 })
 
-const reduceEmail = (contents) => lets (
-  () => (x) => '<p>' + x + '</p>',
-  (toP) => contents | reduce (
-    ([text, html], x) => x | ifArray (
-      ([t, h]) => [text | appendM (t), html | appendM (toP (h))],
-      () => [text | appendM (x), html | appendM (toP (x))],
-    ),
-    [[], []],
-  ),
-  (_, [text, html]) => [
-    text | join ('\n\n'),
-    html | join ('\n'),
-  ],
-)
-
 const getWelcomeOrResetLink = (stub, email, token) => join ('/', [
   'https://' + fbDomain, stub, email, encodeURIComponent (token),
 ])
 
-const getWelcomeEmail = (email, token) => {
-  const link = getWelcomeOrResetLink ('init-password', email, token)
-  const contents = [
-    'Welkom bij FB online ...',
-    [
-      'Ga naar deze URL om een wachtwoord te kiezen en je account te activeren:',
-      'Klik hier om een wachtwoord te kiezen en je account te activeren:',
-    ],
-    [
-      link,
-      [link] | sprintfN (`<a href='%s'>Account activeren</a>`),
-    ],
-  ]
-  return [
-    'Welkom bij FB Online!',
-    ... reduceEmail (contents),
-  ]
-}
-
-const getResetEmail = (email, token) => {
-  const link = getWelcomeOrResetLink ('reset-password', email, token)
-  const contents = [
-    'Wachtwoord reset ...',
-    'Je krijgt deze e-mail omdat je op “wachtwoord vergeten” hebt geklikt. Als jij dit niet hebt gedaan kun je dit bericht negeren',
-    [
-      'Ga naar deze URL om een nieuw wachtwoord te kiezen:',
-      'Klik hier om een wachtwoord te kiezen:',
-    ],
-    [
-      link,
-      [link] | sprintfN (`<a href='%s'>Nieuw wachtwoord kiezen</a>`),
-    ],
-  ]
-  return [
-    'Wachtwoord reset',
-    ... reduceEmail (contents)
-  ]
-}
 
 const mkActivateToken = () => lets (
   () => crypto.randomBytes (activateTokenLength).base64Slice (),
@@ -626,16 +571,23 @@ const mkActivateToken = () => lets (
   (_, token, tokenEncrypted) => [token, tokenEncrypted],
 )
 
+const mkTokenAndLink = (stub, email) => {
+  const [token, tokenEncrypted] = mkActivateToken ()
+  const link = getWelcomeOrResetLink (stub, email, token)
+  return [link, tokenEncrypted]
+}
+
 const sendInfoEmailTryOnce = (email, type) => {
-  const [getEmail, storeToken, [token, tokenEncrypted]] = type | lookupOnOrDie (
+  const [getEmail, storeToken, getTokenAndLink] = type | lookupOnOrDie (
     'sendInfoEmailTryOnce (): Invalid type: ' + type,
     {
-      'password-changed': [getPasswordChangedEmail, false, [null, null]],
-      reset: [getResetEmail, true, mkActivateToken ()],
-      welcome: [getWelcomeEmail, true, mkActivateToken ()],
+      'password-changed': [getPasswordChangedEmail, false, () => [null, null]],
+      reset: [getResetEmail, true, () => mkTokenAndLink ('reset-password', email)],
+      welcome: [getWelcomeEmail, true, () => mkTokenAndLink ('init-password', email)],
     },
   )
-  const [subject, text, html] = getEmail (email, token)
+  const [link, tokenEncrypted] = getTokenAndLink ()
+  const [subject, text, html] = getEmail (email, link)
 
   return startP ()
   // --- on a retry, this will overwrite the previous one, so that's fine.
