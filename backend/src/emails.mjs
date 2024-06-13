@@ -5,11 +5,11 @@ import {
 const imgHero = 'https://fondsenboek.com/hero-fb.png'
 const imgLogoAUP = 'https://fondsenboek.com/logo-aup.png'
 
-export const getPasswordChangedEmail = (email, _) => {
-  return [
+export const getPasswordChangedEmail = (email, _) => [
     'Je wachtwoord is veranderd!',
-      'textversie',
-      `
+    // --- @todo
+    'textversie',
+    `
 <!DOCTYPE html>
 <html>
 <head>
@@ -74,4 +74,3 @@ export const getPasswordChangedEmail = (email, _) => {
 </body>
 </html>
   `]
-}

@@ -15,6 +15,7 @@ import zxcvbn from 'zxcvbn'
 
 import configure from 'alleycat-js/es/configure'
 import { clss, keyDownListenPreventDefault, } from 'alleycat-js/es/dom'
+import { requestIsPending, } from 'alleycat-js/es/fetch'
 import { iwarn, logWith, setTimeoutOn, } from 'alleycat-js/es/general'
 import { all, } from 'alleycat-js/es/predicate'
 import { useCallbackConst, } from 'alleycat-js/es/react'
@@ -44,6 +45,8 @@ import {
 } from '../App/store/app/selectors'
 import {
   selectPasswordUpdated,
+  selectPasswordUpdatedResolved,
+  selectPasswordReset,
 } from '../App/store/ui/selectors'
 
 import saga from './saga'
@@ -541,6 +544,13 @@ const LoginS = styled.div`
     margin-top: 40px;
     margin-bottom: 40px;
   }
+  .x__submit {
+    > .x__spinner {
+      vertical-align: middle;
+      margin-left: 25px;
+      display: inline-block;
+    }
+  }
 `
 
 const TextBoxS = styled.div`
@@ -755,8 +765,9 @@ const UserPasswordForm = container (
   }, {
     getInstitutionName: selectGetInstitutionName,
     emailRequestSuccess: selectEmailRequestSuccess,
+    passwordReset: selectPasswordReset,
   }],
-  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, resetPasswordDispatch, getInstitutionName, emailRequestSuccess, }) => {
+  ({ isMobile, mode, logIn, email: emailProp='', resetPasswordToken, passwordReset, resetPasswordDispatch, getInstitutionName, emailRequestSuccess, }) => {
     const navigate = useNavigate ()
 
     const getUserType = useSelector (selectGetUserType)
@@ -849,6 +860,7 @@ const UserPasswordForm = container (
     )
     const choosePassword = mode === 'reset-password' || mode === 'init-password'
     const choosePasswordNew = mode === 'reset-password' ? 'nieuw ' : ''
+    const passwordResetPending = passwordReset | requestIsPending
 
     return <LoginS>
       <Dialog
@@ -916,10 +928,13 @@ const UserPasswordForm = container (
             <div className='whole-row'/>
           </>}
 
-          <div className='whole-row'>
+          <div className='whole-row x__submit'>
             <BigButton disabled={not (canSubmit)} onClick={onClickSubmit}>
               {mode === 'login' ? 'aanmelden' : 'OK'}
             </BigButton>
+            <div className='x__spinner'>
+              {passwordResetPending && <Spinner spinning={true} size={20}/>}
+            </div>
           </div>
 
           {mode === 'login' && <>
@@ -995,9 +1010,10 @@ const UserPage = container (
     },
     {
       passwordUpdated: selectPasswordUpdated,
+      passwordUpdatedResolved: selectPasswordUpdatedResolved,
     }
   ],
-  ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, passwordUpdated, }) => {
+  ({ passwordUpdateDispatch, passwordUpdateDoneDispatch, passwordUpdated, passwordUpdatedResolved, }) => {
     const [oldPassword, setOldPassword] = useState ('')
     const [newPassword, setNewPassword] = useState ('')
 
@@ -1007,13 +1023,13 @@ const UserPage = container (
     const navigate = useNavigate ()
 
     useEffect (() => {
-      passwordUpdated | whenTrue (
+      passwordUpdatedResolved | whenTrue (
         () => {
           navigate ('/')
           passwordUpdateDoneDispatch ()
         }
       )
-    }, [navigate, passwordUpdateDoneDispatch, passwordUpdated])
+    }, [navigate, passwordUpdateDoneDispatch, passwordUpdatedResolved])
 
     const onChangeOldPassword = useCallbackConst (
       (event) => setOldPassword (event.target.value),
@@ -1058,6 +1074,7 @@ const UserPage = container (
       ),
       [newPasswordIsNotEmpty, oldPassword, passwordIsStrongEnough],
     )
+    const passwordUpdatedPending = passwordUpdated | requestIsPending
 
     return <FullHeightCenter>
       <ResponsiveForm>
@@ -1097,6 +1114,7 @@ const UserPage = container (
         <div>
           <BigButton disabled={not (canSubmitPassword)} onClick={onClickPasswordUpdate}>versturen</BigButton>
         </div>
+        {passwordUpdatedPending && <Spinner spinning={true} size={20}/>}
       </ResponsiveForm>
     </FullHeightCenter>
   }

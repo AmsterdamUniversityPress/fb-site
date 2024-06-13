@@ -72,8 +72,11 @@ export const passwordUpdate = action (
   'passwordUpdate',
 )
 
-// @todo needs better name (what is the difference with completed?)
-// used to put the passwordUpdated in the store back to requestInit
+// @todo needs better name
+// --- the difference with passwordUpdatedCompleted is that passwordUpdatedCompleted sets
+// passwordUpdated in the store to RequestResults, while this gets called even later, when we've
+// navigated away from the Login component. So this is where passwordUpdated gets set to
+// RequestInit.
 export const passwordUpdateDone = action (
   () => {},
   'passwordUpdateDone',
@@ -150,6 +153,10 @@ export const resetPassword = action (
 )
 
 export const resetPasswordCompleted = action (
-  (rcomplete) => rcomplete,
+  (rcomplete, email, navigate) => ({ rcomplete, email, navigate, }),
   'resetPasswordCompleted',
+)
+export const resetPasswordDone = action (
+  () => {},
+  'resetPasswordDone',
 )

@@ -19,12 +19,12 @@ const { select, selectTop, selectVal, } = initSelectors (
   initialState,
 )
 
-const _selectPasswordUpdated = selectVal ('passwordUpdated')
+export const selectPasswordUpdated = selectVal ('passwordUpdated')
 
-export const selectPasswordUpdated = select (
-  'selectPasswordUpdated',
-  _selectPasswordUpdated,
-  // --- map means take the RequestResults case
+export const selectPasswordUpdatedResolved = select (
+  'passwordUpdatedResolved',
+  selectPasswordUpdated,
   (passwordUpdateRequest) => passwordUpdateRequest | requestIsResults
 )
 
+export const selectPasswordReset = selectVal ('passwordReset')

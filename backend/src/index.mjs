@@ -577,18 +577,6 @@ const getWelcomeOrResetLink = (stub, email, token) => join ('/', [
   'https://' + fbDomain, stub, email, encodeURIComponent (token),
 ])
 
-const xgetPasswordChangedEmail = (email, _) => {
-  const contents = [
-    'Je wachtwoord voor FB Online is zojuist veranderd.',
-    'Je gebruikersnaam is: ' + email,
-    'We tonen het nieuwe wachtwoord niet. Als je je wachtwoord niet zelf hebt veranderd via onze interface, neem dan gelijk contact op met ...',
-  ]
-  return [
-    'Je wachtwoord voor FB Online is veranderd',
-    ... reduceEmail (contents),
-  ]
-}
-
 const getWelcomeEmail = (email, token) => {
   const link = getWelcomeOrResetLink ('init-password', email, token)
   const contents = [
@@ -896,6 +884,9 @@ const init = ({ port, }) => express ()
           updateUserPassword (email, password),
           redisDelete (redisKey ('activate', email))
         ])
+        // --- @todo if a user tries to use the same reset link twice, it will result in
+        // serverError, while userError would be nicer because it will at least give them an
+        // informative message.
         | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
         | then (() => sendInfoEmail (email, 'password-changed')
           | then (() => res | sendStatus (200, null))

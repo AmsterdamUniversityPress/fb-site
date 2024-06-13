@@ -27,6 +27,8 @@ import {
   passwordUpdate as a_passwordUpdate,
   passwordUpdateCompleted as a_passwordUpdateCompleted,
   resetPassword as a_resetPassword,
+  resetPasswordCompleted as a_resetPasswordCompleted,
+  resetPasswordDone as a_resetPasswordDone,
   sendResetEmail as a_sendResetEmail,
   sendResetEmailCompleted as a_sendResetEmailCompleted,
   sendWelcomeEmail as a_sendWelcomeEmail,
@@ -318,7 +320,7 @@ function *s_passwordUpdateCompleted (rcomplete) {
 
 function *s_resetPassword ({ email, password, token, navigate, }) {
   function *done (rcomplete) {
-    yield call (s_resetPasswordCompleted, rcomplete, email, navigate)
+    yield put (a_resetPasswordCompleted (rcomplete, email, navigate))
   }
   yield call (doApiCall, {
     url: '/api/user/reset-password',
@@ -334,13 +336,15 @@ function *s_resetPassword ({ email, password, token, navigate, }) {
   })
 }
 
-function *s_resetPasswordCompleted (rcomplete, email, navigate) {
-  rcomplete | whenRequestCompleteSuccess (
+function *s_resetPasswordCompleted ({ rcomplete, email, navigate, }) {
+  const ok = rcomplete | whenRequestCompleteSuccess (
     () => {
       toastInfo ('Je nieuwe wachtwoord is succesvol opgeslagen.')
       navigate ('/login/' + email)
+      return true
     },
   )
+  if (ok) yield put (a_resetPasswordDone ())
 }
 
 // --- @todo move to Search?
@@ -474,6 +478,7 @@ export default function *sagaRoot () {
     saga (takeLatest, a_passwordUpdate, s_passwordUpdate),
     saga (takeLatest, a_passwordUpdateCompleted, s_passwordUpdateCompleted),
     saga (takeLatest, a_resetPassword, s_resetPassword),
+    saga (takeLatest, a_resetPasswordCompleted, s_resetPasswordCompleted),
     saga (takeLatest, a_searchFetch, s_searchFetch),
     saga (takeLatest, a_searchReset, s_searchReset),
     saga (takeLatest, a_sendResetEmail, s_sendResetEmail),

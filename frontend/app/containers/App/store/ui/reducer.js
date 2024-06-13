@@ -13,17 +13,19 @@ import {
   passwordUpdate,
   passwordUpdateDone,
   passwordUpdateCompleted,
+  resetPassword,
+  resetPasswordDone,
+  resetPasswordCompleted,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
 
 export const initialState = {
   passwordUpdated: RequestInit,
+  passwordReset: RequestInit,
 }
 
 const reducerTable = makeReducer (
-  // @todo we might do something with the RequestLoading state at some point
-  // (i.e. show a spinner or something)
   passwordUpdate, (_) => assoc (
     'passwordUpdated', RequestLoading (Nothing),
   ),
@@ -35,6 +37,18 @@ const reducerTable = makeReducer (
   ),
   passwordUpdateDone, (_) => assoc (
     'passwordUpdated', RequestInit,
+  ),
+  resetPassword, (_) => assoc (
+    'passwordReset', RequestLoading (Nothing),
+  ),
+  resetPasswordCompleted, ({ rcomplete, ... _}) => assoc (
+    'passwordReset', rcomplete | cata ({
+      RequestCompleteError: (e) => RequestError (e),
+      RequestCompleteSuccess: (r) => RequestResults (r),
+    }),
+  ),
+  resetPasswordDone, (_) => assoc (
+    'passwordReset', RequestInit,
   )
 )
 
