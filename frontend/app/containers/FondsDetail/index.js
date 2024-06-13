@@ -252,9 +252,12 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
-      <StyledLink to={data.website} target='_blank'>
-        {data.naam_organisatie}
-      </StyledLink>
+      {data.website | ifOk (
+        (url) => <StyledLink to={url} target='_blank'>
+          {data.naam_organisatie}
+        </StyledLink>,
+        () => data.naam_organisatie,
+      )}
     </div>
     {/*<div className='x__doelstelling'>
       {data.doelstelling}
