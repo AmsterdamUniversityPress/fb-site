@@ -50,8 +50,11 @@ const DetailS = styled.div`
     width: 100%;
     position: relative;
     img {
-      height: 100%;
-      width: 100%;
+      width: var(--width);
+      // --- why doesn't margin: auto work?
+      // margin: auto;
+      margin-left: calc((100% - var(--width))/2);
+      margin-right: calc((100% - var(--width))/2);
     }
     span {
       position: absolute;
@@ -78,6 +81,9 @@ const DetailS = styled.div`
   }
   ${mediaQuery (
     mediaPhone (`
+      > .x__image-and-tag {
+        --width: 100%;
+      }
       > .x__back {
         margin-top: 30px;
       }
@@ -108,6 +114,11 @@ const DetailS = styled.div`
           display: initial;
         }
       }
+    `),
+    mediaDesktop (`
+    > .x__image-and-tag {
+      --width: 70%;
+    }
     `),
   )}
   > .x__rubriek {

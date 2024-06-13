@@ -316,11 +316,6 @@ const User = container (
 )
 
 const HeaderS = styled.div`
-  ${mediaQuery (
-    mediaPhone (`font-size: 20px`),
-    mediaTablet (``),
-    mediaDesktop (`font-size: 25px`),
-  )}
   font-weight: 700;
   background: #FFFFFF66;
   backdrop-filter: blur(5px);
@@ -330,12 +325,12 @@ const HeaderS = styled.div`
   justify-content: space-between;
   align-items: center;
   > .x__logo-aup {
-    height: 100%;
+    // height: 100%;
     margin-right: 40px;
     min-height: 60px;
-    img {
-      height: 100%;
-    }
+    // img {
+      // width: 100%;
+    // }
   }
   > .x__logo-fb {
     margin-left: -1%;
@@ -376,11 +371,16 @@ const HeaderS = styled.div`
   }
   ${mediaQuery (
     mediaPhone (`
+      font-size: 20px;
       padding: 10px 10px 10px 10px;
       height: auto;
       > .x__logo-aup {
         flex: 0 0 50%;
         order: 10;
+        img {
+          width: auto;
+          height: 100%;
+        }
       }
       > .x__logo-fb {
         flex: 0 0 90%;
@@ -395,7 +395,7 @@ const HeaderS = styled.div`
         margin-top: 30px;
       }
       > .x__user-menu {
-        flex: 0 0 35px;
+        flex: 0 0 50px;
         order: 15;
       }
     `),
@@ -403,13 +403,18 @@ const HeaderS = styled.div`
       height: 100px;
       padding: 0px 15px 0px 50px;
       > .x__logo-aup {
-        flex: 0 0 auto;
+        flex: 0 1 20%;
+        img {
+          width: 100%;
+          height: auto;
+        }
       }
       > .x__logo-fb {
         flex: 0 0 30%;
         margin-top: initial;
       }
       > .x__nav-links {
+        flex: 0 1 200px;
         margin-top: initial;
         > .x__wrapper {
           left: 50%;
@@ -417,11 +422,24 @@ const HeaderS = styled.div`
         }
       }
       > .x__user-menu {
-        flex: 0 0 50px;
         order: 40;
       }
     `),
-  )}
+    mediaDesktop (`
+      font-size: 25px;
+      > .x__logo-aup {
+        flex: 0 0 auto;
+        height: 100%;
+        img {
+          width: auto;
+          height: 100%;
+        }
+      }
+      > .x__nav-links {
+        flex: 0 1 auto;
+      }
+    `)
+  )},
 `
 
 const Header = ({ isMobile, isLoggedIn, page, }) => {
