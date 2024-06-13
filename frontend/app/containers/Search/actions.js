@@ -32,6 +32,11 @@ export const searchFetch = action (
   'searchFetch',
 )
 
+export const clearFiltersAndQuery = action (
+  (navigate) => navigate,
+  'clearFiltersAndQuery',
+)
+
 export const searchFetchCompleted = action (
   (rcomplete) => rcomplete,
   'searchFetchCompleted',

@@ -10,7 +10,7 @@ import { requestJSON, defaultOpts, resultFoldMap, resultFold, } from 'alleycat-j
 import { EffAction, EffSaga, EffNoEffect, } from 'alleycat-js/es/saga'
 
 import {
-  clearFilters as a_clearFilters,
+  clearFiltersAndQuery as a_clearFiltersAndQuery,
   updateFilterToggle as a_updateFilterToggle,
   updateSearchQuery as a_updateSearchQuery,
 } from './actions'
@@ -28,6 +28,11 @@ function *s_clearFilters (navigate) {
     '/search/%s',
   ))
 }
+
+function *s_clearFiltersAndQuery (navigate) {
+  navigate ('/search/*')
+}
+
 function *s_updateFilterToggle ({ filterName, value, navigate, }) {
   const searchQuery = yield select (selectSearchQuery)
   const selector = yield select (selectSelectedFiltersTuplesWithUpdate)
@@ -52,7 +57,7 @@ function *s_updateSearchQuery ({ searchQuery, navigate, }) {
 
 export default function *sagaRoot () {
   yield all ([
-    saga (takeLatest, a_clearFilters, s_clearFilters),
+    saga (takeLatest, a_clearFiltersAndQuery, s_clearFiltersAndQuery),
     saga (takeLatest, a_updateFilterToggle, s_updateFilterToggle),
     saga (takeLatest, a_updateSearchQuery, s_updateSearchQuery),
   ])

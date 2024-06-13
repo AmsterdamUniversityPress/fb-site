@@ -26,7 +26,7 @@ import { createReducer, } from '../../redux'
 
 import {
   autocompleteQueryUpdated,
-  clearFilters,
+  clearFiltersAndQuery,
   updateFilterToggle,
   updateSearchQuery,
 } from './actions'
@@ -866,12 +866,13 @@ const ActiveFilters = container2 (
     const onClickQueryBubble = useCallbackConst (() => {
       dispatch (updateSearchQuery (navigate, '*'))
     })
-    const onClickClear = useCallbackConst (() => {
-      dispatch (clearFilters (navigate))
-    })
+    const onClickClear = useCallback (() => {
+      dispatch (clearFiltersAndQuery (navigate))
+    }, [navigate])
+    const hasQuery = useMemo (() => ok (searchQuery) && searchQuery !== '*' && searchQuery !== '', [searchQuery])
 
     return <ActiveFiltersS>
-      {hasFilters && <>
+      {(hasFilters || hasQuery) && <>
         <div className='x__title'>
           Actieve filters
         </div>
