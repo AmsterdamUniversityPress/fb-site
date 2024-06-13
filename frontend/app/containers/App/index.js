@@ -557,7 +557,6 @@ export default container (
 
     useEffect (() => {
       fontMainFamily
-        | tap (logWith ('main family'))
         | startFontObserver
         // --- if the font fails, keep going.
         | recover (console.error)
