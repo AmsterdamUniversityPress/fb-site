@@ -19,6 +19,7 @@ import './manifest.json'
 
 import './images/icons/favicon.ico'
 import './images/static-hero-fb.png'
+import './images/static-logo-aup.png'
 import './images/icons/static-android-chrome-192x192.png'
 import './images/icons/static-android-chrome-512x512.png'
 
