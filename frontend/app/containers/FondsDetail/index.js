@@ -231,7 +231,7 @@ const Back = container2 (['Back'], () => {
 
 const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__image-and-tag'>
-    <img src={getFondsImage (data.idx)}/>
+    <img src={getFondsImage (data.id)}/>
   </div>
   <div className='x__back'>
     <Back/>
