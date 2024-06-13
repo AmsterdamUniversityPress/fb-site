@@ -760,13 +760,15 @@ export const SearchBar = container2 (
     }, [setSuggestions, setQuery])
     const onChange = useCallback (targetValue >> trim >> onChangeValue, [onChangeValue])
     const onClear = useCallback (() => {
+      navigate ('/search/*')
+      // --- @todo the rest is not really necessary, since we navigate away.
       onChangeValue ('')
       inputRef.current.focus ()
       // @todo somehow this setSuggestions makes that the inputValue is not updated, so
       // input.current.value = '' doesn't work. However, if we don't clean the suggestions, this
       // leads to weird behavior when making a new search.
       // setSuggestions ([])
-    }, [setSuggestions, onChangeValue])
+    }, [navigate, setSuggestions, onChangeValue])
     const onFocus = useCallback (
       (event) => isMobile && event.target.scrollIntoView ('top'),
       [isMobile],
