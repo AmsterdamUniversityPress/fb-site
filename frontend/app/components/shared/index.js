@@ -208,6 +208,15 @@ export const BigButton = ({ children, innerStyle={}, ... restProps }) => <Button
   {children}
 </Button>
 
+const ArrowS = styled.div`
+  display: inline-block;
+  padding-right: 10px;
+`
+
+const Arrow = () => <ArrowS>
+  <img src={iconArrow} width='10px'/>
+</ArrowS>
+
 const MenuItemS = styled.div`
   cursor: pointer;
   &:hover > .x__text {
@@ -222,10 +231,6 @@ const MenuItemS = styled.div`
   }
   > img {
     vertical-align: middle;
-  }
-  > .x__arrow {
-    display: inline-block;
-    padding-right: 10px;
   }
   > .x__text {
     vertical-align: middle;
@@ -264,9 +269,7 @@ export const MenuItem = ({
 }) => {
   const cls = clss ('x--size-' + size, disabled && 'x--disabled')
   return <MenuItemS {... restProps} className={cls}>
-    {withArrow && <div className='x__arrow'>
-      <img src={iconArrow} width='10px'/>
-    </div>}
+    {withArrow && <Arrow/>}
     {imgSrc && <img src={imgSrc}/>}
     <span className='x__text'>
       {Contents | ifNil (
@@ -417,9 +420,10 @@ export const StyledLink = ({ disabled, children, onClick: onClickProp=noop, ... 
   </LinkS>
 }
 
-export const Link = ({ children, to: toProp, preserveQueryParams=false, ... rest }) => {
+export const Link = ({ children, to: toProp, preserveQueryParams=false, withArrow=false, ... rest }) => {
   const to = (ok (toProp) && preserveQueryParams) ? (toProp + document.location.search) : toProp
   return <LinkReal to={to} {... rest}>
+    {withArrow && <Arrow/>}
     {children}
   </LinkReal>
 }

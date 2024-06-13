@@ -347,6 +347,9 @@ const HeaderS = styled.div`
       top: 2px;
       overflow-y: visible;
       overflow-x: hidden;
+      .x__zoek {
+        vertical-align: middle;
+      }
       > .x__cursor {
         height: 1px;
         width: 95%;
@@ -393,6 +396,7 @@ const HeaderS = styled.div`
         flex: 0 1 350px;
         order: 30;
         margin-top: 30px;
+        margin-left: 4%;
       }
       > .x__user-menu {
         flex: 0 0 50px;
@@ -443,7 +447,8 @@ const HeaderS = styled.div`
 `
 
 const Header = ({ isMobile, isLoggedIn, page, }) => {
-  const cls = useCallback ((which) => page === which && 'x--selected', [page])
+  const isSelected = useCallback ((which) => page === which, [page])
+  const cls = useCallback ((which) => isSelected (which) && 'x--selected', [isSelected])
   return <HeaderS>
     <div className='x__logo-aup'>
       <a href={linkAUP}>
@@ -453,11 +458,11 @@ const Header = ({ isMobile, isLoggedIn, page, }) => {
     <div className='x__logo-fb'>
       <Logo/>
     </div>
-    <div className='x__nav-links'>
+    <div className={clss ('x__nav-links', isMobile && isSelected ('search') && 'u--hide')}>
       <div className='x__wrapper'>
         {isLoggedIn | ifTrue (
-          () => <Link to='/search/*' preserveQueryParams={true} disabled={page === 'search'}> Zoek een fonds </Link>,
-          () => <Link to='/login' preserveQueryParams={true}> Zoek een fonds </Link>,
+          () => <Link to='/search/*' preserveQueryParams={true} disabled={page === 'search'} withArrow={isMobile}><span className='x__zoek'>Zoek een fonds</span></Link>,
+            () => <Link to='/login' preserveQueryParams={true}><span className='x__zoek'>Zoek een fonds</span></Link>,
         )}
         <div className={clss ('x__cursor', cls ('search'))}/>
       </div>

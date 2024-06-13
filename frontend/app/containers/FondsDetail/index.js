@@ -47,27 +47,27 @@ const DetailS = styled.div`
     color: initial;
   }
   > .x__image-and-tag {
-    width: 100%;
+    // width: 100%;
     position: relative;
-    img {
-      width: var(--width);
-      // --- why doesn't margin: auto work?
-      // margin: auto;
-      margin-left: calc((100% - var(--width))/2);
-      margin-right: calc((100% - var(--width))/2);
+    width: var(--width);
+    // --- why doesn't margin: auto work?
+    // margin: auto;
+    margin-left: calc((100% - var(--width))/2);
+    margin-right: calc((100% - var(--width))/2);
+    .x__img {
+      width: 100%;
     }
-    span {
-      position: absolute;
-      top: 300px;
-      left: 100px;
-      color: white;
-      font-size: 60px;
+    // span {
+      // position: absolute;
+      // top: 300px;
+      // left: 100px;
+      // color: white;
+      // font-size: 60px;
+    // }
+    > .x__back {
+      font-size: 18px;
+      margin-right: 20px;
     }
-  }
-  > .x__back {
-    font-size: 18px;
-    margin-left: 20px;
-    margin-right: 20px;
   }
   > .x__title-and-doelstelling {
     position: sticky;
@@ -83,9 +83,9 @@ const DetailS = styled.div`
     mediaPhone (`
       > .x__image-and-tag {
         --width: 100%;
-      }
-      > .x__back {
-        margin-top: 30px;
+        > .x__back {
+          margin-top: 30px;
+        }
       }
       > .x__title-and-doelstelling {
         top: 0px;
@@ -100,8 +100,10 @@ const DetailS = styled.div`
       }
     `),
     mediaTablet (`
-      > .x__back {
-        margin-top: 10px;
+      > .x__image-and-tag {
+        > .x__back {
+          margin-top: 40px;
+        }
       }
       > .x__title-and-doelstelling {
         top: 100px;
@@ -214,6 +216,7 @@ const Fields = ({ title, data, }) => {
 }
 
 const BackS = styled.div`
+  position: relative;
   cursor: pointer;
   > img {
     transform: rotate(180deg);
@@ -242,10 +245,10 @@ const Back = container2 (['Back'], () => {
 
 const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__image-and-tag'>
-    <img src={getFondsImage (data.id)}/>
-  </div>
-  <div className='x__back'>
-    <Back/>
+    <img className='x__img' src={getFondsImage (data.id)}/>
+    <div className='x__back'>
+      <Back/>
+    </div>
   </div>
   <div className='x__title-and-doelstelling'>
     <div className='x__title'>
