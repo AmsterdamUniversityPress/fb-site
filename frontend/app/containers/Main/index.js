@@ -634,18 +634,20 @@ const InputWithEyeball = ({ showEyeball=true, onChange, onKeyDown, autoComplete=
   const onClickShowPassword = useCallbackConst (() => setShowPassword (not))
   const type = typeProp ?? (showPassword ? 'text' : 'password')
   const optional = {
+    ... inputRef && { ref: inputRef, },
+  }
+  const inputProps = {
     ... autoComplete && { autoComplete, },
     ... value && { value, },
-    ... inputRef && { ref: inputRef, },
   }
 
   return <InputWithEyeballS>
     <div className='x__input'>
       <Input
         type={type}
-        autoComplete={autoComplete}
         onChange={onChange}
         onKeyDown={onKeyDown}
+        inputProps={inputProps}
         { ... optional }
       />
     </div>
@@ -745,7 +747,7 @@ const ContentsForgotPasswordDialog = container (
         <span style={{ marginRight: '25px', }}>
           e-mailadres
         </span>
-        <Input type='text' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} width='300px'/>
+        <Input type='email' autoComplete='username' value={email} onChange={onChangeEmail} onKeyDown={onKeyDownInput} width='300px'/>
         <span style={{ marginLeft: '15px', }} className='x__spinner'>
           {emailRequestPending && <Spinner size={20}/>}
         </span>
@@ -868,6 +870,7 @@ const UserPasswordForm = container (
         isOpen={forgotPasswordDialogIsOpen}
         closeOnOverlayClick={true}
         onRequestClose={closeForgotPasswordDialog}
+        showCloseButton={isMobile}
       >
         <ContentsForgotPasswordDialog/>
       </Dialog>
@@ -899,8 +902,8 @@ const UserPasswordForm = container (
                 onChange={onChangeEmail}
                 onKeyDown={onKeyDownInput}
                 inputRef={inputEmailRef}
-                value={email}
                 type='email'
+                autoComplete='username'
               />
             </div>
             <div className='x__label x__password col1'>
