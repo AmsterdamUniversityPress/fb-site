@@ -1,9 +1,9 @@
 import {
   pipe, compose, composeRight,
-  merge, invoke,
+  merge, invoke, noop, not,
 } from 'stick-js/es'
 
-import React, { useMemo, useCallback, useEffect, useRef, useState, } from 'react'
+import React, { useMemo, useCallback, useCallbackConst, useEffect, useRef, useState, } from 'react'
 
 import Modal from 'react-modal'
 import styled from 'styled-components'
@@ -154,10 +154,12 @@ const ModalContents2S = styled.div`
 
 export default component (
   ['Dialog'],
- ({
+  ({
     children,
     isMobile,
-    isOpen, onRequestClose,
+    isOpen,
+    onRequestClose=noop,
+    onAfterClose: onAfterCloseProp=noop,
     closeOnOverlayClick=false, showCloseButton=false,
     styleOverlay={},
     styleContent=isMobile ? { width: '100%', maxWidth: '100%', height: '100%'} : {},
@@ -166,14 +168,20 @@ export default component (
       () => document.querySelector (appWrapperSelector),
       [],
     )
-    useEffect (() => {
+    const updateEverythingElse = useCallback ((forceClose=false) => {
       if (!everythingElse) return
-      if (isOpen) everythingElse.classList.add ('x--dialog-open')
-      else everythingElse.classList.remove ('x--dialog-open')
+      if (not (isOpen) || forceClose) everythingElse.classList.remove ('x--dialog-open')
+      else everythingElse.classList.add ('x--dialog-open')
     }, [everythingElse, isOpen])
+    const onAfterClose = useCallback ((... args) => {
+      onAfterCloseProp (... args)
+      updateEverythingElse (true)
+    }, [updateEverythingElse])
+    useEffect (() => { updateEverythingElse () }, [updateEverythingElse])
     return <Modal
       isOpen={isOpen}
       onRequestClose={onRequestClose}
+      onAfterClose={onAfterClose}
       shouldCloseOnOverlayClick={closeOnOverlayClick}
       style={{
         content: styleContentBase (isMobile) | merge (styleContent),
