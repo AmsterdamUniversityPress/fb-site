@@ -65,7 +65,7 @@ Vragen? Mail naar support@aup.nl.`,
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo">
+      <img src="${imgHero}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Je wachtwoord is veranderd!</h1>
@@ -76,7 +76,7 @@ Vragen? Mail naar support@aup.nl.`,
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"></a>
+      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
@@ -107,7 +107,7 @@ Vragen? Mail naar support@aup.nl
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo">
+      <img src="${imgHero}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Kies nieuw wachtwoord!</h1>
@@ -118,7 +118,7 @@ Vragen? Mail naar support@aup.nl
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo">
+      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
@@ -149,7 +149,7 @@ Vragen? Mail naar support@aup.nl
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo">
+      <img src="${imgHero}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Welkom!</h1>
@@ -160,7 +160,7 @@ Vragen? Mail naar support@aup.nl
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo">
+      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
