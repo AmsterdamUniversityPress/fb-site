@@ -16,10 +16,10 @@ import {} from './selectors'
 
 import { doApiCall, saga, toastError, } from '../../common'
 
-function *s_fondsDetailFetch (uuid) {
+function *s_fondsDetailFetch (theId) {
   const url = new URL (document.location)
   url.pathname = '/api/fonds'
-  url.searchParams.append ('uuid', uuid)
+  url.searchParams.append ('theId', theId)
   yield call (doApiCall, {
     url,
     continuation: EffAction (a_fondsDetailFetchCompleted),

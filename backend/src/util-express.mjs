@@ -31,6 +31,9 @@ const isNonEmptyBase64String = (x) => ok (x.toLowerCase ().match (
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/,
 ))
 
+const isNonEmptyTheId = (x) => ok (x.match (
+  /^\d+$/
+))
 const isNonEmptyUUID = (x) => ok (x.match (
   /^[0-9a-f-]+$/,
 ))
@@ -198,6 +201,11 @@ export const basicStringListValidator = (param) => [
   id,
   ok,
 ]
+
+export const basicTheIdValidator = (param) => basicRequiredValidator (
+  [isNonEmptyTheId],
+  param,
+)
 
 export const basicUUIDValidator = (param) => basicRequiredValidator (
   [isNonEmptyUUID],

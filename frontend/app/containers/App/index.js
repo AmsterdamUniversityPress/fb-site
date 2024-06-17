@@ -205,7 +205,7 @@ const selectorTable = {
 const router = (passProps) => createBrowserRouter ([
   { path: '/', element: <Main page='landing' passProps={passProps}/>},
   { path: '/about', element: <Main page='about' passProps={passProps}/>},
-  { path: '/detail/:uuid', element: <Main page='detail' passProps={passProps}/>},
+  { path: '/detail/:theId', element: <Main page='detail' passProps={passProps}/>},
   { path: '/login', element: <Main page='login' passProps={passProps}/>},
   { path: '/login/:email', element: <Main page='login' passProps={passProps}/>},
   { path: '/search', element: <Main page='search' passProps={passProps}/>},

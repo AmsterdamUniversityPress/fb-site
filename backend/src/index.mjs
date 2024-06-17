@@ -82,7 +82,8 @@ import {
   basicPasswordValidator,
   basicStringListValidator,
   basicStringValidator,
-  basicUUIDValidator,
+  basicTheIdValidator,
+  // basicUUIDValidator,
   basicRequiredValidator,
 } from './util-express.mjs'
 import {
@@ -192,7 +193,8 @@ const data = appEnv | lookupOnOrDie (
   { dev: dataTst, tst: dataTst, acc: dataAcc, prd: dataPrd, }
 )
 
-const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
+const dataByTheId = data | mapTuplesAsMap ((_, v) => [v.id, v])
+// const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
 const filterValues = getFilters (data)
 
 const getUserinfoResponse = recurry (3) (
@@ -655,12 +657,12 @@ const init = ({ port, }) => express ()
     }),
   ))
   | secureGet (privsUser) ('/fonds', gvQuery ([
-      basicUUIDValidator ('uuid'),
+      basicTheIdValidator ('theId'),
     ],
-    ({ res }, uuid) => res | sendStatus (
-      ... dataByUuid | ifMapHas (uuid) (
+    ({ res }, theId) => res | sendStatus (
+      ... dataByTheId | ifMapHas (Number (theId)) (
         (fonds) => [200, { results: fonds, }],
-        () => [499, { umsg: 'No such uuid ' + uuid, }],
+        () => [499, { umsg: 'No such theId ' + theId, }],
       ),
     ),
   ))

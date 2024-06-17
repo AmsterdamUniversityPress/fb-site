@@ -408,8 +408,8 @@ const ResultS = styled.div`
 
 `
 
-const Result = ({ imgSrc, uuid, name, type, targetGroup, workingRegion, objective, categories, }) => {
-  const href = '/detail/' + uuid
+const Result = ({ imgSrc, theId, name, type, targetGroup, workingRegion, objective, categories, }) => {
+  const href = '/detail/' + theId
   const navigate = useNavigate ()
   const onClick = useCallback (
     () => navigate (href),
@@ -939,7 +939,7 @@ const SearchResults = container2 (
                 objective={highlightString (objective)}
                 targetGroup={highlightString (targetGroup)}
                 type={type}
-                uuid={uuid}
+                theId={theId}
                 workingRegion={workingRegion}
             />)}
           </div>

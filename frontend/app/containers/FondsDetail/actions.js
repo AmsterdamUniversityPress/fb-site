@@ -6,7 +6,7 @@ import { logWith, } from 'alleycat-js/es/general'
 import { action, } from 'alleycat-js/es/redux'
 
 export const fondsDetailFetch = action (
-  (uuid) => uuid,
+  (theId) => theId,
   'fondsDetailFetch',
 )
 

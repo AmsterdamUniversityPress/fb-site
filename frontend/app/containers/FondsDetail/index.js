@@ -381,16 +381,17 @@ export default container (
   ['FondsDetail', dispatchTable, selectorTable],
   (props) => {
     const { fonds, fondsDetailFetchDispatch, } = props
-    const params = useRouteParams ('uuid')
-    const { uuid, } = params
+    const params = useRouteParams ('theId')
+    const { theId, } = params
 
     useWhy ('FondsDetail', props)
     useReduxReducer ({ createReducer, reducer, key: 'FondsDetail', })
     useSaga ({ saga, key: 'FondsDetail', })
 
     useEffect (() => {
-      fondsDetailFetchDispatch (uuid)
-    }, [fondsDetailFetchDispatch, uuid])
+      fondsDetailFetchDispatch (theId)
+    }, [fondsDetailFetchDispatch, theId])
+
 
     return <FondsDetailS>
       {fonds | requestResults ({
