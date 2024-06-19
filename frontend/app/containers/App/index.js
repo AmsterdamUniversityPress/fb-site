@@ -439,8 +439,8 @@ const LinkElementS = styled.div`
   }
 `
 
-const LinkElement = ({ attention, text, link, }) => <LinkElementS attention={attention}>
-  <AS href={link}>
+const LinkElement = ({ attention, text, link, target }) => <LinkElementS attention={attention}>
+  <AS href={link} target={target}>
     <div className='x__inner'>
       {text}
     </div>
@@ -454,8 +454,8 @@ const SocialS = styled.div`
   flex-shrink: 0;
 `
 
-const Social = ({ img, link }) => <SocialS>
-  <a href={link}>
+const Social = ({ img, link, target, }) => <SocialS>
+  <a href={link} target={target}>
     <img src={img}/>
   </a>
 </SocialS>
@@ -464,14 +464,13 @@ const Footer = () => {
   return <FooterS className='text'>
     <div className='x__main'>
       <div className='x__socials'>
-        <Social img={imageIconFacebook} link={linkFacebookAUP} />
-        <Social img={imageIconInstagram} link={linkInstagramAUP} />
-        <Social img={imageIconLinkedin} link={linkLinkedinAUP} />
-        <Social img={imageIconXTwitter} link={linkXTwitterAUP}
-        />
+        <Social img={imageIconFacebook} link={linkFacebookAUP} target={'_blank'}/>
+        <Social img={imageIconInstagram} link={linkInstagramAUP} target={'_blank'}/>
+        <Social img={imageIconLinkedin} link={linkLinkedinAUP} target={'_blank'}/>
+        <Social img={imageIconXTwitter} link={linkXTwitterAUP} target={'_blank'} />
       </div>
       <div className='x__actions'>
-        <LinkElement attention={true} text="Abonnee worden" link={linkAbonneeWordenAUP}/>
+        <LinkElement attention={true} text="Abonnee worden" link={linkAbonneeWordenAUP} target={'_blank'}/>
         <LinkElement attention={true} text="Meld een fonds aan" link={emailLinkMeldFondsAan}/>
         <LinkElement attention={true} text="Suggesties" link={emailLinkAanmerkingen}/>
         <LinkElement attention={true} text="AUP nieuwsbrief" link={linkNieuwsbriefAUP}/>
@@ -495,11 +494,11 @@ const Footer = () => {
             Onze uitgaves
           </div>
           <div className='x__content'>
-            <LinkElement text={"Toegang en abonnementen"} link={linkToegangEnAbonnementen}/>
-            <LinkElement text={"Tijdschriften"} link={linkTijdschriften}/>
-            <LinkElement text={"Collecties"} link={linkCollecties}/>
-            <LinkElement text={"Boeken"} link={linkBoeken}/>
-            <LinkElement text={"Textboeken"} link={linkTextboeken}/>
+            <LinkElement text={"Toegang en abonnementen"} link={linkToegangEnAbonnementen} target={'_blank'}/>
+            <LinkElement text={"Tijdschriften"} link={linkTijdschriften} target={'_blank'}/>
+            <LinkElement text={"Collecties"} link={linkCollecties} target={'_blank'}/>
+            <LinkElement text={"Boeken"} link={linkBoeken} target={'_blank'}/>
+            <LinkElement text={"Textboeken"} link={linkTextboeken} target={'_blank'}/>
           </div>
         </div>
         <div className='x__block'>
@@ -507,11 +506,11 @@ const Footer = () => {
             Over AUP
           </div>
           <div className='x__content'>
-            <LinkElement text={"Over ons"} link={linkOverOnsAUP}/>
-            <LinkElement text={"Contact"} link={linkContactAUP}/>
-            <LinkElement text={"Nieuwsberichten en artikelen"} link={linkArtikelenAUP}/>
-            <LinkElement text={"Privacybeleid"} link={linkPrivacybeleidAUP}/>
-            <LinkElement text={"Vacatures"} link={linkVacaturesAUP}/>
+            <LinkElement text={"Over ons"} link={linkOverOnsAUP} target={'_blank'}/>
+            <LinkElement text={"Contact"} link={linkContactAUP} target={'_blank'}/>
+            <LinkElement text={"Nieuwsberichten en artikelen"} link={linkArtikelenAUP} target={'_blank'}/>
+            <LinkElement text={"Privacybeleid"} link={linkPrivacybeleidAUP} target={'_blank'}/>
+            <LinkElement text={"Vacatures"} link={linkVacaturesAUP} target={'_blank'}/>
           </div>
         </div>
         <div className='x__block'>
@@ -519,7 +518,7 @@ const Footer = () => {
             Filantropie
           </div>
           <div className='x__content'>
-            <LinkElement text='De Dikke Blauwe' link={linkDikkeBlauwe}/>
+            <LinkElement text='De Dikke Blauwe' link={linkDikkeBlauwe} target={'_blank'}/>
           </div>
         </div>
       </div>
