@@ -27,7 +27,7 @@ const style = `
     width: 400px;
   }
   .footer img {
-    width: 400px;
+    width: 130px;
   }
   .content {
     padding: 20px;
@@ -48,7 +48,7 @@ export const getPasswordChangedEmail = (email, _) => [
   'Je wachtwoord is veranderd!',
   `Je wachtwoord voor het online FondsenBoek is zojuist veranderd.
 
-Uw gebruikersnaam is: ${email}
+Je gebruikersnaam is: ${email}
 
 We tonen het nieuwe wachtwoord niet.
 
