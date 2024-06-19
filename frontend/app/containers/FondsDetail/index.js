@@ -218,6 +218,7 @@ const Fields = ({ title, data, }) => {
 const BackS = styled.div`
   position: relative;
   cursor: pointer;
+  scroll-margin-top: 140px;
   > img {
     transform: rotate(180deg);
   }
@@ -235,7 +236,14 @@ const Back = container2 (['Back'], () => {
     () => <MI text={text} onClick={onClick}/>,
     () => <Link to='/search/*'><MI text={text}/></Link>,
   ), [query])
-  return <BackS>
+  const refBack = useRef ()
+  useEffect (() => {
+    const cur = refBack.current
+    // --- note: is affected by scroll-margin-top of BackS
+    cur.scrollIntoView ({
+      block: 'start', })
+  })
+  return <BackS ref={refBack}>
     <img src={iconArrow}/>
     <span className='x__link'>
       <Elem text='terug naar zoekresultaten'/>
