@@ -3,7 +3,7 @@ import {
 } from 'stick-js/es'
 
 const imgHero = 'https://fondsenboek.com/hero-fb.png'
-const imgLogoAUP = 'https://fondsenboek.com/logo-aup.png'
+const imgLogoAUP = 'https://fondsenboek.com/logo-aup.svg'
 const style = `
   body {
     font-family: Open Sans, Arial, sans-serif;

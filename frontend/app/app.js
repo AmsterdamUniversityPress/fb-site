@@ -19,7 +19,9 @@ import './manifest.json'
 
 import './images/icons/favicon.ico'
 import './images/static-hero-fb.png'
+// --- @todo do we still need this?
 import './images/static-logo-aup.png'
+import './images/static-logo-aup.svg'
 import './images/icons/static-android-chrome-192x192.png'
 import './images/icons/static-android-chrome-512x512.png'
 
