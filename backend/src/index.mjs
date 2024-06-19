@@ -193,6 +193,8 @@ const data = appEnv | lookupOnOrDie (
   { dev: dataTst, tst: dataTst, acc: dataAcc, prd: dataPrd, }
 )
 
+const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
+
 const dataByTheId = data | mapTuplesAsMap ((_, v) => [v.id, v])
 // const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
 const filterValues = getFilters (data)
@@ -412,8 +414,6 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 }
 
-const fbDomain = fbDomains [appEnv] ?? die ('Missing fbDomain for ' + appEnv)
-
 // --- receives an array with 1 element in the case of string fields (since
 // number_of_fragments is 0) and several elements in the case of an array
 // field (currently only `categories`).
@@ -589,7 +589,7 @@ const sendInfoEmailTryOnce = (email, type) => {
     },
   )
   const [link, tokenEncrypted] = getTokenAndLink ()
-  const [subject, text, html] = getEmail (email, link)
+  const [subject, text, html] = getEmail (fbDomain, email, link)
 
   return startP ()
   // --- on a retry, this will overwrite the previous one, so that's fine.

@@ -1,9 +1,10 @@
 import {
   pipe, compose, composeRight,
+  sprintf1,
 } from 'stick-js/es'
 
-const imgHero = 'https://fondsenboek.com/hero-fb.png'
-const imgLogoAUP = 'https://fondsenboek.com/logo-aup.svg'
+const imgHero = (fbDomain) => fbDomain | sprintf1 ('https://%s/hero-fb.png')
+const imgLogoAUP = (fbDomain) => fbDomain | sprintf1 ('https://%s/logo-aup.svg')
 const style = `
   body {
     font-family: Open Sans, Arial, sans-serif;
@@ -44,7 +45,7 @@ const style = `
   }
 `
 
-export const getPasswordChangedEmail = (email, _) => [
+export const getPasswordChangedEmail = (fbDomain, email, _) => [
   'Je wachtwoord is veranderd!',
   `Je wachtwoord voor het online FondsenBoek is zojuist veranderd.
 
@@ -65,7 +66,7 @@ Vragen? Mail naar support@aup.nl.`,
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo"/>
+      <img src="${imgHero (fbDomain)}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Je wachtwoord is veranderd!</h1>
@@ -76,7 +77,7 @@ Vragen? Mail naar support@aup.nl.`,
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
+      <a href="https://aup.nl"><img src="${imgLogoAUP (fbDomain)}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
@@ -84,7 +85,7 @@ Vragen? Mail naar support@aup.nl.`,
 </html>
 `]
 
-export const getResetEmail = (_email, link) => [
+export const getResetEmail = (fbDomain, _email, link) => [
   'Kies nieuw wachtwoord!',
   `Je krijgt deze mail omdat je hebt geklikt op wachtwoord vergeten in je account voor het online FondsenBoek.
 
@@ -107,7 +108,7 @@ Vragen? Mail naar support@aup.nl
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo"/>
+      <img src="${imgHero (fbDomain)}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Kies nieuw wachtwoord!</h1>
@@ -118,7 +119,7 @@ Vragen? Mail naar support@aup.nl
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
+      <a href="https://aup.nl"><img src="${imgLogoAUP (fbDomain)}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
@@ -126,7 +127,7 @@ Vragen? Mail naar support@aup.nl
 </html>
 `]
 
-export const getWelcomeEmail = (_email, link) => [
+export const getWelcomeEmail = (fbDomain, _email, link) => [
   'Welkom bij het online FondsenBoek.',
   `Je krijgt deze mail omdat je hebt geklikt op wachtwoord vergeten in je account voor het online FondsenBoek.
 
@@ -149,7 +150,7 @@ Vragen? Mail naar support@aup.nl
 <body>
   <div class="container">
     <div class="header">
-      <img src="${imgHero}" alt="Logo"/>
+      <img src="${imgHero (fbDomain)}" alt="Logo"/>
     </div>
     <div class="content">
       <h1>Welkom!</h1>
@@ -160,7 +161,7 @@ Vragen? Mail naar support@aup.nl
       <p>Vragen? Mail naar <a style="color: #164856" href="mailto:support@aup.nl?&subject=FondsenBoekOnline">support@aup.nl</a></p>
     </div>
     <div class="footer">
-      <a href="https://aup.nl"><img src="${imgLogoAUP}" alt="Logo"/></a>
+      <a href="https://aup.nl"><img src="${imgLogoAUP (fbDomain)}" alt="Logo"/></a>
       <p>&copy; 2024 Amsterdam University Press</p>
     </div>
   </div>
