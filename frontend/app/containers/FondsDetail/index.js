@@ -7,7 +7,7 @@ import {
 
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState, } from 'react'
 import { Link, useNavigate, useParams as useRouteParams, } from 'react-router-dom'
-import { useSelector, } from 'react-redux'
+import { useDispatch, useSelector, } from 'react-redux'
 import styled from 'styled-components'
 
 import configure from 'alleycat-js/es/configure'
@@ -20,6 +20,7 @@ import { media, mediaQuery, } from 'alleycat-js/es/styled'
 import { createReducer, } from '../../redux'
 
 import { fondsDetailFetch, } from './actions'
+import { updateNavigatingBack, } from '../App/actions/main.js'
 import reducer from './reducer'
 import saga from './saga'
 import { selectFonds, } from './selectors'
@@ -231,8 +232,12 @@ const BackS = styled.div`
 `
 
 const Back = container2 (['Back'], () => {
+  const dispatch = useDispatch ()
   const navigate = useNavigate ()
-  const onClick = useCallbackConst (() => navigate (-1))
+  const onClick = useCallbackConst (() => {
+    dispatch (updateNavigatingBack (true))
+    navigate (-1)
+  })
   const query = useSelector (selectQuery)
   const MI = useCallbackConst ((props) => <MenuItem withArrow={false} style={{ display: 'inline-block', }} {... props}/>)
   const Elem = useCallback (({ text, }) => query | ifOk (

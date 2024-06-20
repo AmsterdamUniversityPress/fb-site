@@ -28,3 +28,5 @@ export const selectPasswordUpdatedResolved = select (
 )
 
 export const selectPasswordReset = selectVal ('passwordReset')
+
+export const selectNavigatingBack = selectVal ('navigatingBack')

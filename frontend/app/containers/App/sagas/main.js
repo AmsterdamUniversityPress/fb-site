@@ -34,6 +34,7 @@ import {
   sendWelcomeEmail as a_sendWelcomeEmail,
   sendWelcomeEmailCompleted as a_sendWelcomeEmailCompleted,
   setAllowAnalytical as a_setAllowAnalytical,
+  updateNavigatingBack as a_updateNavigatingBack,
   userRemove as a_userRemove,
   userRemoveCompleted as a_userRemoveCompleted,
   userAdd as a_userAdd,
@@ -55,6 +56,7 @@ import {
   setNumPerPageIdx as a_setNumPerPageIdx,
 } from '../../shared/Pagination/actions'
 import { selectLoggedIn, } from '../store/app/selectors'
+import { selectNavigatingBack, } from '../store/ui/selectors'
 import {} from '../store/domain/selectors'
 import {
   selectFilterSearchParams as selectSearchFilterSearchParams,
@@ -373,6 +375,11 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
 }
 
 function *s_searchReset () {
+  const navigatingBack = yield select (selectNavigatingBack)
+  if (navigatingBack) {
+    yield put (a_updateNavigatingBack (false))
+    return
+  }
   yield put (a_setPage (paginationKeySearch, 0, { doNewSearch: false, }))
 }
 

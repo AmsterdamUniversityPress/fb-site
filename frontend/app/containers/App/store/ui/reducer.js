@@ -16,6 +16,7 @@ import {
   resetPassword,
   resetPasswordDone,
   resetPasswordCompleted,
+  updateNavigatingBack,
 } from '../../actions/main'
 
 import { reducer, } from '../../../../common'
@@ -23,6 +24,7 @@ import { reducer, } from '../../../../common'
 export const initialState = {
   passwordUpdated: RequestInit,
   passwordReset: RequestInit,
+  navigatingBack: false,
 }
 
 const reducerTable = makeReducer (
@@ -49,6 +51,9 @@ const reducerTable = makeReducer (
   ),
   resetPasswordDone, (_) => assoc (
     'passwordReset', RequestInit,
+  ),
+  updateNavigatingBack, (bool) => assoc (
+    'navigatingBack', bool,
   )
 )
 

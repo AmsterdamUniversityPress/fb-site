@@ -160,3 +160,8 @@ export const resetPasswordDone = action (
   () => {},
   'resetPasswordDone',
 )
+
+export const updateNavigatingBack = action (
+  (bool) => bool,
+  'updateNavigatingBack',
+)
