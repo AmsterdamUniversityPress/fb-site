@@ -64,13 +64,19 @@ const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges,
       `insert into user (email, firstName, lastName, password, allowAnalytical) values (?, ?, ?, ?, NULL)` + upsertClause,
       [email, firstName, lastName, password],
     )),
-    ({ lastInsertRowid: userId, }) => sqliteApi.runs (privileges | map (
-      (priv) => SB (`
-        insert into userPrivilege (userId, privilegeId) values
-        (?, (select id from privilege p where p.privilege = ?))
-      ` + upsertClause,
-      [userId, priv],
-    ))),
+    ({ changes, lastInsertRowid: userId, }) => changes | ifEqualsZero (
+      // --- the user already exists, so nothing happened thanks to 'on conflict do nothing', so we
+      // don't need to do the second step (adding privileges).
+      () => Right (null),
+      () => sqliteApi.runs (privileges | map (
+        (priv) => SB (`
+          insert into userPrivilege (userId, privilegeId) values
+          (?, (select id from privilege p where p.privilege = ?))
+          ` + upsertClause,
+          [userId, priv],
+        ),
+      )),
+    ),
   ),
 )
 
