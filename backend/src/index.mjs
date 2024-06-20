@@ -871,6 +871,8 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
     ],
     ({ res }, to) => {
+      const info = doDbCall (dbUserGet, [to])
+      if (nil (info)) return res | sendStatus (200, null)
       return sendInfoEmail (to, 'reset')
       | then ((_mailInfo) => res | sendStatus (200, null))
       | recover ((e) => {
