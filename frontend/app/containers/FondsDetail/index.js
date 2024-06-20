@@ -190,6 +190,9 @@ const FieldsS = styled.div`
   padding-top: 20px;
   padding-bottom: 20px;
   > .x__block-title {
+    // color: black;
+    font-weight: bold;
+    font-size: 16px;
   }
   ${mediaQuery (
     mediaPhone (`
