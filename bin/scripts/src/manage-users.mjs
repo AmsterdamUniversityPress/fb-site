@@ -119,7 +119,6 @@ const doRequest = (cookie, url, method, dataObject, { basicAuthPasswd=null, }={}
       })
     }
   )
-
   req.on ('error', (e) => {
     warn (e)
     reject (e)
@@ -131,14 +130,14 @@ const doRequest = (cookie, url, method, dataObject, { basicAuthPasswd=null, }={}
 const addUser = (cookie, urlBase, email, firstName, lastName, sendEmail, { basicAuthPasswd=null, }={}) => {
   info ('adding', yellow (email))
   const url = [urlBase] | sprintfN ('%s/api/user-admin')
-  const data = {
+  const dataObject = { data: {
     email,
     firstName,
     lastName,
     sendEmail,
     privileges: ['user'],
-  }
-  return doRequest (cookie, url, 'PUT', data, { basicAuthPasswd, })
+  }}
+  return doRequest (cookie, url, 'PUT', dataObject, { basicAuthPasswd, })
 }
 
 const resendWelcomeEmail = (cookie, urlBase, email, { basicAuthPasswd, } = {}, ) => {

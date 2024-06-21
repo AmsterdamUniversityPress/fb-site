@@ -125,14 +125,16 @@ var addUser = function addUser(cookie, urlBase, email, firstName, lastName, send
     basicAuthPasswd = _ref2$basicAuthPasswd === void 0 ? null : _ref2$basicAuthPasswd;
   info('adding', yellow(email));
   var url = pipe([urlBase], sprintfN('%s/api/user-admin'));
-  var data = {
-    email: email,
-    firstName: firstName,
-    lastName: lastName,
-    sendEmail: sendEmail,
-    privileges: ['user']
+  var dataObject = {
+    data: {
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      sendEmail: sendEmail,
+      privileges: ['user']
+    }
   };
-  return doRequest(cookie, url, 'PUT', data, {
+  return doRequest(cookie, url, 'PUT', dataObject, {
     basicAuthPasswd: basicAuthPasswd
   });
 };
