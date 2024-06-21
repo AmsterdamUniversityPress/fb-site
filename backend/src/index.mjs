@@ -5,8 +5,7 @@ import {
   gt, againstAny, eq, die, map, reduce, split, values,
   not, recurry, ifOk, ifNil, take, dot, join,
   ifPredicate, whenOk, invoke, each, appendM,
-  tap,
-  mapValues,
+  tap, ifTrue, mapValues,
 } from 'stick-js/es'
 
 import crypto from 'node:crypto'
@@ -795,19 +794,23 @@ const init = ({ port, }) => express ()
       basicEmailValidator ('email'),
       basicStringValidator ('firstName'),
       basicStringValidator ('lastName'),
-      basicStringListValidator ('privileges')
+      basicStringListValidator ('privileges'),
+      basicBooleanValidator ('sendEmail'),
     ],
-    ({ res, }, email, firstName, lastName, privileges) => {
-      doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ],  null)
-      return sendInfoEmail (email, 'welcome')
-      | then ((_mailInfo) => res | sendStatus (200, null))
-      | recover ((e) => {
-        warn (decorateRejection ('Error with /user-admin: ', e))
-        res | sendStatus (599, {
-          // --- @todo this message is getting swallowed in the front end
-          umsg: 'User added but welcome email could not be sent',
-        })
-      })
+    ({ res, }, email, firstName, lastName, privileges, sendEmail) => {
+      doDbCall (dbUserAdd, [email, firstName, lastName, privileges, ], null)
+      sendEmail | ifTrue (
+        () => sendInfoEmail (email, 'welcome')
+          | then ((_mailInfo) => res | sendStatus (200, null))
+          | recover ((e) => {
+            warn (decorateRejection ('Error with /user-admin: ', e))
+            res | sendStatus (599, {
+              // --- @todo this message is getting swallowed in the front end
+              umsg: 'User added but welcome email could not be sent',
+            })
+          }),
+        () => res | sendStatus (200, null),
+      )
     },
   ))
   | post ('/user/reset-password', gvBodyParams ([
