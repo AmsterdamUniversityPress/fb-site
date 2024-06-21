@@ -222,7 +222,6 @@ const Fields = ({ title, data, }) => {
 const BackS = styled.div`
   position: relative;
   cursor: pointer;
-  scroll-margin-top: 140px;
   > img {
     transform: rotate(180deg);
   }
@@ -244,14 +243,7 @@ const Back = container2 (['Back'], () => {
     () => <MI text={text} onClick={onClick}/>,
     () => <Link to='/search/*'><MI text={text}/></Link>,
   ), [query])
-  const refBack = useRef ()
-  useEffect (() => {
-    const cur = refBack.current
-    // --- note: is affected by scroll-margin-top of BackS
-    cur.scrollIntoView ({
-      block: 'start', })
-  })
-  return <BackS ref={refBack}>
+  return <BackS>
     <img src={iconArrow}/>
     <span className='x__link'>
       <Elem text='terug naar zoekresultaten'/>
@@ -381,6 +373,7 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
 </DetailS>
 
 const FondsDetailS = styled.div`
+  scroll-margin-top: 100px;
   height: 100%;
   background: white;
 `
@@ -404,12 +397,19 @@ export default container (
     useReduxReducer ({ createReducer, reducer, key: 'FondsDetail', })
     useSaga ({ saga, key: 'FondsDetail', })
 
+    const ref = useRef ()
+    useEffect (() => {
+      const cur = ref.current
+      // --- note: is affected by scroll-margin-top of FondsDetailS
+      cur.scrollIntoView ({
+        block: 'start', })
+    }, [])
     useEffect (() => {
       fondsDetailFetchDispatch (theId)
     }, [fondsDetailFetchDispatch, theId])
 
 
-    return <FondsDetailS>
+    return <FondsDetailS ref={ref}>
       {fonds | requestResults ({
         onError: noop,
         onResults: (data) => <Detail
