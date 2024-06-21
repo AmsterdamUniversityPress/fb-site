@@ -52,16 +52,17 @@ export const initUsers = (encryptPassword, users, initPasswords) => doEither (
     decorateRejection ("Couldn't initialise users: ") >> die,
   )
 
-export const getAllowAnalytical = (email) => map (nullMap (Boolean), sqliteApi.getPluck (SB (
-  `select allowAnalytical from user where email = ?`,
-  [email],
+// --- if the DB call returns null, we return `Right (false)`
+export const getAllowAnalytical = (sessionId) => map (nullMap (Boolean), sqliteApi.getPluck (SB (
+  `select allowAnalytical from session where sessionId = ?`,
+  [sessionId],
 )))
 
 const _userAdd = ({ allowExists, vals: { email, firstName, lastName, privileges, password, }}) => lets (
   () => allowExists ? ' on conflict do nothing' : '',
   (upsertClause) => doEitherWithTransaction (sqliteApi,
     () => sqliteApi.run (SB (
-      `insert into user (email, firstName, lastName, password, allowAnalytical) values (?, ?, ?, ?, NULL)` + upsertClause,
+      `insert into user (email, firstName, lastName, password) values (?, ?, ?, ?)` + upsertClause,
       [email, firstName, lastName, password],
     )),
     ({ changes, lastInsertRowid: userId, }) => changes | ifEqualsZero (
@@ -102,24 +103,18 @@ export const userRemove = (email) => doEitherWithTransaction (sqliteApi,
   )),
 )
 
-export const userAllowAnalyticalUpdate = (email, allow) => doEither (
+export const userAllowAnalyticalUpdate = (sessionId, allow) => doEither (
   // --- just an extra check because unwantd conversions to bool can be so annoying
   () => isBoolean (allow) ? Right (null) : Left ('userAllowAnalyticalUpdate: not a bool'),
   () => sqliteApi.run (SB (
-    `update user set allowAnalytical = ? where email = ?`,
-    [Number (allow), email],
+    `update session set allowAnalytical = ? where sessionId = ?`,
+    [Number (allow), sessionId],
   )),
 )
 
 export const userGet = (email) => sqliteApi.get (
   SB ('select email, firstName, lastName, password from user where email = ?', email),
 )
-
-// export const userInfoGet = (email) => doEither (
-  // () => privilegeGet (email),
-// (privilege) => userGet (email) | map ((info) => [privilege, info])
-  // ([privilege, info]) => [privilege, info]
-// )
 
 const userIdGet = (email) => sqliteApi.getPluck (
   SB ('select id from user where email = ?', email),
@@ -176,11 +171,6 @@ export const staleSessionsClear = (ms) => lets (
     cutoff,
   )),
 )
-
-export const updateAllowAnalyticalForNewSession = (email) => sqliteApi.run (SB (
-  `update user set allowAnalytical = NULL where email = ? and allowAnalytical = 1`,
-  [email],
-))
 
 export const usersGet = () => sqliteApi.all (S (`
   select u.email, u.firstName, u.lastName, group_concat(p.privilege) as privileges,

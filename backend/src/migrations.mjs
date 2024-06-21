@@ -201,6 +201,29 @@ export default [
       },
     },
   ]],
+  [6, [
+    {
+      forwards: {
+        sql: `alter table user drop column allowAnalytical`,
+        destructive: true,
+      },
+      backwards: {
+        sql: `alter table user add column allowAnalytical smallint`,
+        destructive: false,
+      },
+    },
+    {
+      forwards: {
+        sql: `alter table session add column allowAnalytical smallint`,
+        destructive: false,
+      },
+      backwards: {
+        sql: `alter table session drop column allowAnalytical`,
+        destructive: true,
+      },
+    },
+  ]],
+
   /*
     {
       forwards: {

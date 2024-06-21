@@ -45,7 +45,6 @@ import {
   sessionRefresh as dbSessionRefresh,
   sessionRemove as dbSessionRemove,
   staleSessionsClear as dbStaleSessionsClear,
-  updateAllowAnalyticalForNewSession as dbUpdateAllowAnalyticalForNewSession,
   userAdd as dbUserAdd,
   userGet as dbUserGet,
   userPasswordUpdate as dbUserPasswordUpdate,
@@ -199,19 +198,21 @@ const dataByTheId = data | mapTuplesAsMap ((_, v) => [v.id, v])
 // const dataByUuid = data | mapTuplesAsMap ((_, v) => [v.uuid, v])
 const filterValues = getFilters (data)
 
-const getUserinfoResponse = recurry (3) (
-  (f) => (req) => (res) => req
-  | path (['alleycat', 'user', 'userinfo'])
+// --- tries to get userinfo, and then run `f` on it, and returns a response if that fails
+const getRequestInfoResponse = recurry (3) (
+  (f) => (req) => (res) => req.alleycat
   | whenOk (f)
   | defaultTo (() => {
-    ierror ('/user: unable to get userinfo from req')
+    ierror ('/user: unable to get user/session info from req')
     res | sendStatus (500)
   }),
 )
 
 const getUserinfoKeyResponse = recurry (3) (
-  (key) => getUserinfoResponse (prop (key)),
+  (key) => getRequestInfoResponse (path (['user', 'userinfo', key])),
 )
+
+const getSessionIdResponse = getRequestInfoResponse (path (['session', 'sessionId']))
 
 const emailTransporter = nodemailer.createTransport ({
   connectionTimeout: 3000,
@@ -237,17 +238,16 @@ const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
 )
 
 // --- these all @throw
-const getAllowAnalytical = (email) => doDbCall (dbGetAllowAnalytical, [email])
+const getAllowAnalytical = (sessionId) => doDbCall (dbGetAllowAnalytical, [sessionId])
 const getLoggedIn = (email) => doDbCall (dbSessionGet, [email])
 const addLoggedIn = (email, sessionId) => doDbCall (dbSessionAdd, [email, sessionId])
 const refreshSession = (email, sessionId) => doDbCall (dbSessionRefresh, [email, sessionId])
 const removeLoggedIn = (email, sessionId) => doDbCall (dbSessionRemove, [email, sessionId])
-const updateAllowAnalyticalForNewSession = (email) => doDbCall (dbUpdateAllowAnalyticalForNewSession, [email])
 const updateUserPasswordSync = (email, pw) => doDbCall (
   dbUserPasswordUpdate, [email, encrypt (pw)],
 )
-const updateAllowAnalytical = (email, allow) => doDbCall (
-  dbUserAllowAnalyticalUpdate, [email, allow],
+const updateAllowAnalytical = (sessionId, allow) => doDbCall (
+  dbUserAllowAnalyticalUpdate, [sessionId, allow],
 )
 
 const updateUserPassword = async (email, pw) => updateUserPasswordSync (email, pw)
@@ -364,7 +364,7 @@ const alleycatAuth = authFactory.create ().init ({
         ),
         () => refreshSession (email, sessionId),
       )
-      const allowAnalytical = getAllowAnalytical (email)
+      const allowAnalytical = getAllowAnalytical (sessionId)
       return { allowAnalytical, }
     }
     // --- meaning no consent possible (an institutional user can not consent on behalf of other
@@ -373,13 +373,9 @@ const alleycatAuth = authFactory.create ().init ({
   },
   // --- arg 2 = { username, userinfo, session=null, }
   onLogin: async (email, { session=null, }) => {
+    console.log ('onLogin: session', session)
     const sessionId = session?.sessionId
-    if (ok (sessionId)) {
-      addLoggedIn (email, session?.sessionId)
-      updateAllowAnalyticalForNewSession (email)
-      const allowAnalytical = getAllowAnalytical (email)
-      return { allowAnalytical, }
-    }
+    if (ok (sessionId)) addLoggedIn (email, session?.sessionId)
     return { allowAnalytical: null, }
   },
   onLogout: async (email, { session=null, }) => {
@@ -773,16 +769,16 @@ const init = ({ port, }) => express ()
       )
     },
   ))
-  | securePost (privsUser) ('/user-allow-analytical', gvBodyParams ([
+  | securePost (privsUser) ('/session-allow-analytical', gvBodyParams ([
       basicBooleanValidator ('allow'),
     ],
     ({ req, res }, allow=10) => {
-      const email = res | getUserinfoKeyResponse ('email', req)
+      const sessionId = res | getSessionIdResponse (req)
       // --- response has already been sent
-      if (nil (email)) return
+      if (nil (sessionId)) return
       decorateAndRethrow (
         '/user-allow-analytical: db call failed: ',
-        () => updateAllowAnalytical (email, allow),
+        () => updateAllowAnalytical (sessionId, allow),
       )
       return res | sendStatus (200, null)
     },

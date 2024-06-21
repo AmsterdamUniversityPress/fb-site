@@ -215,7 +215,7 @@ function *s_allowAnalyticalUpdate (allow) {
     yield put (a_setAllowAnalytical (allow))
   }
   yield call (doApiCall, {
-    url: '/api/user-allow-analytical',
+    url: '/api/session-allow-analytical',
     optsMerge: {
       method: 'POST',
       body: JSON.stringify ({
