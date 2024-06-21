@@ -231,6 +231,7 @@ const ifPasswordMatchesPlaintext = passwordMatchesPlaintext >> ifPredicate
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
 // --- @throws
+// --- @todo don't send backend errors to the user
 const doDbCall = (dbFunc, vals) => dbFunc (...vals) | fold (
   die << decorateRejection ('DB error on ' + dbFunc.name + ': '),
   id,
