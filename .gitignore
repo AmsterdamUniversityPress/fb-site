@@ -21,6 +21,7 @@ yarn-error.log
 
 backend/lib
 backend/db/
+bin/scripts/lib/
 
 TAGS
 *.swo
