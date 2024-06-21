@@ -394,7 +394,7 @@ function *s_sendResetEmailCompleted ({ rcomplete, email, }) {
     (umsg) => (error (umsg), false),
     () => false,
   )
-  if (ok) toastInfo ('We hebben, als deze gebruiker in het systeem staat, een e-mail met instructies naar ' + email + ' gestuurd.')
+  if (ok) toastInfo ('We hebben, als je in het systeem staat, een e-mail met instructies naar ' + email + ' gestuurd.')
 }
 
 function *s_sendWelcomeEmail (email) {
