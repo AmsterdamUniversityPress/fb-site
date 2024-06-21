@@ -388,7 +388,7 @@ const init = ({
         const { username, userinfo, session=null, ... _ } = data
         res | cookie.set (mkJwt (username, session, jwtSecret))
         let sent = false
-        // --- not expected to return anything
+        // --- can optionally return `extrainfo`
         onLogin (username, { username, userinfo, session, })
           | recover (rejectP << decorateRejection ('onLogin: '))
           | recover ((e) => {
