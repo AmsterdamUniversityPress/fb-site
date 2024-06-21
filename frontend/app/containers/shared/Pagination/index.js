@@ -39,7 +39,10 @@ const PaginationInnerS = styled.div`
 
   >.x__num-per-page {
     position: relative;
-    top: -18px;
+    top: 5px;
+    &.x--show-arrows {
+      top: -18px;
+    }
   }
   >.x__cur-page {
     >.x__arrow {
@@ -220,8 +223,10 @@ const PaginationInner = component ([
     </div>
   }))
 
+  const showArrows = page.length > 1
+
   return <PaginationInnerS>
-    {page.length > 1 && <div className='x__cur-page'>
+    {showArrows && <div className='x__cur-page'>
       <div>{textPage}</div>
       <div className={clss ('x__arrow', 'x__left2', canLeft || 'x--disabled')} onClick={onClickLeft2}>
         <ArrowEndLeft/>
@@ -246,7 +251,7 @@ const PaginationInner = component ([
         <ArrowEndRight/>
       </div>
     </div>}
-    {numsPerPageDisplay.length > 1 && <div className='x__num-per-page'>
+    {numsPerPageDisplay.length > 1 && <div className={clss ('x__num-per-page', showArrows && 'x--show-arrows')}>
       {textNumber}
       {numsPerPageDisplay}
     </div>}
