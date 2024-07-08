@@ -129,15 +129,15 @@ Vragen? Mail naar support@aup.nl
 
 export const getWelcomeEmail = (fbDomain, _email, link) => [
   'Welkom bij het online FondsenBoek.',
-  `Je krijgt deze mail omdat je hebt geklikt op wachtwoord vergeten in je account voor het online FondsenBoek.
+  `Welkom bij het online FondsenBoek.
 
-Gebruik deze link om een wachtwoord te kiezen:
+Gebruik deze link om je account te activeren:
 
 ${link}
 
-Als je dit niet hebt gedaan kun je dit bericht negeren.
+Fijn dat je dit boek hebt gekocht. We hopen dat je er veel aan hebt.
 
-Vragen? Mail naar support@aup.nl
+Vragen? Mail naar support@aup.nl.
   `,
   `
 <!DOCTYPE html>
