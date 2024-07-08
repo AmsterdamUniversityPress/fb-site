@@ -16,8 +16,6 @@ import { composeManyRight, toString, logWith, } from 'alleycat-js/es/general'
 import { yellow, green, warn, error, info, } from 'alleycat-js/es/io'
 import { isEmptyString, isNotEmptyList, anyV, } from 'alleycat-js/es/predicate'
 
-// import { lookupOnOrDie, } from '../../../backend/lib/util'
-
 import yargsMod from 'yargs'
 
 const inspect = x => util.inspect (x, { depth: null, colors: process.stdout.isTTY, })
@@ -86,8 +84,6 @@ if (ok (add) && ok (resendWelcomeEmailRecipient))
 
 const basicAuthPasswd = process.env.PASSWORD
 if (nil (basicAuthPasswd)) warn ('Missing env PASSWORD')
-
-// const url = env | lookupOnOrDie ('Bad env: ' + brightRed (env))
 
 const doRequest = (cookie, url, method, dataObject, { basicAuthPasswd=null, }={}, ) => new Promise ((resolve, reject) => {
   const data = JSON.stringify (dataObject)

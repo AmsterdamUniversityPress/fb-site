@@ -11,9 +11,6 @@ import { then, recover, startP } from 'alleycat-js/es/async';
 import { composeManyRight, toString, logWith } from 'alleycat-js/es/general';
 import { yellow, green, warn, error, info } from 'alleycat-js/es/io';
 import { isEmptyString, isNotEmptyList, anyV } from 'alleycat-js/es/predicate';
-
-// import { lookupOnOrDie, } from '../../../backend/lib/util'
-
 import yargsMod from 'yargs';
 var inspect = function inspect(x) {
   return util.inspect(x, {
@@ -78,9 +75,6 @@ if (nil(add) && nil(resendWelcomeEmailRecipient)) yargs.showHelp(error);
 if (ok(add) && ok(resendWelcomeEmailRecipient)) yargs.showHelp(error);
 var basicAuthPasswd = process.env.PASSWORD;
 if (nil(basicAuthPasswd)) warn('Missing env PASSWORD');
-
-// const url = env | lookupOnOrDie ('Bad env: ' + brightRed (env))
-
 var doRequest = function doRequest(cookie, url, method, dataObject) {
   var _ref = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {},
     _ref$basicAuthPasswd = _ref.basicAuthPasswd,
