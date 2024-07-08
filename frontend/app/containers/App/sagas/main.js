@@ -434,7 +434,7 @@ function *s_userAdd ({ email, firstName, lastName, privileges }) {
     optsMerge: {
       method: 'PUT',
       body: JSON.stringify ({
-        data: { email, firstName, lastName, privileges }
+        data: { email, firstName, lastName, privileges, sendEmail: true, }
       })
     },
     continuation: EffAction (a_userAddCompleted),
