@@ -85,9 +85,9 @@ import {
   basicRequiredValidator,
 } from './util-express.mjs'
 import {
+  get as redisGet,
   init as redisInit,
   del as redisDelete,
-  getFail as redisGetFail,
   key as redisKey,
   setExpire as redisSetExpire,
 } from './util-redis.mjs'
@@ -222,11 +222,11 @@ const emailTransporter = nodemailer.createTransport ({
 const encrypt = (pw, saltRounds=10) => bcrypt.hashSync (pw, saltRounds)
 
 // --- (String, Buffer) => Boolean
-const checkPassword = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
-const passwordMatchesPlaintext = recurry (2) (
-  (testPlain) => (knownHashed) => checkPassword (testPlain, knownHashed),
+const checkHash = (testPlain, knownHashed) => bcrypt.compareSync (testPlain, knownHashed)
+const hashMatchesPlaintext = recurry (2) (
+  (testPlain) => (knownHashed) => checkHash (testPlain, knownHashed),
 )
-const ifPasswordMatchesPlaintext = passwordMatchesPlaintext >> ifPredicate
+const ifHashMatchesPlaintext = hashMatchesPlaintext >> ifPredicate
 
 const authIP = authIPFactory.create ().init (authorizeByIP)
 
@@ -330,7 +330,7 @@ const checkPrivileges = (email, privsNeed=null) => lets (
 
 const alleycatAuth = authFactory.create ().init ({
   authorizeDataDefault: new Set (),
-  checkPassword,
+  checkPassword: checkHash,
   cookieMaxAgeMs,
   getUserinfoLogin,
   getUserinfoRequest,
@@ -750,7 +750,7 @@ const init = ({ port, }) => express ()
       if (nil (knownHashed)) return res | sendStatus (499, {
         umsg: 'Ongeldige gebruiker',
       })
-      if (!checkPassword (oldPassword, knownHashed)) {
+      if (!checkHash (oldPassword, knownHashed)) {
         return res | sendStatus (499, {
           umsg: 'Onjuist wachtwoord (huidig)',
         })
@@ -822,7 +822,7 @@ const init = ({ port, }) => express ()
   ({ res }, email, password, token) => {
     const userError = (imsg) => res | sendStatus (499, {
       imsg,
-      umsg: 'Deze activatielink is verlopen of ongeldig',
+      umsg: 'Helaas, deze activatielink is verlopen of ongeldig.',
     })
     // --- usually we can just throw an exception using die, and express
     // will send a response of 500, but during a promise chain that causes
@@ -831,26 +831,29 @@ const init = ({ port, }) => express ()
       warn (msg)
       res | sendStatus (599, { imsg: 'Error with /user/reset-password', })
     }
-    redisGetFail (redisKey ('activate', email))
-    | then (ifPasswordMatchesPlaintext (token) (
-      () => {
-        allP ([
-          updateUserPassword (email, password),
-          redisDelete (redisKey ('activate', email))
-        ])
-        // --- @todo if a user tries to use the same reset link twice, it will result in
-        // serverError, while userError would be nicer because it will at least give them an
-        // informative message.
-        | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
-        | then (() => sendInfoEmail (email, 'password-changed')
-          | then (() => res | sendStatus (200, null))
-          | recover ((e) => {
-            warn ('/user/reset-password: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
-            res | sendStatus (201, null)
-          })
-        )
-      },
-      () => userError ('No match for token'),
+    redisGet (redisKey ('activate', email))
+    | then (ifNil (
+      () => userError (null),
+      (tokenHashed) => tokenHashed | ifHashMatchesPlaintext (token) (
+        () => {
+          allP ([
+            updateUserPassword (email, password),
+            redisDelete (redisKey ('activate', email))
+          ])
+          // --- @todo if a user tries to use the same reset link twice, it will result in
+          // serverError, while userError would be nicer because it will at least give them an
+          // informative message.
+          | recover (serverError << decorateRejection ('updateUserPassword () or redisDeleteFail () failed: '))
+          | then (() => sendInfoEmail (email, 'password-changed')
+            | then (() => res | sendStatus (200, null))
+            | recover ((e) => {
+              warn ('/user/reset-password: update password succeeded, but unable to send an email to the user; considering this a success and returning 201, error was: ', e)
+              res | sendStatus (201, null)
+            })
+          )
+        },
+        () => userError ('No match for token'),
+      ),
     ))
     | recover (serverError << decorateRejection ('Error retrieving/deleting token from redis: '))
   }

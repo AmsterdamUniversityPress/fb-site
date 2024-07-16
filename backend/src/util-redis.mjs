@@ -47,6 +47,7 @@ export const batch = (... fs) => letsP (... fs) | recover (
 
 export const del = (key) => redisClient.del (key)
 export const expire = (key, secs, opt) => redisClient.expire (key, secs, opt)
+// --- returns null on no such key
 export const get = (key) => redisClient.get (key)
 // --- e.g. `key ('activate', email)` -> 'activate:email', useful for storing various kinds of items
 // in the same redis database (we're just using 0 for now)
