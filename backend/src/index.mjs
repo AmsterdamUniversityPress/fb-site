@@ -822,7 +822,7 @@ const init = ({ port, }) => express ()
   ({ res }, email, password, token) => {
     const userError = (imsg) => res | sendStatus (499, {
       imsg,
-      umsg: 'Helaas, deze activatielink is verlopen of ongeldig.',
+      umsg: 'Helaas, deze activatielink is verlopen of ongeldig. Mail support@aup.nl voor een nieuwe activatielink.',
     })
     // --- usually we can just throw an exception using die, and express
     // will send a response of 500, but during a promise chain that causes
