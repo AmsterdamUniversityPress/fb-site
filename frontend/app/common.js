@@ -175,7 +175,7 @@ const toastXOptions = recurry (3) (
     () => msg ?? 'Oops! Something went wrong',
     (msg_) => toast [f] (msg_, opts | mergeToM ({
       transition: ToastTransition,
-      autoClose: 5000,
+      autoClose: f === 'error' ? 20000 : 5000,
       closeOnClick: true,
     })),
   ),
