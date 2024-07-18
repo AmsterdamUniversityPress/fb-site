@@ -54,7 +54,6 @@ const linkInstagramAUP = configLinks.get ('instagramAUP')
 const linkLinkedinAUP = configLinks.get ('linkedinAUP')
 const linkXTwitterAUP = configLinks.get ('xtwitterAUP')
 
-const linkAbonneeWordenAUP = configLinks.get ('abonneeWordenAUP')
 const linkNieuwsbriefAUP = configLinks.get ('nieuwsbriefAUP')
 
 const linkDikkeBlauwe = configLinks.get ('dikkeblauwe')
@@ -69,8 +68,9 @@ const linkCollecties = configLinks.get ('collecties')
 const linkBoeken = configLinks.get ('boeken')
 const linkTextboeken = configLinks.get ('textboeken')
 
-const emailLinkMeldFondsAan = configEmailLinks.get ('meldFondsAan')
+const emailLinkAbonneeWordenAUP = configEmailLinks.get ('abonneeWordenAUP')
 const emailLinkAanmerkingen = configEmailLinks.get ('aanmerkingen')
+const emailLinkMeldFondsAan = configEmailLinks.get ('meldFondsAan')
 
 const imageIconFacebook = configIcons.get ('facebook')
 const imageIconInstagram = configIcons.get ('instagram')
@@ -470,7 +470,7 @@ const Footer = () => {
         <Social img={imageIconXTwitter} link={linkXTwitterAUP} target={'_blank'} />
       </div>
       <div className='x__actions'>
-        <LinkElement attention={true} text="Abonnee worden" link={linkAbonneeWordenAUP} target={'_blank'}/>
+        <LinkElement attention={true} text="Abonnee worden" link={emailLinkAbonneeWordenAUP} target={'_blank'}/>
         <LinkElement attention={true} text="Meld een fonds aan" link={emailLinkMeldFondsAan}/>
         <LinkElement attention={true} text="Suggesties" link={emailLinkAanmerkingen}/>
         <LinkElement attention={true} text="AUP nieuwsbrief" link={linkNieuwsbriefAUP}/>

@@ -1,14 +1,11 @@
 import {
   pipe, compose, composeRight,
-  join, take, id, lets, sprintfN,
-  tap,
+  join, sprintfN, tap, whenOk, lets, compact,
 } from 'stick-js/es'
 
 import { fontFace, cssFont, } from 'alleycat-js/es/font'
 import { iwarn, } from 'alleycat-js/es/general'
 import { logWith, } from 'alleycat-js/es/general'
-
-import { envIsDev, envIsTst, envIsNotPrd, } from './env'
 
 import { mapLookupOnOr, } from './util-general'
 
@@ -61,6 +58,12 @@ const getMainFontCss = () => join ('\n\n', [
     },
   ),
 ])
+
+const emailLink = (to, subject=null) => lets (
+  () => 'mailto:' + to,
+  () => subject | whenOk ((s) => 'subject=' + encodeURIComponent (s)),
+  (to_, sub_) => join ('?', compact ([to_, sub_])),
+)
 
 const config = {
   app: {
@@ -187,16 +190,15 @@ const config = {
     instagramAUP: 'https://www.instagram.com/amsterdamuniversitypress/',
     linkedinAUP: 'https://www.linkedin.com/company/amsterdam-university-press/',
     xtwitterAUP: 'https://twitter.com/amsterdamupress',
-    abonneeWordenAUP: "https://aboland.nl/bladen/kennis-en-wetenschap/onlinefondsenboek/",
     // @todo url might change in the future?
     nieuwsbriefAUP: "https://aup.us5.list-manage.com/subscribe?u=ae618e98510c18013898e0ee3&id=50ef6b34aa",
     dikkeblauwe: "https://www.aup-online.com/content/periodicals/26664186",
   },
   emailLinks: {
-    // @todo use encodeURIComponent?
-    meldFondsAan: "mailto:fondsen@aup.nl?subject=Fonds%20aanmelden",
-    aanmerkingen: "mailto:fondsen@aup.nl?subject=Suggestie",
-  }
+    meldFondsAan: emailLink ('fondsen@aup.nl', 'Fonds aanmelden'),
+    aanmerkingen: emailLink ('fondsen@aup.nl', 'Suggestie'),
+    abonneeWordenAUP: emailLink ('support@aup.nl', 'abonnement Fondsenboek online'),
+  },
 }
 
 export const getFondsImage = (imgId) => imgId | mapLookupOnOr (
