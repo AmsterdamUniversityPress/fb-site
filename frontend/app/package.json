@@ -16,7 +16,7 @@
     "generate": "plop --plopfile internals/lib/generators/index.js"
   },
   "dependencies": {
-    "alleycat-js": "^0.4.19",
+    "alleycat-js": "^0.4.21",
     "bilby": "^0.0.2",
     "core-js": "3",
     "daggy": "^1.2.0",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.24.7",
-    "eslint": "^6.1.0",
+    "eslint": "^9.22.0",
     "eslint-import-resolver-webpack": "0.10.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.2.3",
