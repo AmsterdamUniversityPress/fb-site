@@ -6,8 +6,6 @@ frontend/build-*
 backend/src/config.mjs
 bin/run-backend-dev
 
-yarn.lock
-
 node_modules
 .eslintcache
 
