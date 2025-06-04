@@ -267,11 +267,8 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
         () => data.naam_organisatie,
       )}
     </div>
-    {/*<div className='x__doelstelling'>
-      {data.doelstelling}
-    </div>*/}
   </div>
-  <div className='x__rubriek'>
+ <div className='x__rubriek'>
     <Fields title='Rubriek' data={[
       ['categorieën', data.categories | whenOk (join (', '))],
       ['trefwoorden', data.trefwoorden | whenOk (join (', '))],
@@ -284,90 +281,55 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
   <div className='x__algemeen'>
     <Fields title='Algemeen' data={[
       ['website', data.website, link],
+      ['tweede website', data.tweede_website, link],
       ['typering', data.type_organisatie],
       ['beheerd door', data.naam_moeder_organisatie],
-      // --- het veld opgericht bevat onjuiste waarden: voor nu tonen we het niet.
-      // ['opgericht', data.oprichtings_datum],
       ['rechtsvorm', data.rechtsvorm],
       ['KVK', data.kvk_number],
       ['ANBI status', jaNee (data.anbi_status)],
-      ['directie', data.directeur_algemeen],
+      ['directie', data.directeur],
       ['bestuur', [
         data.bestuursvoorzitter | whenOk (concat (', voorzitter')),
         data.bestuurssecretaris | whenOk (concat (', secretaris')),
-        data.bestuurspenningmeester | whenOk (concat (', penningmeester')),
-        ... data.bestuursleden_overig,
+        data.penningmeester | whenOk (concat (', penningmeester')),
       ] | compact | join ('; ')],
     ]}/>
   </div>
   <div className='x__missie'>
     <Fields title='Missie' data={[
       ['doelstelling', data.doelstelling],
-      ['stichter(s)', data.stichter],
-      ['historie', data.historie],
-      ['beleidsplan op website', jaNee (data.beleidsplan_op_website)],
     ]}/>
   </div>
   <div className='x__doelgroep'>
     <Fields title='Doelgroep' data={[
       ['algemeen', data.doelgroep],
-      ['specifiek', data.doelgroep_overig],
-      ['activiteiten', data.activiteiten_beschrijving],
-      ['interventieniveau', data.interventie_niveau],
+      ['activiteiten', data.activiteiten],
     ]}/>
   </div>
   <div className='x__werkgebied'>
     <Fields title='Werkgebied' data={[
-      ['werkgebied', data.werk_regio],
-      ['regio in Nederland', data.regio_in_nederland],
-      ['plaats in Nederland', data.plaats_in_nederland],
-      ['landen', data.landen],
+      ['werkgebied', data.werkterreinen_geografisch | whenOk (join (', '))],
     ]}/>
   </div>
-  <div className='x__bestedingen'>
-    <Fields title='Bestedingen' data={[
-      ['budget', data.besteding_budget],
-      ['ondersteunde projecten', data.ondersteunde_projecten],
-      ['soort bijdrage', data.fin_fonds],
-      ['bovengrens', data.max_ondersteuning],
-      ['ondergrens', data.min_ondersteuning],
-    ]}/>
-  </div>
-  <div className='x__projecten'>
-    <Fields title='Projecten' data={[
-      ['criteria', data.beschrijving_project_aanmerking],
-      ['doorlooptijd', data.doorloop_tijd_act],
-      ['status aanvrager', data.fonds_type_aanvraag],
-      ['voorkeur/uitsluiting', data.uitsluiting],
-    ]}/>
-  </div>
-  <div className='x__proceduren'>
+  <div className='x__procedures'>
     <Fields title='Procedure' data={[
-      ['op aanvraag', jaNee (data.op_aanvraag)],
-      ['doorlooptijd', data.doorloop_tijd],
       ['aanvraagprocedure', data.aanvraag_procedure],
-      ['url', data.url_aanvraag_procedure, link],
-    ]}/>
-  </div>
-  <div className='x__financieel'>
-    <Fields title='Financieel' data={[
-      ['eigen vermogen', data.eigen_vermogen],
-      ['inkomsten EV', data.inkomsten_eigen_vermogen],
-      ['herkomst middelen', data.herkomst_middelen],
-      ['boekjaar', data.boekjaar],
-      ['jaarverslag op website', data.url_jaarverslag, link],
     ]}/>
   </div>
   <div className='x__contact'>
     <Fields title='Contact' data={[
       ['bereikbaar per', data.contact],
-      ['contactpersoon', data.cpfinaanvragen],
       ['postadres', data.postadres],
-      ['email (algemeen)', data.email],
-      ['telefoon (algemeen)', data.telefoon],
-      ['telefoon (financiele aanvragen)', data.telefoon_fin_aanvragen | ifEquals (data.telefoon) (
-        () => null, id,
-      )],
+      ['email', data.email],
+      ['telefoon', data.telefoon],
+    ]}/>
+  </div>
+  <div className='x__socials'>
+    <Fields title='Ook te vinden op:' data={[
+      ['facebook', data.facebook, link],
+      ['linkedin', data.linkedin, link],
+      ['instagram', data.instagram, link],
+      ['twitter', data.twitter, link],
     ]}/>
   </div>
 </DetailS>
@@ -407,7 +369,6 @@ export default container (
     useEffect (() => {
       fondsDetailFetchDispatch (theId)
     }, [fondsDetailFetchDispatch, theId])
-
 
     return <FondsDetailS ref={ref}>
       {fonds | requestResults ({
