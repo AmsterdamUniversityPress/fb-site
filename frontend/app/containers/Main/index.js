@@ -1317,7 +1317,7 @@ const Contents = container (
           const query = params.query
           if (nil (query)) navigate ('/search/*')
           const searchParams = document.location.search | mkURLSearchParams (
-            ['categories', 'trefwoorden', 'naam_organisatie', 'regios'],
+            ['categories', 'trefwoorden', 'naam_organisatie', 'werkterreinen_geografisch'],
           )
           dispatch (searchReset ())
           dispatch (searchFetch (query, searchParams))

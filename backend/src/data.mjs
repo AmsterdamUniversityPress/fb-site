@@ -48,11 +48,11 @@ const get = recurry (2) (
 
 const get_naam_organisatie = get ('naam_organisatie')
 const get_categories = get ('categories')
-const get_doelgroepen = get ('doelgroep')
+// const get_doelgroepen = get ('doelgroep')
 const get_trefwoorden = get ('trefwoorden')
 // @todo there is a fonds with Err:522 as werkregio
 const get_werkregio = get ('werk_regio')
-const get_regios = get ('regios')
+const get_regios = get ('werkterreinen_geografisch')
 
 const sort = dot ('sort')
 
