@@ -3,14 +3,15 @@ import {
   lets,
 } from 'stick-js/es'
 
-/* For generators (regenerator runtime) and built-ins like 'Reflect'.
+/* For generators (regenerator runtime) [removed]
+ * and built-ins like 'Reflect'.
  * In the @babel/preset-env section of the babel config, set 'useBuiltIns' to 'entry' and 'corejs'
  * to the right version.
  * core-js will figure out what needs to get polyfilled based on the 'targets' or 'browserslist'
  * options.
+ * 2025: removed regenerator-runtime.
  */
 import 'core-js/stable'
-import 'regenerator-runtime/runtime'
 
 // --- misc. polyfills, e.g. IE Node methods.
 import './polyfills'
