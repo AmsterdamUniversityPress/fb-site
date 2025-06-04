@@ -140,7 +140,7 @@ const config = {
       categories: 'Categorieën',
       trefwoorden: 'Trefwoorden',
       naam_organisatie: 'Fondsnaam',
-      regios: `Regio's`,
+      werkterreinen_geografisch: `Regio's`,
     },
   },
   images: {

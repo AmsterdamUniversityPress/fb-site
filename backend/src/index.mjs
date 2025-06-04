@@ -637,6 +637,8 @@ const init = ({ port, }) => express ()
     )
     next ()
   })
+// @todo: is this endpoint used? I don't think so, and in that case we can
+// also remove filterValues etc.
   | secureGet (privsUser) ('/filters', ({ res, }) => res
     | sendStatus (200, {
       // metadata: { totalAvailable: data.length, },
@@ -672,14 +674,14 @@ const init = ({ port, }) => express ()
       basicListValidator (false, [], 'categories'),
       basicListValidator (false, [], 'trefwoorden'),
       basicListValidator (false, [], 'naam_organisatie'),
-      basicListValidator (false, [], 'regios'),
+      basicListValidator (false, [], 'werkterreinen_geografisch'),
     ]),
-    ({ res }, query, pageSize, pageNum, categories, trefwoorden, naam_organisatie, regios, ) => {
+    ({ res }, query, pageSize, pageNum, categories, trefwoorden, naam_organisatie, werkterreinen_geografisch, ) => {
       const searchFilters = {
         categories,
         trefwoorden,
         naam_organisatie,
-        regios,
+        werkterreinen_geografisch: werkterreinen_geografisch,
       }
       search (query, searchFilters, pageSize, pageNum, filterValues)
       | then (({ matches, numHits, buckets }) => res | sendStatus (

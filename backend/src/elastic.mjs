@@ -159,7 +159,7 @@ const initIndexMain = (data) => startP ()
         doelstelling: { type: 'text', },
         categories: keywordMapping,
         trefwoorden: keywordMapping,
-        regios: keywordMapping,
+        werkterreinen_geografisch: keywordMapping,
         naam_organisatie: {
           type: 'text',
           fields: {
@@ -222,7 +222,7 @@ const _mkSearchQuery = (query, searchFilters, filterValues) => ({
 })
 
 const mkSearchQuery = (query, searchFilters, filterValues) => {
-  const { categories, trefwoorden, naam_organisatie, regios, } = searchFilters
+  const { categories, trefwoorden, naam_organisatie, werkterreinen_geografisch, } = searchFilters
   const size = FILTER_VALUE_COUNT
   const aggregations = {
     categories: {
@@ -236,8 +236,8 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
       // --- @todo shouldn't these 4 either all use keyword or all use fulltext?
       terms: { size, field: 'naam_organisatie.keyword', },
     },
-    regios: {
-      terms: { size, field: 'regios', },
+    werkterreinen_geografisch: {
+      terms: { size, field: 'werkterreinen_geografisch', },
     },
   }
 
@@ -260,8 +260,8 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
               { match: { trefwoorden: { query, }}},
               { match: { type_organisatie: { query, }}},
               // --- @todo this is 'Lokaal', 'Internationaal', etc.; how useful is that?
-              { match: { werk_regio: { query, }}},
-              { match: { regios: { query, }}},
+              // { match: { werk_regio: { query, }}},
+              { match: { werkterreinen_geografisch: { query, }}},
             ],
 
 
@@ -309,8 +309,8 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
                   },
                   {
                     bool: {
-                      should: regios | map ((regio) => ({
-                        term: { regios: regio, },
+                      should: werkterreinen_geografisch | map ((werkterrein) => ({
+                        term: { werkterreinen_geografisch: werkterrein, },
                       })),
                     }
                   },
