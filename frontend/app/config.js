@@ -47,7 +47,7 @@ const getMainFontCss = () => join ('\n\n', [
     'Montserrat Regular',
     [
       [
-        require ('./fonts/Montserrat-Regular.ttf'),
+        require ('./fonts/Montserrat-Regular.woff2'),
         'woff',
       ],
     ],
