@@ -373,7 +373,6 @@ const alleycatAuth = authFactory.create ().init ({
   },
   // --- arg 2 = { username, userinfo, session=null, }
   onLogin: async (email, { session=null, }) => {
-    console.log ('onLogin: session', session)
     const sessionId = session?.sessionId
     if (ok (sessionId)) addLoggedIn (email, session?.sessionId)
     return { allowAnalytical: null, }
@@ -637,14 +636,6 @@ const init = ({ port, }) => express ()
     )
     next ()
   })
-// @todo: is this endpoint used? I don't think so, and in that case we can
-// also remove filterValues etc.
-  | secureGet (privsUser) ('/filters', ({ res, }) => res
-    | sendStatus (200, {
-      // metadata: { totalAvailable: data.length, },
-      results: filterValues,
-    }),
-  )
   | secureGet (privsUser) ('/fondsen', gvQuery ([
       basicRequiredValidator ([isNonNegativeInt, Number], 'beginIdx'),
       basicRequiredValidator ([isPositiveInt, Number], 'number'),
@@ -681,7 +672,7 @@ const init = ({ port, }) => express ()
         categories,
         trefwoorden,
         naam_organisatie,
-        werkterreinen_geografisch: werkterreinen_geografisch,
+        werkterreinen_geografisch,
       }
       search (query, searchFilters, pageSize, pageNum, filterValues)
       | then (({ matches, numHits, buckets }) => res | sendStatus (

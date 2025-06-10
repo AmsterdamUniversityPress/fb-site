@@ -196,7 +196,7 @@ const mkSearchLuceneQuery = invoke (() => {
     'doelstelling',
     'naam_organisatie',
     'type_organisatie',
-    'werk_regio',
+    'werkterreinen_geografisch',
   ]
   // --- for e.g. 'jongeren verbinding' we want:
   // +(field1:jongeren field2:jongeren ...) +(field1:verbinding field2:verbinding ...)
@@ -211,14 +211,14 @@ const mkSearchLuceneQuery = invoke (() => {
 const _mkSearchQuery = (query, searchFilters, filterValues) => ({
   analyze_wildcard: true,
   q: '*:*',
-        aggregations: {
-          "categories": {
-            terms: { field: "categories" }
-          },
-          "trefwoorden": {
-            terms: { field: "trefwoorden" }
-          }
-        }
+  aggregations: {
+    "categories": {
+      terms: { field: "categories" }
+    },
+    "trefwoorden": {
+      terms: { field: "trefwoorden" }
+    },
+  },
 })
 
 const mkSearchQuery = (query, searchFilters, filterValues) => {
@@ -248,24 +248,20 @@ const mkSearchQuery = (query, searchFilters, filterValues) => {
       },
     }),
     () => ({
-            // --- i.e., group phrases together using OR
-            should: [
-              { match: { categories: { query, }}},
-              // --- we need to use full-text queries (`match` etc.) and not
-              // term-level queries (`term` etc.) because of the stemming &
-              // tokenizing and so on which we do for Dutch.
-              { match: { doelgroep: { query, }}},
-              { match: { doelstelling: { query, }}},
-              { match: { naam_organisatie: { query, }}},
-              { match: { trefwoorden: { query, }}},
-              { match: { type_organisatie: { query, }}},
-              // --- @todo this is 'Lokaal', 'Internationaal', etc.; how useful is that?
-              // { match: { werk_regio: { query, }}},
-              { match: { werkterreinen_geografisch: { query, }}},
-            ],
-
-
-    })
+      // --- i.e., group phrases together using OR
+      should: [
+        { match: { categories: { query, }}},
+        // --- we need to use full-text queries (`match` etc.) and not
+        // term-level queries (`term` etc.) because of the stemming &
+        // tokenizing and so on which we do for Dutch.
+        { match: { doelgroep: { query, }}},
+        { match: { doelstelling: { query, }}},
+        { match: { naam_organisatie: { query, }}},
+        { match: { trefwoorden: { query, }}},
+        { match: { type_organisatie: { query, }}},
+        { match: { werkterreinen_geografisch: { query, }}},
+      ],
+    }),
   )
 
   return query
@@ -352,7 +348,6 @@ export const search = (query, searchFilters, pageSize, pageNum, doHighlightDoels
         naam_organisatie: {},
         trefwoorden: {},
         type_organisatie: {},
-        werk_regio: {},
       },
     },
   }))
