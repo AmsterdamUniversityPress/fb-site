@@ -2724,9 +2724,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"alleycat-frontend@npm:^0.3.24":
-  version: 0.3.29
-  resolution: "alleycat-frontend@npm:0.3.29"
+"alleycat-frontend@npm:^0.3.30":
+  version: 0.3.30
+  resolution: "alleycat-frontend@npm:0.3.30"
   dependencies:
     "@babel/cli": "npm:^7.26.4"
     "@babel/core": "npm:^7.26.10"
@@ -2759,7 +2759,7 @@ __metadata:
     yargs: "npm:^17.6.2"
   bin:
     alleycat-frontend: ./bin-user/lib/alleycat-frontend.mjs
-  checksum: 10/607289d94ac7ff71275d54e954de4a9e1c91ca4c6ef8b406b9275eeb5b805bce3fde4b251114c418d242aecc069bfd50ababa9a548383bdfaf56bfe5e724a2cc
+  checksum: 10/53e31e69760bb8e02f903490139d380cee2fc0c2e39a79ed3d5ee278a5b1ff3633f156b8ac180ff210bc669959655d8005aaab35065a8c5a09ba81fe1c6ca51f
   languageName: node
   linkType: hard
 
@@ -5884,7 +5884,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "frontend@workspace:frontend"
   dependencies:
-    alleycat-frontend: "npm:^0.3.24"
+    alleycat-frontend: "npm:^0.3.30"
     react-modal: "npm:^3.16.1"
   languageName: unknown
   linkType: soft
