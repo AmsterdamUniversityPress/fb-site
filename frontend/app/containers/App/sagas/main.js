@@ -65,7 +65,7 @@ import {
 } from '../../../containers/Search/selectors'
 import { init as initPaginationSelectors, } from '../../shared/Pagination/selectors'
 
-import { doApiCall, saga, toastError, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
+import { doApiCall, saga, toastErrorOops, toastInfo, whenRequestCompleteSuccess, } from '../../../common'
 import { lookupOnOrDie, } from '../../../util-general'
 import config from '../../../config'
 
@@ -206,7 +206,7 @@ function *sendEmail (email, type) {
       }),
     },
     continuation: EffSaga (done),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -224,7 +224,7 @@ function *s_allowAnalyticalUpdate (allow) {
     },
     continuation: EffSaga (done),
     imsgDecorate: 'Error allow analytical update',
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -239,7 +239,7 @@ function *s_autocompleteFetch (query) {
     url: '/api/search/autocomplete-query/' + query,
     resultsModify: map (prop ('results')),
     continuation: EffAction (a_autocompleteFetchCompleted),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -258,7 +258,7 @@ function *s_fondsenFetch ({ pageNum, ... _ }) {
   yield call (doApiCall, {
     url,
     continuation: EffAction (a_fondsenFetchCompleted),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -278,7 +278,7 @@ function *s_logInUser ({ email, password, }) {
     imsgDecorate: 'Error logging in',
     // --- if we get 4xx and we have umsg, will show oops bubble with umsg;
     // --- if we get 5xx, show oops with 'Oops, something went wrong!'
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -290,7 +290,7 @@ function *s_logOutUser () {
     },
     continuation: EffSaga (logoutUserCompleted),
     imsgDecorate: 'Error logging out',
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -306,7 +306,7 @@ function *s_passwordUpdate ({ oldPassword, newPassword, }) {
     },
     continuation: EffAction (a_passwordUpdateCompleted),
     imsgDecorate: 'Error password update',
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -334,7 +334,7 @@ function *s_resetPassword ({ email, password, token, navigate, }) {
       }),
     },
     continuation: EffSaga (done),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -360,7 +360,7 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
       '/api/search/search/%s?%s',
     ),
     continuation: EffAction (a_searchFetchCompleted),
-    oops: toastError,
+    oops: toastErrorOops,
   })
   const bucketSearchParams = new URLSearchParams (filterSearchParams)
   const lastUpdatedFilterName = yield select (selectLastUpdatedFilterName)
@@ -370,7 +370,7 @@ function *s_searchFetch ({ query, filterSearchParams, }) {
       '/api/search/search/%s?%s',
     ),
     continuation: EffAction (a_searchBucketsFetchCompleted),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -438,7 +438,7 @@ function *s_userAdd ({ email, firstName, lastName, privileges }) {
       })
     },
     continuation: EffAction (a_userAddCompleted),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -452,7 +452,7 @@ function *s_userRemove (email) {
       method: 'DELETE',
     },
     continuation: EffSaga (done),
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 
@@ -469,7 +469,7 @@ function *s_usersFetch () {
     continuation: EffAction (a_usersFetchCompleted),
     resultsModify: map (prop ('users')),
     imsgDecorate: 'Error fetching users',
-    oops: toastError,
+    oops: toastErrorOops,
   })
 }
 

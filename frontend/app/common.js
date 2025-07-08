@@ -1,6 +1,7 @@
 import {
   pipe, compose, composeRight,
   concatTo, lt, bindProp, noop, die, always, addIndex2,
+  compact, join,
   bindTryProp, defaultTo, lets, invoke, ifOk, id, not,
   T, F, prop, condS, gt, guard, sprintf1, arg0, divideBy, reduce,
   tap, otherwise, recurry, concat, side2, remapTuples, mergeToM,
@@ -187,6 +188,11 @@ export const toastSuccessOptions = toastXOptions ('success')
 export const toastInfoOptions = toastXOptions ('info')
 
 export const toastError = toastErrorOptions ({})
+// --- when used as an 'oops' function it needs to also accept `custom`
+// --- @todo is custom something we want to show the user?
+export const toastErrorOops = (umsg, custom) => toastErrorOptions ({}) (
+  compact ([umsg, custom]) | join (': ')
+)
 export const toastWarn = toastWarnOptions ({})
 export const toastSuccess = toastSuccessOptions ({})
 
