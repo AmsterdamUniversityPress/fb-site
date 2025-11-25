@@ -324,14 +324,16 @@ const Detail = ({ image: _image, data, }) => <DetailS className='text'>
       ['telefoon', data.telefoon],
     ]}/>
   </div>
-  <div className='x__socials'>
-    <Fields title='Ook te vinden op:' data={[
-      ['facebook', data.facebook, link],
-      ['linkedin', data.linkedin, link],
-      ['instagram', data.instagram, link],
-      ['twitter', data.twitter, link],
+  {/*
+    <div className='x__socials'>
+      <Fields title='Ook te vinden op:' data={[
+        ['facebook', data.facebook, link],
+          ['linkedin', data.linkedin, link],
+          ['instagram', data.instagram, link],
+          ['twitter', data.twitter, link],
     ]}/>
-  </div>
+      </div>
+  */}
 </DetailS>
 
 const FondsDetailS = styled.div`
