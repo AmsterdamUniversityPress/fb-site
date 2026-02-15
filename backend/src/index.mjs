@@ -32,7 +32,10 @@ import { ifArray, } from 'alleycat-js/es/predicate'
 
 import { authIP as authIPFactory, } from './auth-ip.mjs'
 import { config as configFb, } from './config-fb.mjs'
-import { config as configUser, } from './config.mjs'
+import { config as configUserDev, } from './config-dev.mjs'
+import { config as configUserTst, } from './config-tst.mjs'
+import { config as configUserAcc, } from './config-acc.mjs'
+import { config as configUserPrd, } from './config-prd.mjs'
 import { dataTst, dataAcc, dataPrd, getFilters, } from './data.mjs'
 import {
   init as dbInit,
@@ -105,9 +108,6 @@ import {
 // } from 'alleycat-express-jwt'
 } from './alleycat-express-jwt/index.mjs'
 
-const configUserTop = configUser | configure.init
-const configFbTop = configFb () | configure.init
-
 // --- @todo
 // const cacheExpireSecs = 10 * 3600
 const cacheExpireSecs = null
@@ -124,6 +124,16 @@ const appEnv = lets (
 )
 
 const envIsDevOrTst = appEnv === 'dev' || appEnv === 'tst'
+
+const configUser = appEnv | lookupOnOrDie ('assert') ({
+  dev: configUserDev,
+  tst: configUserTst,
+  acc: configUserAcc,
+  prd: configUserPrd,
+})
+
+const configUserTop = configUser | configure.init
+const configFbTop = configFb () | configure.init
 
 const getRedisURLConfigKey = 'getRedisURL.' + appEnv
 

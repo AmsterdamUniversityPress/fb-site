@@ -3,7 +3,10 @@ _site
 
 frontend/build-*
 
-backend/src/config.mjs
+backend/src/config-dev.mjs
+backend/src/config-tst.mjs
+backend/src/config-acc.mjs
+backend/src/config-prd.mjs
 bin/run-backend-dev
 
 node_modules
